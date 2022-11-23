@@ -16,106 +16,145 @@ This gem is a work in progress and I would love to get your feedback and contrib
 
 ## What does Vident provide?
 
-- `Vident::RootElement` which is for creating
-  the 'root' element in your view components. Similar to `Primer::BaseComponent` but
-  exposes a simple API for configuring and adding Stimulus controllers, targets and actions.
-
 - `Vident::Component`: A mixin for your `ViewComponent` components or `Phlex` components that provides the a helper to create the
   root element component (either in the sidecar view or directly in template-less components, eg in Phlex).
 
 - `Vident::TypedComponent`: like `Vident::Component` but uses `dry-types` to define typed attributes for your components.
 
-## Examples:
+- `Vident::RootElement` which is for creating
+  the 'root' element in your view components. Similar to `Primer::BaseComponent` but
+  exposes a simple API for configuring and adding Stimulus controllers, targets and actions.
 
-Let's grab a real example from a real app. In this case we are using a view from https://github.com/excid3/tailwindcss-stimulus-components/
 
-### With ViewComponent
+## The Stimulus Greeter Example
+
+Let's grab a real example from a real app. In this case we are using the example from https://stimulus.hotwired.dev/
+
+Start with a simple `ViewComponent` component implementation of the Stimulus Greeter example:
+
+`app/components/hello_component.rb`
 
 ```ruby
-class DropdownComponent < ViewComponent::Base
-  def initialize(dismiss_after: 5000, remove_delay: 0)
-    @dismiss_after = dismiss_after
-    @remove_delay = remove_delay
+class HelloComponent < ViewComponent::Base
+  def initialize(cta: "Greet")
+    @cta = cta
   end
 end
 ```
 
 Here is our starting `ViewComponent` template:
 
+`app/components/hello_component.html.erb`
+
 ```erb
-<div class="relative"
-    data-controller="dropdown"
-    data-action="click->dropdown#toggle click@window->dropdown#hide"
-    data-dropdown-active-target="#dropdown-button"
-    data-dropdown-active-class="bg-teal-600"
-    data-dropdown-invisible-class="opacity-0 scale-95"
-    data-dropdown-visible-class="opacity-100 scale-100"
-    data-dropdown-entering-class="ease-out duration-100"
-    data-dropdown-enter-timeout="100"
-    data-dropdown-leaving-class="ease-in duration-75"
-    data-dropdown-leave-timeout="75">
-  <div data-action="click->dropdown#toggle click@window->dropdown#hide" role="button" data-dropdown-target="button" tabindex="0" class="inline-block select-none">
-    <%= t ".button-cta" %>
-  </div>
-  <div data-dropdown-target="menu" class="absolute pin-r mt-2 transform transition hidden opacity-0 scale-95">
-    <div class="bg-white shadow rounded border overflow-hidden">
-      <%= content %>
-    </div>
-  </div>
+<!--HTML from anywhere-->
+<div data-controller="hello">
+  <input data-hello-target="name" type="text">
+
+  <button data-action="click->hello#greet">
+    <%= @cta %>
+  </button>
+
+  <span data-hello-target="output">
+  </span>
 </div>
 ```
 
-Some thoughts on it:
+`app/javascript/controllers/hello_controller.js`
 
-- The data attributes feel like a lot of boilerplate. Especially if I have multiple data values for the 
-  controller, or multiple actions on an element.
-- a Stimulus controller is often 1-1 with the ViewComponent, so why constantly repeat the controller name? 
+```js
+import { Controller } from "stimulus"
+
+export default class extends Controller {
+  static targets = [ "name", "output" ]
+
+  greet() {
+    this.outputTarget.textContent =
+      `Hello, ${this.nameTarget.value}!`
+  }
+}
+```
+
+Some thoughts on using Stimulus:
+
+- The HTML data attributes may feel cumbersome. Especially if I have multiple data values for the 
+  controller, or multiple actions on an element. The Greeter example is simple, but it can get much more complex.
+- a Stimulus controller is often 1-1 with the ViewComponent, so why repeat the controller name? 
 - I want to use 'named classes', but writing out the data attributes for them is tedious.
 - What happens if I want to style the root element differently in different contexts?
 
+### Enter Vident...
 
-If we include `Vident::Component` in our component, we can render the root element and use the Stimulus helpers instead:
+Let's subclass `Vident::Component` in our component, 
 
 ```ruby
-class DropdownComponent < ViewComponent::Base
-  include Vident::ViewComponent
+class HelloComponent < Vident::Component
   
-    def initialize(dismiss_after: 5000, remove_delay: 0) 
-      @dismiss_after = dismiss_after
-      @remove_delay = remove_delay
-    end
+  attributes(cta: "Greet")
+  # Or => attribute :cta, default: "Greet"
 end
 ```
 
+We can now render the root/parent element and use helpers to create our Stimulus attributes.
+
+Note that the JavaScript remains unchanged but now it can be 'sidecared' in the same directory as the component:
+`app/components/hello_controller.js`
+
+For the template, there are a few ways we might approach it.
+
+First we can have Vident create the `data-*` attributes and output them directly to our HTML:
+
 ```erb
-<%= render root_element actions: [["click@window", :hide]],
-                        targets: [[:active, "#dropdown-button"]],
-                        data_maps: [
-                          { dismiss_after: @dismiss_after },
-                          { remove_delay: @remove_delay }
-                        ], 
-                        named_classes: {
-                           active: "bg-teal-600",
-                           invisible: "opacity-0 scale-95",
-                           visible: "opacity-100 scale-100",
-                           entering: "ease-out duration-100",
-                           leaving: "ease-in duration-75"
-                         },
-                        } do |dropdown| %>
-  <%= dropdown.target_tag :button, 
-                          actions: [[:click, :toggle]], 
-                          html_options: {class: "inline-block select-none", role: "button", tabindex: 0} do %>
-    <%= t ".button-cta" %>
-  <% end %>
-  <%= dropdown.target_tag :menu, 
-                          html_options: {class: ["absolute pin-r mt-2 transform transition hidden", dropdown.named_class(:invisibile)]} do %>
-    <div class="bg-white shadow rounded border overflow-hidden">
-      <%= content %>
-    </div>
-  <% end %>
+<%= render root do |greeter| %>
+  <input type="text" <%= greeter.as_target(:name) %>>
+
+  <button <%= greeter.with_actions([:click, :greet]) %>>
+    <%= @cta %>
+  </button>
+
+  <span <%= greeter.as_target(:output) %>>
+  </span>
 <% end %>
 ```
 
+Alternatively we can use methods such as `target_tag`. Also imagine the button was actually a ViewComponent too 
+(which used Vident) then we could do this:
+
+```erb
+<%= render root do |greeter| %>
+  <%= greeter.target_tag :input, :name, html_options: {type: "text"} %>
+ 
+  <%= render ::ButtonComponent.new(actions: [greeter.action(:click, :greet)]) do |button| %>
+    <%= @cta %>
+  <% end %>
+
+  <%= greeter.target_tag :span, :output %>
+<% end %>
+```
+
+By rendering the root component like this, we can now manipulate that element from the points at which we render it.
+
+For example:
+
+```erb
+<% render AnotherComponent.new do |another_component|%>
+  <%= render ::HelloComponent.new(
+    targets: [another_component.target(:my_greeter)], # The Greeters outer <div> will have the 'data-another-component-target="my_greeter"' attribute added to it
+    cta: "Greet Me",
+    html_options: {class: "bg-red-500"}
+  ) %>
+<% end %>
+```
+
+### Typed attributes with TypedComponent
+
+With types on the attributes
+
+```ruby
+class HelloComponent < Vident::Component
+  attribute :cta, String, default: "Greet"
+end
+```
 
 ## Installation
 
