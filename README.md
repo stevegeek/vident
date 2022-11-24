@@ -85,10 +85,11 @@ Some thoughts on using Stimulus:
 
 ### Enter Vident...
 
-Let's subclass `Vident::Component` in our component, 
+Let's include `Vident::Component` in our component, 
 
 ```ruby
-class HelloComponent < Vident::Component
+class HelloComponent < ViewComponent::Base
+  include Vident::Component
   
   attributes(cta: "Greet")
   # Or => attribute :cta, default: "Greet"
@@ -137,9 +138,9 @@ By rendering the root component like this, we can now manipulate that element fr
 For example:
 
 ```erb
-<% render AnotherComponent.new do |another_component|%>
+<%= render AnotherComponent.new do |another_component|%>
   <%= render ::HelloComponent.new(
-    targets: [another_component.target(:my_greeter)], # The Greeters outer <div> will have the 'data-another-component-target="my_greeter"' attribute added to it
+    targets: [another_component.target(:my_greeter)], # The Greeters outer <div> will have the 'data-another-component-target="myGreeter"' attribute added to it
     cta: "Greet Me",
     html_options: {class: "bg-red-500"}
   ) %>
@@ -151,7 +152,9 @@ For example:
 With types on the attributes
 
 ```ruby
-class HelloComponent < Vident::Component
+class HelloComponent < ViewComponent::Base
+  include Vident::TypedComponent
+  
   attribute :cta, String, default: "Greet"
 end
 ```
