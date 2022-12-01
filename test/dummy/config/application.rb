@@ -19,5 +19,8 @@ module Dummy
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+
+    config.importmap.cache_sweepers.append(Rails.root.join("app/components"), Rails.root.join("app/views"))
+    config.assets.paths.append("app/components", "app/views")
   end
 end
