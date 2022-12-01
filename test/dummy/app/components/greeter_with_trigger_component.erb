@@ -1,0 +1,11 @@
+<%= render root do |greeter| %>
+  <input type="text"
+         <%= greeter.as_target(:name) %>
+         class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+  <% if trigger? %>
+    <%= trigger %>
+  <% else %>
+    <%= trigger(cta: "Greet", actions: greeter.action(:click, :greet)) %>
+  <% end %>
+  <%= greeter.target_tag(:span, :output, class: "ml-4 text-xl text-gray-700") %>
+<% end %>

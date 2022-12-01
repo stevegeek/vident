@@ -44,6 +44,15 @@
       <h3>2.4) Phlex with Vident</h3>
       <%= render ::Views::GreeterVidentView.new(cta: "Greet w. Vident + Phlex") %>
 
+      <h3>2.5) With Vident we can set Stimulus actions/targets on other components (eg in a ViewComponent slot)</h3>
+      <%= render ::GreeterWithTriggerComponent.new do |greeter| %>
+        <% greeter.trigger(
+             cta: "I'm a button component. Click me!",
+             actions: [
+               greeter.action(:click, :greet),
+             ]
+           ) %>
+      <% end %>
     </section>
   </div>
 </div>
