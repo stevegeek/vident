@@ -39,6 +39,10 @@ module Vident
         (args.size == 1) ? parse_action_arg(part1) : parse_multiple_action_args(part1, part2, part3)
       end
 
+      def action_data_attribute(*actions)
+        {action: parse_actions(actions).join(" ")}
+      end
+
       # TODO: rename & make stimulus Target class instance and returns it, which can convert to String
       # Create a Stimulus Target and returns it
       #   examples:
