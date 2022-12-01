@@ -20,4 +20,7 @@
   <h3>Phlex with Vident</h3>
   <%= render ::Views::HelloVidentView.new(name: "Vident + Phlex") %>
 
+  <h3>With Vident we can do stuff like set classes at render site</h3>
+  <%= render ::HelloVidentComponent.new(name: "Red", html_options: {class: "text-red-600"}) %>
+
 </div>
