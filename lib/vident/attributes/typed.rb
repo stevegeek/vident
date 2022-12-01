@@ -58,46 +58,6 @@ if Gem.loaded_specs.has_key? "dry-struct"
 
           attr_reader :schema, :attribute_ivar_names
 
-          def attr_string(name, **options)
-            attribute(name, String, **options)
-          end
-
-          def attr_boolean(name, **options)
-            attribute(name, :boolean, **options)
-          end
-
-          def attr_symbol(name, **options)
-            attribute(name, Symbol, **options)
-          end
-
-          def attr_float(name, **options)
-            attribute(name, Float, **options)
-          end
-
-          def attr_numeric(name, **options)
-            attribute(name, Numeric, **options)
-          end
-
-          def attr_integer(name, **options)
-            attribute(name, Integer, **options)
-          end
-
-          def attr_hash(name, **options)
-            attribute(name, Hash, **options)
-          end
-
-          def attr_array(name, **options)
-            attribute(name, Array, **options)
-          end
-
-          def attr_any(name, **options)
-            attribute(name, :any, **options)
-          end
-
-          def attr_model(name, **options)
-            attribute(name, options[:type] || options[:sub_type] || :any, **options)
-          end
-
           def attribute(name, type = :any, **options)
             type_info = map_primitive_to_dry_type(type, !options[:convert])
             type_info = set_constraints(type_info, type, options)
