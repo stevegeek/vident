@@ -12,13 +12,16 @@ module Vident
       def prepare_attributes(attributes)
         @__attributes ||= {}
         attribute_names.each do |attr_name|
-          default = self.class.attribute_options&.dig(attr_name, :default)
+          options = self.class.attribute_options
+          default = options&.dig(attr_name, :default)
+          allow_nil = options[attr_name] ? options[attr_name].fetch(:allow_nil, true) : true
           if attributes&.include? attr_name
             value = attributes[attr_name]
             @__attributes[attr_name] = (value.nil? && default) ? default : value
           else
             @__attributes[attr_name] = default
           end
+          raise ArgumentError, "Attribute #{attr_name} cannot be nil" if @__attributes[attr_name].nil? && !allow_nil
           instance_variable_set(self.class.attribute_ivar_names[attr_name], @__attributes[attr_name])
         end
       end
