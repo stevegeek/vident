@@ -151,10 +151,11 @@ module Vident
     # Helper to create the main element
     def parent_element(**options)
       @parent_element ||= begin
-        klass = if Gem.loaded_specs.has_key? "phlex"
-          RootComponent::PhlexHTML
+        # Note: we cant mix phlex and view_component render contexts
+        klass = if self.class.ancestors.include?(Phlex::HTML)
+          RootComponent::UsingPhlexHTML
         else
-          RootComponent::ViewComponent
+          RootComponent::UsingViewComponent
         end
         klass.new(**stimulus_options_for_component(options))
       end
