@@ -47,7 +47,7 @@
       <h3>2.5) With Vident we can set Stimulus actions/targets on other components (eg in a ViewComponent slot)</h3>
       <%= render ::GreeterWithTriggerComponent.new do |greeter| %>
         <% greeter.trigger(
-             cta: "I'm a button component!",
+             before_clicked_message: "I'm a button component!",
              after_clicked_message: "Greeted! Click me again to reset.",
              actions: [
                greeter.action(:click, :greet),

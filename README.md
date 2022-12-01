@@ -1,15 +1,29 @@
 # Vident
 
-Vident makes using Stimulus with your `ViewComponent` or `Phlex` view components as
-easy as writing Ruby. 
+Vident helps you create flexible & maintainable component libraries for your application.
 
-# Why?
+Vident makes using Stimulus with your [`ViewComponent`](https://viewcomponent.org/) or [`Phlex`](https://phlex.fun) components easier.
+
+## Things still to do...
+
+This is a work in progress. Here's what's left to do for first release:
+
+- Iterate on the interfaces and functionality
+- Add tests
+- Make the gem more configurable to fit more use cases
+- Create an example library of a few components for some design system
+  - Create a demo app with `lookbook` and those components
+- Add more documentation
+- split `vident` into `vident` + `vident-rails` gems (and maybe `vident-rspec`) (Phlex can be used outside of Rails)
+  - possibly also split into `vident-phlex` and `vident-view_component` gems ?
+
+# Motivation
 
 I love working with Stimulus, but I find manually crafting the data attributes for
-targets and actions error prone and tedious. Vident aims to make this process easy
-and keeps me thinking in Ruby. 
+targets and actions error prone and tedious. Vident aims to make this process easier
+and keep me thinking in Ruby. 
 
-I have been using Vident in production apps for over a year now and it has been constantly
+I have been using Vident with `ViewComponent` in production apps for a while now and it has been constantly
 evolving.
 
 This gem is a work in progress and I would love to get your feedback and contributions!
@@ -17,147 +31,160 @@ This gem is a work in progress and I would love to get your feedback and contrib
 ## What does Vident provide?
 
 - `Vident::Component`: A mixin for your `ViewComponent` components or `Phlex` components that provides the a helper to create the
-  root element component (either in the sidecar view or directly in template-less components, eg in Phlex).
+  root element component (in templated or template-less components).
 
 - `Vident::TypedComponent`: like `Vident::Component` but uses `dry-types` to define typed attributes for your components.
 
 - `Vident::RootComponent::*` which are components for creating the 'root' element in your view components. Similar to `Primer::BaseComponent` but
   exposes a simple API for configuring and adding Stimulus controllers, targets and actions. Normally you create these
-  using the `root` helper method on `Vident::Component`/`Vident::TypedComponent`. 
+  using the `root` helper method on `Vident::Component`/`Vident::TypedComponent`.
 
+# Example
 
-## The Stimulus Greeter Example
+Image the following in an application that uses ViewComponent, Stimulus and Vident:
 
-Let's grab a real example from a real app. In this case we are using the example from https://stimulus.hotwired.dev/
+```erb
+<%= render ::GreeterComponent.new do |greeter| %>
+  <% greeter.trigger(
+       before_clicked: "Greet",
+       after_clicked: "Greeted! Reset?",
+       actions: [
+         greeter.action(:click, :greet),
+       ],
+       html_options: {
+         class: "bg-red-500 hover:bg-red-700"
+       }
+     ) %>
+<% end %>
+```
 
-Start with a simple `ViewComponent` component implementation of the Stimulus Greeter example:
-
-`app/components/hello_component.rb`
+Where the components are defined as follows:
 
 ```ruby
-class HelloComponent < ViewComponent::Base
-  def initialize(cta: "Greet")
-    @cta = cta
-  end
+# app/components/greeter_component.rb
+
+class GreeterComponent < ViewComponent::Base
+  include Vident::Component
+
+  renders_one :trigger, ButtonComponent
 end
 ```
 
-Here is our starting `ViewComponent` template:
-
-`app/components/hello_component.html.erb`
-
 ```erb
-<!--HTML from anywhere-->
-<div data-controller="hello">
-  <input data-hello-target="name" type="text">
+<%# app/components/greeter_component.html.erb %>
 
-  <button data-action="click->hello#greet">
-    <%= @cta %>
-  </button>
+<%= render root named_classes: {
+  pre_click: "text-md text-gray-500",
+  post_click: "text-xl text-blue-700"
+} do |greeter| %>
+  <input type="text"
+         <%= greeter.as_target(:name) %>
+         class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+  <% if trigger? %>
+    <%= trigger %>
+  <% else %>
+    <%= trigger(cta: "Greet", actions: greeter.action(:click, :greet)) %>
+  <% end %>
+  <!-- you can also use the `target_tag` helper to render targets -->
+  <%= greeter.target_tag(:span, :output, class: "ml-4 #{greeter.named_classes(:pre_click)}") do %>
+    ...
+  <% end %>
+<% end %>
 
-  <span data-hello-target="output">
-  </span>
-</div>
 ```
 
-`app/javascript/controllers/hello_controller.js`
-
 ```js
-import { Controller } from "stimulus"
+// app/components/greeter_component_controller.js
+
+import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
   static targets = [ "name", "output" ]
+  static classes = [ "preClick", "postClick" ]
 
   greet() {
-    this.outputTarget.textContent =
-      `Hello, ${this.nameTarget.value}!`
+    this.clicked = !this.clicked;
+    this.outputTarget.classList.toggle(this.preClickClasses, !this.clicked);
+    this.outputTarget.classList.toggle(this.postClickClasses, this.clicked);
+
+    if (this.clicked)
+      this.outputTarget.textContent = `Hello, ${this.nameTarget.value}!`
+    else
+      this.clear();
+  }
+
+  clear() {
+    this.outputTarget.textContent = '...';
   }
 }
 ```
 
-Some thoughts on using Stimulus:
-
-- The HTML data attributes may feel cumbersome. Especially if I have multiple data values for the 
-  controller, or multiple actions on an element. The Greeter example is simple, but it can get much more complex.
-- a Stimulus controller is often 1-1 with the ViewComponent, so why repeat the controller name? 
-- I want to use 'named classes', but writing out the data attributes for them is tedious.
-- What happens if I want to style the root element differently in different contexts?
-
-### Enter Vident...
-
-Let's include `Vident::Component` in our component, 
+The slot renders this component:
 
 ```ruby
-class HelloComponent < ViewComponent::Base
-  include Vident::Component
-  
-  attributes(cta: "Greet")
-  # Or => attribute :cta, default: "Greet"
-end
-```
+# app/components/button_component.rb
 
-We can now render the root/parent element and use helpers to create our Stimulus attributes.
-
-Note that the JavaScript remains unchanged but now it can be 'sidecared' in the same directory as the component:
-`app/components/hello_controller.js`
-
-For the template, there are a few ways we might approach it.
-
-First we can have Vident create the `data-*` attributes and output them directly to our HTML:
-
-```erb
-<%= render root do |greeter| %>
-  <input type="text" <%= greeter.as_target(:name) %>>
-
-  <button <%= greeter.with_actions([:click, :greet]) %>>
-    <%= @cta %>
-  </button>
-
-  <span <%= greeter.as_target(:output) %>>
-  </span>
-<% end %>
-```
-
-Alternatively we can use methods such as `target_tag`. Also imagine the button was actually a ViewComponent too 
-(which used Vident) then we could do this:
-
-```erb
-<%= render root do |greeter| %>
-  <%= greeter.target_tag :input, :name, html_options: {type: "text"} %>
- 
-  <%= render ::ButtonComponent.new(actions: [greeter.action(:click, :greet)]) do |button| %>
-    <%= @cta %>
-  <% end %>
-
-  <%= greeter.target_tag :span, :output %>
-<% end %>
-```
-
-By rendering the root component like this, we can now manipulate that element from the points at which we render it.
-
-For example:
-
-```erb
-<%= render AnotherComponent.new do |another_component|%>
-  <%= render ::HelloComponent.new(
-    targets: [another_component.target(:my_greeter)], # The Greeters outer <div> will have the 'data-another-component-target="myGreeter"' attribute added to it
-    cta: "Greet Me",
-    html_options: {class: "bg-red-500"}
-  ) %>
-<% end %>
-```
-
-### Typed attributes with TypedComponent
-
-With types on the attributes
-
-```ruby
-class HelloComponent < ViewComponent::Base
+class ButtonComponent < ViewComponent::Base
   include Vident::TypedComponent
-  
-  attribute :cta, String, default: "Greet"
+
+  attribute :after_clicked, String, default: "Greeted!"
+  attribute :before_clicked, String, default: "Greet"
+
+  def call
+    root_tag = root(
+      element_tag: :button,
+      actions: [:change_message],
+      data_maps: [{after_clicked_message: after_clicked, before_clicked_message: before_clicked}],
+      html_options: {class: "ml-4 whitespace-no-wrap bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"}
+    )
+    render root_tag do
+      @before_clicked_message
+    end
+  end
 end
 ```
+
+```js  
+// app/components/button_component_controller.js
+
+import { Controller } from "@hotwired/stimulus"
+
+export default class extends Controller {
+  changeMessage() {
+    this.clicked = !this.clicked;
+    this.element.textContent = this.clicked ? this.data.get("afterClickedMessage") : this.data.get("beforeClickedMessage");
+  }
+}
+
+```
+
+Generates the following HTML for you:
+
+```html 
+<div class="greeter-component" 
+     data-controller="greeter-component" 
+     data-greeter-component-pre-click-class="text-md text-gray-500" 
+     data-greeter-component-post-click-class="text-xl text-blue-700" 
+     id="greeter-component-1599855-6">
+  <input type="text" 
+         data-greeter-component-target="name" 
+         class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+  <button class="greeter-button-component ml-4 whitespace-no-wrap bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded bg-red-500 hover:bg-red-700" 
+          data-controller="greeter-button-component" 
+          data-action="click->greeter-component#greet greeter-button-component#changeMessage" 
+          data-greeter-button-component-after-clicked-message="Greeted! Reset?" 
+          data-greeter-button-component-before-clicked-message="Greet" 
+          id="greeter-button-component-7799479-7">Greet</button>
+  <!-- you can also use the `target_tag` helper to render targets -->
+  <span class="ml-4 text-md text-gray-500" 
+        data-greeter-component-target="output">
+    ...
+  </span>
+</div>
+```
+
+![img_1.png](img_1.png)
+![img.png](img.png)
 
 ## Installation
 
@@ -190,10 +217,6 @@ gem 'dry-struct'
 And then execute:
 
     $ bundle install
-
-Or install it yourself as:
-
-    $ gem install vident
 
 ## Making 'sidecar' Stimulus Controllers work
 
@@ -232,7 +255,17 @@ config.importmap.cache_sweepers.append(Rails.root.join("app/components"), Rails.
 config.assets.paths.append("app/components", "app/views")
 ```
 
+### When using `webpacker`
 
+TODO
+
+### When using `propshaft`
+
+TODO
+
+## Using TypeScript for Stimulus Controllers
+
+TODO
 
 ## Usage
 
@@ -255,7 +288,7 @@ rails s
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/vident. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/[USERNAME]/vident/blob/master/CODE_OF_CONDUCT.md).
+Bug reports and pull requests are welcome on GitHub at https://github.com/stevegeek/vident. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/[USERNAME]/vident/blob/master/CODE_OF_CONDUCT.md).
 
 ## License
 

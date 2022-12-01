@@ -3,7 +3,6 @@
 class GreeterButtonComponent < ViewComponent::Base
   include Vident::TypedComponent
 
-  attribute :cta, String
   attribute :after_clicked_message, String, default: "Greeted!"
   attribute :before_clicked_message, String, default: "Greet"
 
@@ -15,7 +14,7 @@ class GreeterButtonComponent < ViewComponent::Base
       html_options: {class: "ml-4 whitespace-no-wrap bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"}
     )
     render root_tag do
-      @cta
+      @before_clicked_message
     end
   end
 end
