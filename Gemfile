@@ -7,10 +7,16 @@ gemspec
 
 gem "puma"
 
-gem "rails", ">= 6"
+gem "rails", ">= 7"
+# TODO: move examples to another app?
+gem "sprockets-rails"
+gem "tailwindcss-rails"
+gem "turbo-rails"
+gem "importmap-rails"
+gem "stimulus-rails"
 
 gem "phlex", "~> 0.5.3", require: "phlex/rails"
-# gem "view_component"
+gem "view_component", "2.74.1"
 
 gem "sqlite3"
 
