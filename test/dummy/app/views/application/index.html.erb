@@ -1,4 +1,17 @@
 <div class="prose">
   <h1>Comparing components</h1>
 
+  <ul>
+    <li><a href="#hw">Simple Hello World examples</a></li>
+    <li><a href="#greeter">Stimulus Greeter examples</a></li>
+  </ul>
+
+  <h2 id="hw">Hello World Examples</h2>
+
+  <h3>ViewComponent</h3>
+  <%= render ::HelloComponent.new(name: "ViewComponent") %>
+
+  <h3>Phlex</h3>
+  <%= render ::Views::HelloView.new(name: "Phlex") %>
+
 </div>
