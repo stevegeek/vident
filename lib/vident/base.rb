@@ -169,6 +169,8 @@ module Vident
     end
     alias_method :root, :parent_element
 
+    delegate :action, :target, :named_classes, to: :root
+
     # This can be overridden to return an array of extra class names
     def element_classes
     end
