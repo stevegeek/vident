@@ -7,7 +7,7 @@ module Views
     end
 
     def template
-      h1 { "👋 Hello #{@name}!" }
+      h4 { "👋 Hello #{@name}!" }
     end
   end
 end

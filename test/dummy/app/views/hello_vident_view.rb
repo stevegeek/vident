@@ -7,7 +7,7 @@ module Views
     attribute :name
 
     def template
-      render root(element_tag: :h1) do
+      render root(element_tag: :h4) do
         "👋 Hello #{@name}!"
       end
     end

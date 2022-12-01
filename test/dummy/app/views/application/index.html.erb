@@ -1,4 +1,4 @@
-<div class="prose">
+<div class="prose no-max-width">
   <h1>Comparing components</h1>
 
   <ul>
@@ -6,21 +6,25 @@
     <li><a href="#greeter">Stimulus Greeter examples</a></li>
   </ul>
 
-  <h2 id="hw">Hello World Examples</h2>
+  <div class="space-y-16">
+    <h2 id="hw">1) Hello World Examples</h2>
 
-  <h3>ViewComponent</h3>
-  <%= render ::HelloComponent.new(name: "ViewComponent") %>
+    <section class="space-y-8">
+      <h3>1.1) ViewComponent</h3>
+      <%= render ::HelloComponent.new(name: "World from ViewComponent") %>
 
-  <h3>Phlex</h3>
-  <%= render ::Views::HelloView.new(name: "Phlex") %>
+      <h3>1.2) Phlex</h3>
+      <%= render ::Views::HelloView.new(name: "World from Phlex") %>
 
-  <h3>ViewComponent with Vident</h3>
-  <%= render ::HelloVidentComponent.new(name: "Vident + ViewComponent") %>
+      <h3>1.3) ViewComponent with Vident</h3>
+      <%= render ::HelloVidentComponent.new(name: "World from Vident + ViewComponent") %>
 
-  <h3>Phlex with Vident</h3>
-  <%= render ::Views::HelloVidentView.new(name: "Vident + Phlex") %>
+      <h3>1.4) Phlex with Vident</h3>
+      <%= render ::Views::HelloVidentView.new(name: "World from Vident + Phlex") %>
 
-  <h3>With Vident we can do stuff like set classes at render site</h3>
-  <%= render ::HelloVidentComponent.new(name: "Red", html_options: {class: "text-red-600"}) %>
+      <h3>1.5) With Vident we can do stuff like set classes at render site</h3>
+      <%= render ::HelloVidentComponent.new(name: "World from Vident + ViewComponent, in Red", html_options: {class: "text-red-600"}) %>
 
+    </section>
+  </div>
 </div>
