@@ -130,9 +130,9 @@ module Vident
       self.class.new(**new_set)
     end
 
-    def inspect(klass_name = "TypedComponent")
+    def inspect(klass_name = "Component")
       attr_text = attributes.map { |k, v| "#{k}=#{v.inspect}" }.join(", ")
-      "#<#{self.class.name}<::Core::#{klass_name}> #{attr_text}>"
+      "#<#{self.class.name}<Vident::#{klass_name}> #{attr_text}>"
     end
 
     # Generate a unique ID for a component, can be overridden as required. Makes it easier to setup things like ARIA
