@@ -37,6 +37,13 @@
 
       <h3>2.2) Phlex</h3>
       <%= render ::Views::GreeterView.new(cta: "Greet w. Phlex") %>
+
+      <h3>2.3) ViewComponent with Vident</h3>
+      <%= render ::GreeterVidentComponent.new(cta: "Greet w. Vident + ViewComponent") %>
+
+      <h3>2.4) Phlex with Vident</h3>
+      <%= render ::Views::GreeterVidentView.new(cta: "Greet w. Vident + Phlex") %>
+
     </section>
   </div>
 </div>
