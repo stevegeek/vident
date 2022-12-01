@@ -10,6 +10,14 @@ if Gem.loaded_specs.has_key? "view_component"
 
         SELF_CLOSING_TAGS = Set[:area, :base, :br, :col, :embed, :hr, :img, :input, :link, :meta, :param, :source, :track, :wbr].freeze
 
+        def target_tag(tag_name, targets, **options)
+          parsed = parse_targets(Array.wrap(targets))
+          options[:data] ||= {}
+          options[:data].merge!(build_target_data_attributes(parsed))
+          content = yield if block_given?
+          view_context.content_tag(tag_name, content, options)
+        end
+
         def call
           # Capture inner block content
           # It's important that we capture the block content before generating the tag options.

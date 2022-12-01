@@ -7,6 +7,15 @@ if Gem.loaded_specs.has_key? "phlex"
     module RootComponent
       class UsingPhlexHTML < Phlex::HTML
         include Base
+
+        # Create a tag for a target with a block containing content
+        def target_tag(tag_name, targets, **options, &block)
+          parsed = parse_targets(Array.wrap(targets))
+          options[:data] ||= {}
+          options[:data].merge!(build_target_data_attributes(parsed))
+          generate_tag(tag_name, **options, &block)
+        end
+
         # Build a tag with the attributes determined by this components properties and stimulus
         # data attributes.
         def template(&block)
@@ -18,7 +27,13 @@ if Gem.loaded_specs.has_key? "phlex"
           options = options.merge(id: @id) if @id
           options.except!(:data)
           options.merge!(data_attrs.transform_keys { |k| "data-#{k}" })
-          send(tag_type, **options, &block)
+          generate_tag(tag_type, **options, &block)
+        end
+
+        private
+
+        def generate_tag(tag_type, **options, &block)
+          send((tag_type == :template) ? :template_tag : tag_type, **options, &block)
         end
       end
     end

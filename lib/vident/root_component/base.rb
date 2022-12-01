@@ -26,14 +26,6 @@ module Vident
 
       # The view component's helpers for setting stimulus data-* attributes on this component.
 
-      # Create a tag for a target with a block containing content
-      def target_tag(tag_name, targets, **options, &block)
-        parsed = parse_targets(Array.wrap(targets))
-        options[:data] ||= {}
-        options[:data].merge!(build_target_data_attributes(parsed))
-        send(tag_name, options, &block)
-      end
-
       # TODO: rename
       # Create a Stimulus action string, and returns it
       #   examples:
