@@ -172,7 +172,7 @@ module Vident
       end
 
       def build_target_data_attributes(targets)
-        targets.map { |t| ["#{t[:controller]}-target", t[:name]] }.to_h
+        targets.map { |t| ["#{t[:controller]}-target".to_sym, t[:name]] }.to_h
       end
 
       def parse_actions(actions)
