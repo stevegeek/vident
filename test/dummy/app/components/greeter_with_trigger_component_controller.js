@@ -16,5 +16,6 @@ export default class extends GreeterVidentComponentController {
 
   clear() {
     this.outputTarget.textContent = '...';
+    this.nameTarget.value = '';
   }
 }

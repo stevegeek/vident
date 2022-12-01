@@ -41,24 +41,69 @@ This gem is a work in progress and I would love to get your feedback and contrib
 
 # Example
 
-Image the following in an application that uses ViewComponent, Stimulus and Vident:
+Consider the following ERB that might be part of an application's views. The app uses `ViewComponent`, `Stimulus` and `Vident`.
+
+The Greeter is a component that displays a text input and a button. When the button is clicked, the text input's value is
+used to greet the user. At the same time the button changes to be a 'reset' button, which resets the greeting when clicked again.
 
 ```erb
+<%# app/views/home/index.html.erb %>
+
+<!-- ... -->
+
+<!-- render the Greeter ViewComponent (that uses Vident) -->
 <%= render ::GreeterComponent.new do |greeter| %>
+  <%# this component has a slot called `trigger` that renders a `ButtonComponent` (which also uses Vident) %> 
   <% greeter.trigger(
+       
+       # The button component has attributes that are typed
        before_clicked: "Greet",
        after_clicked: "Greeted! Reset?",
+       
+       # A stimulus action is added to the button that triggers the `greet` action on the greeter stimulus controller.
+       # This action will be added to any defined on the button component itself
        actions: [
          greeter.action(:click, :greet),
        ],
+       
+       # We can also override the default button classes of our component, or set other HTML attributes
        html_options: {
          class: "bg-red-500 hover:bg-red-700"
        }
      ) %>
 <% end %>
+
+<!-- ... -->
 ```
 
-Where the components are defined as follows:
+The output HTML of the above, using Vident, is:
+
+```html 
+<div class="greeter-component" 
+     data-controller="greeter-component" 
+     data-greeter-component-pre-click-class="text-md text-gray-500" 
+     data-greeter-component-post-click-class="text-xl text-blue-700" 
+     id="greeter-component-1599855-6">
+  <input type="text" 
+         data-greeter-component-target="name" 
+         class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+  <button class="button-component ml-4 whitespace-no-wrap bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded bg-red-500 hover:bg-red-700" 
+          data-controller="button-component" 
+          data-action="click->greeter-component#greet button-component#changeMessage" 
+          data-button-component-after-clicked-message="Greeted! Reset?" 
+          data-button-component-before-clicked-message="Greet" 
+          id="button-component-7799479-7">Greet</button>
+  <!-- you can also use the `target_tag` helper to render targets -->
+  <span class="ml-4 text-md text-gray-500" 
+        data-greeter-component-target="output">
+    ...
+  </span>
+</div>
+```
+
+Let's look at the components in more detail.
+
+The main component is the `GreeterComponent`:
 
 ```ruby
 # app/components/greeter_component.rb
@@ -73,20 +118,27 @@ end
 ```erb
 <%# app/components/greeter_component.html.erb %>
 
+<%# Rendering the `root` element creates a tag which has stimulus `data-*`s, a unique id & other attributes set %>
 <%= render root named_classes: {
-  pre_click: "text-md text-gray-500",
+  pre_click: "text-md text-gray-500", # named classes are exposed to Stimulus as `data-<controller>-<name>-class` attributes
   post_click: "text-xl text-blue-700"
 } do |greeter| %>
+
+  <%# `greeter` is the root element and exposes methods to generate stimulus targets and actions %>
   <input type="text"
          <%= greeter.as_target(:name) %>
          class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-  <% if trigger? %>
-    <%= trigger %>
-  <% else %>
-    <%= trigger(cta: "Greet", actions: greeter.action(:click, :greet)) %>
-  <% end %>
-  <!-- you can also use the `target_tag` helper to render targets -->
-  <%= greeter.target_tag(:span, :output, class: "ml-4 #{greeter.named_classes(:pre_click)}") do %>
+  
+  <%# Render the slot %>
+  <%= trigger %>
+  
+  <%# you can also use the `target_tag` helper to render targets %>
+  <%= greeter.target_tag(
+        :span, 
+        :output, 
+        # Stimulus named classes can be referenced to set class attributes at render time
+        class: "ml-4 #{greeter.named_classes(:pre_click)}" 
+      ) do %>
     ...
   <% end %>
 <% end %>
@@ -98,6 +150,9 @@ end
 
 import { Controller } from "@hotwired/stimulus"
 
+// This is a Stimulus controller that is automatically registered for the `GreeterComponent`
+// and is 'sidecar' to the component. You can see that while in the ERB we use Ruby naming conventions
+// with snake_case Symbols, here they are converted to camelCase names.
 export default class extends Controller {
   static targets = [ "name", "output" ]
   static classes = [ "preClick", "postClick" ]
@@ -115,29 +170,45 @@ export default class extends Controller {
 
   clear() {
     this.outputTarget.textContent = '...';
+    this.nameTarget.value = '';
   }
 }
 ```
 
-The slot renders this component:
+The slot renders a `ButtonComponent` component:
 
 ```ruby
 # app/components/button_component.rb
 
 class ButtonComponent < ViewComponent::Base
+  # This component uses Vident::TypedComponent which uses dry-types to define typed attributes.
   include Vident::TypedComponent
 
+  # The attributes can specify an expected type, a default value and if nil is allowed.
   attribute :after_clicked, String, default: "Greeted!"
-  attribute :before_clicked, String, default: "Greet"
+  attribute :before_clicked, String, allow_nil: false
 
+  # This example is a templateless ViewComponent.
   def call
-    root_tag = root(
+    # The button is rendered as a <button> tag with an click action on its own controller.
+    render root(
       element_tag: :button,
+      
+      # We can define actions as arrays of Symbols, or pass manually manually crafted strings.
+      # Here we specify the action name only, implying an action on the current components controller
+      # and the default event type of `click`.
       actions: [:change_message],
+      # Alternatively: [:click, :change_message] or ["click", "changeMessage"] or even "click->button-component#changeMessage"
+      
+      # A couple of data values are also set which will be available to the controller
       data_maps: [{after_clicked_message: after_clicked, before_clicked_message: before_clicked}],
+      
+      # The <button> tag has a default styling set directly on it. Note that
+      # if not using utility classes, you can style the component using its 
+      # canonical class name (which is equal to the component's stimulus identifier), 
+      # in this case `button-component`.
       html_options: {class: "ml-4 whitespace-no-wrap bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"}
-    )
-    render root_tag do
+    ) do
       @before_clicked
     end
   end
@@ -150,41 +221,15 @@ end
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
+  // The action is in camelCase.
   changeMessage() {
     this.clicked = !this.clicked;
+    // The data attributes have their naming convention converted to camelCase.
     this.element.textContent = this.clicked ? this.data.get("afterClickedMessage") : this.data.get("beforeClickedMessage");
   }
 }
 
 ```
-
-Generates the following HTML for you:
-
-```html 
-<div class="greeter-component" 
-     data-controller="greeter-component" 
-     data-greeter-component-pre-click-class="text-md text-gray-500" 
-     data-greeter-component-post-click-class="text-xl text-blue-700" 
-     id="greeter-component-1599855-6">
-  <input type="text" 
-         data-greeter-component-target="name" 
-         class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-  <button class="greeter-button-component ml-4 whitespace-no-wrap bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded bg-red-500 hover:bg-red-700" 
-          data-controller="greeter-button-component" 
-          data-action="click->greeter-component#greet greeter-button-component#changeMessage" 
-          data-greeter-button-component-after-clicked-message="Greeted! Reset?" 
-          data-greeter-button-component-before-clicked-message="Greet" 
-          id="greeter-button-component-7799479-7">Greet</button>
-  <!-- you can also use the `target_tag` helper to render targets -->
-  <span class="ml-4 text-md text-gray-500" 
-        data-greeter-component-target="output">
-    ...
-  </span>
-</div>
-```
-
-![img_1.png](img_1.png)
-![img.png](img.png)
 
 ## Installation
 
