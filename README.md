@@ -120,7 +120,9 @@ end
 ```erb
 <%# app/components/greeter_component.html.erb %>
 
-<%# Rendering the `root` element creates a tag which has stimulus `data-*`s, a unique id & other attributes set %>
+<%# Rendering the `root` element creates a tag which has stimulus `data-*`s, a unique id & other attributes set. %>
+<%# The stimulus controller name (identifier) is derived from the component name, and then used to generate the relavent data attribute names. %>
+
 <%= render root named_classes: {
   pre_click: "text-md text-gray-500", # named classes are exposed to Stimulus as `data-<controller>-<name>-class` attributes
   post_click: "text-xl text-blue-700"
@@ -154,7 +156,8 @@ import { Controller } from "@hotwired/stimulus"
 
 // This is a Stimulus controller that is automatically registered for the `GreeterComponent`
 // and is 'sidecar' to the component. You can see that while in the ERB we use Ruby naming conventions
-// with snake_case Symbols, here they are converted to camelCase names.
+// with snake_case Symbols, here they are converted to camelCase names. We can also just use camelCase 
+// in the ERB if we want.
 export default class extends Controller {
   static targets = [ "name", "output" ]
   static classes = [ "preClick", "postClick" ]
