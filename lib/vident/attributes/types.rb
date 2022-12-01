@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "dry-struct"
+
 module Vident
   module Attributes
     module Types

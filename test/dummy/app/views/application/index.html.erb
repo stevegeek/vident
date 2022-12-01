@@ -48,6 +48,7 @@
       <%= render ::GreeterWithTriggerComponent.new do |greeter| %>
         <% greeter.trigger(
              cta: "I'm a button component. Click me!",
+             after_clicked_message: "I was clicked!",
              actions: [
                greeter.action(:click, :greet),
              ]

@@ -15,6 +15,8 @@ gem "turbo-rails"
 gem "importmap-rails"
 gem "stimulus-rails"
 
+gem "dry-struct"
+
 gem "phlex", "~> 0.5.3", require: "phlex/rails"
 gem "view_component", "2.74.1"
 

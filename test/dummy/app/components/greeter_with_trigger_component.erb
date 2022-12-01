@@ -7,5 +7,6 @@
   <% else %>
     <%= trigger(cta: "Greet", actions: greeter.action(:click, :greet)) %>
   <% end %>
+  <!-- you can also use the `target_tag` helper to render targets -->
   <%= greeter.target_tag(:span, :output, class: "ml-4 text-xl text-gray-700") %>
 <% end %>
