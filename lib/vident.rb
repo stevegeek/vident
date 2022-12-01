@@ -26,8 +26,8 @@ end
 
 require_relative "vident/stable_id"
 require_relative "vident/root_component/base"
-require_relative "vident/root_component/phlex_html"
-require_relative "vident/root_component/view_component"
+require_relative "vident/root_component/using_phlex_html"
+require_relative "vident/root_component/using_view_component"
 require_relative "vident/base"
 require_relative "vident/component"
 require_relative "vident/typed_component"

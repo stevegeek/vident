@@ -5,7 +5,7 @@ if Gem.loaded_specs.has_key? "view_component"
 
   module Vident
     module RootComponent
-      class ViewComponent < ViewComponent::Base
+      class UsingViewComponent < ::ViewComponent::Base
         include Base
 
         def call

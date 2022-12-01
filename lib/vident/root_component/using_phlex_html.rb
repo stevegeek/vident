@@ -5,7 +5,7 @@ if Gem.loaded_specs.has_key? "phlex"
 
   module Vident
     module RootComponent
-      class PhlexHTML < Phlex::HTML
+      class UsingPhlexHTML < Phlex::HTML
         include Base
         # Build a tag with the attributes determined by this components properties and stimulus
         # data attributes.
