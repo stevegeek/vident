@@ -46,6 +46,8 @@ Consider the following ERB that might be part of an application's views. The app
 The Greeter is a component that displays a text input and a button. When the button is clicked, the text input's value is
 used to greet the user. At the same time the button changes to be a 'reset' button, which resets the greeting when clicked again.
 
+![ex1.gif](examples%2Fex1.gif)
+
 ```erb
 <%# app/views/home/index.html.erb %>
 
