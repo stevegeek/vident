@@ -8,6 +8,8 @@ if Gem.loaded_specs.has_key? "view_component"
       class UsingViewComponent < ::ViewComponent::Base
         include Base
 
+        SELF_CLOSING_TAGS = Set[:area, :base, :br, :col, :embed, :hr, :img, :input, :link, :meta, :param, :source, :track, :wbr].freeze
+
         def call
           # Capture inner block content
           # It's important that we capture the block content before generating the tag options.
