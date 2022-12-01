@@ -28,5 +28,15 @@
       <h3>1.6) If Stimulus is not used (as in this simple component) we can opt out</h3>
       <%= render ::Views::HelloVidentNoStimulusView.new(name: "World from Vident (no stimulus used) + Phlex") %>
     </section>
+
+    <h2 id="greeter">2) Stimulus Greeter Examples</h2>
+
+    <section class="space-y-8">
+      <h3>2.1) ViewComponent</h3>
+      <%= render ::GreeterComponent.new(cta: "Greet w. ViewComponent") %>
+
+      <h3>2.2) Phlex</h3>
+      <%= render ::Views::GreeterView.new(cta: "Greet w. Phlex") %>
+    </section>
   </div>
 </div>
