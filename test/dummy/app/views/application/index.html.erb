@@ -14,4 +14,10 @@
   <h3>Phlex</h3>
   <%= render ::Views::HelloView.new(name: "Phlex") %>
 
+  <h3>ViewComponent with Vident</h3>
+  <%= render ::HelloVidentComponent.new(name: "Vident + ViewComponent") %>
+
+  <h3>Phlex with Vident</h3>
+  <%= render ::Views::HelloVidentView.new(name: "Vident + Phlex") %>
+
 </div>
