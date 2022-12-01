@@ -89,8 +89,15 @@ module Vident
 
       # stimulus controller identifier
       def stimulus_identifier
-        path = name.remove("Components::").underscore # FIXME: No longer needed to remove ::Components
-        stimulus_identifier_from_path(path)
+        stimulus_identifier_from_path(identifier_name_path)
+      end
+
+      def identifier_name_path
+        if ancestors.include?(Phlex::HTML)
+          name.remove("Views::").underscore
+        else
+          name.underscore
+        end
       end
 
       def stimulus_identifier_from_path(path)
@@ -195,7 +202,7 @@ module Vident
     # The `component` class name is used to create the controller name.
     # The path of the Stimulus controller when none is explicitly set
     def default_controller_path
-      self.class.name.remove("Components::").underscore
+      self.class.identifier_name_path
     end
 
     protected
