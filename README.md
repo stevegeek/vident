@@ -21,9 +21,9 @@ This gem is a work in progress and I would love to get your feedback and contrib
 
 - `Vident::TypedComponent`: like `Vident::Component` but uses `dry-types` to define typed attributes for your components.
 
-- `Vident::RootElement` which is for creating
-  the 'root' element in your view components. Similar to `Primer::BaseComponent` but
-  exposes a simple API for configuring and adding Stimulus controllers, targets and actions.
+- `Vident::RootComponent::*` which are components for creating the 'root' element in your view components. Similar to `Primer::BaseComponent` but
+  exposes a simple API for configuring and adding Stimulus controllers, targets and actions. Normally you create these
+  using the `root` helper method on `Vident::Component`/`Vident::TypedComponent`. 
 
 
 ## The Stimulus Greeter Example
@@ -167,6 +167,26 @@ Add this line to your application's Gemfile:
 gem 'vident'
 ```
 
+Also ensure you have installed your chosen view component library, eg:
+
+```ruby
+gem 'view_component'
+```
+
+or
+
+```ruby
+gem 'phlex' # Must be version 0.5 or higher
+```
+
+or **both**!
+
+If you want to use typed attributes you must also include `dry-struct`
+
+```ruby
+gem 'dry-struct'
+```
+
 And then execute:
 
     $ bundle install
@@ -223,6 +243,15 @@ TODO: Write usage instructions here
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
 
 To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+
+## Running the Examples in `test/dummy`
+
+```bash
+cd test/dummy
+bundle install
+rails assets:precompile
+rails s
+```
 
 ## Contributing
 
