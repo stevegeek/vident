@@ -39,7 +39,26 @@ This gem is a work in progress and I would love to get your feedback and contrib
   exposes a simple API for configuring and adding Stimulus controllers, targets and actions. Normally you create these
   using the `root` helper method on `Vident::Component`/`Vident::TypedComponent`.
 
-# Example
+
+# Examples
+
+Before we dive into a specific example note that there are some components implemented with
+both ViewComponent and Phlex (with and without Vident) in the `test/dummy`.
+- https://github.com/stevegeek/vident/tree/main/test/dummy/app/components
+- https://github.com/stevegeek/vident/tree/main/test/dummy/app/views
+
+Start Rails:
+
+```bash
+cd test/dummy
+bundle install
+rails assets:precompile
+rails s
+```
+
+and visit http://localhost:3000
+
+## ViewComponent + Vident example
 
 Consider the following ERB that might be part of an application's views. The app uses `ViewComponent`, `Stimulus` and `Vident`.
 
@@ -327,14 +346,7 @@ After checking out the repo, run `bin/setup` to install dependencies. Then, run 
 
 To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 
-## Running the Examples in `test/dummy`
 
-```bash
-cd test/dummy
-bundle install
-rails assets:precompile
-rails s
-```
 
 ## Contributing
 
