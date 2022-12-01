@@ -138,7 +138,7 @@ class ButtonComponent < ViewComponent::Base
       html_options: {class: "ml-4 whitespace-no-wrap bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"}
     )
     render root_tag do
-      @before_clicked_message
+      @before_clicked
     end
   end
 end
