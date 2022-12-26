@@ -20,6 +20,9 @@ module Vident
         end
 
         def with_cache_key(*attrs, name: :_collection)
+          raise StandardError, "with_cache_key can only be used on components *without* slots as there is no eary way to track their content changes so too risky" if respond_to?(:slots?) && slots?
+          # Add view file to cache key
+          attrs << :component_modified_time
           named_cache_key_includes(name, *attrs)
         end
 
@@ -50,13 +53,6 @@ module Vident
         end
 
         attr_reader :component_dependencies
-
-        def with_cache_key(*attrs, name: :_collection)
-          raise StandardError, "with_cache_key can only be used on components *without* slots as there is no eary way to track their content changes so too risky" if slots?
-          # Add view file to cache key
-          attrs << :component_modified_time
-          super
-        end
 
         def component_modified_time
           return @component_modified_time if Rails.env.production? && @component_modified_time
