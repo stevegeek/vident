@@ -17,7 +17,9 @@ gem "stimulus-rails"
 
 gem "dry-struct"
 
-gem "phlex", "~> 0.5.3", require: "phlex/rails"
+gem "phlex-rails"
+
+# FIXME: versions greater than 2.74 cause issues: https://github.com/ViewComponent/view_component/pull/1571
 gem "view_component", "2.74.1"
 
 gem "sqlite3"
