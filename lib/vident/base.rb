@@ -23,66 +23,6 @@ module Vident
         registered_slots.present?
       end
 
-      # TODO: move stuff related to cache key to a module
-
-      # TypedComponents can be used with fragment caching, but you need to be careful! Read on...
-      #
-      #     <% cache component do %>
-      #      <%= render component %>
-      #    <% end %>
-      #
-      # The most important point is that Rails cannot track dependencies on the component itself, so you need to
-      # be careful to be explicit on the attributes, and manually specify any sub Viewcomponent dependencies that the
-      # component has. The assumption is that the subcomponent takes any attributes from the parent, so the cache key
-      # depends on the parent component attributes. Otherwise changes to the parent or sub component views/Ruby class
-      # will result in different cache keys too. Of course if you invalidate all cache keys with a modifier on deploy
-      # then no need to worry about changing the cache key on component changes, only on attribute/data changes.
-      #
-      # A big caveat is that the cache key cannot depend on anything related to the view_context of the component (such
-      # as `helpers` as the key is created before the rending pipline is invoked (which is when the view_context is set).
-      def depends_on(*klasses)
-        @component_dependencies ||= []
-        @component_dependencies += klasses
-      end
-
-      attr_reader :component_dependencies
-
-      def with_cache_key(*attrs, name: :_collection)
-        raise StandardError, "with_cache_key can only be used on components *without* slots as there is no eary way to track their content changes so too risky" if slots?
-        # Add view file to cache key
-        attrs << :component_modified_time
-        super
-      end
-
-      def component_modified_time
-        return @component_modified_time if Rails.env.production? && @component_modified_time
-        # FIXME: This could stack overflow if there are circular dependencies
-        deps = component_dependencies&.map(&:component_modified_time)&.join("-") || ""
-        @component_modified_time = deps + sidecar_view_modified_time + rb_component_modified_time
-      end
-
-      def sidecar_view_modified_time
-        return @sidecar_view_modified_time if Rails.env.production? && defined?(@sidecar_view_modified_time)
-        @sidecar_view_modified_time = ::File.exist?(template_path) ? ::File.mtime(template_path).to_i.to_s : ""
-      end
-
-      def rb_component_modified_time
-        return @rb_component_modified_time if Rails.env.production? && defined?(@rb_component_modified_time)
-        @rb_component_modified_time = ::File.exist?(component_path) ? ::File.mtime(component_path).to_i.to_s : ""
-      end
-
-      def template_path
-        File.join components_base_path, "#{virtual_path}.html.erb"
-      end
-
-      def component_path
-        File.join components_base_path, "#{virtual_path}.rb"
-      end
-
-      def components_base_path
-        ::Rails.configuration.view_component.view_component_path || "app/components"
-      end
-
       # Dont check collection params, we use kwargs
       def validate_collection_parameter!(validate_default: false)
       end
@@ -193,12 +133,6 @@ module Vident
 
     def stimulus_identifier
       self.class.stimulus_identifier
-    end
-
-    # TODO: Move to caching module
-    # Component modified time which is combined with other cache key attributes to generate cache key for an instance
-    def component_modified_time
-      self.class.component_modified_time
     end
 
     # The `component` class name is used to create the controller name.
