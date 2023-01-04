@@ -33,7 +33,7 @@ module Vident
       end
 
       def identifier_name_path
-        if ancestors.include?(Phlex::HTML)
+        if phlex_component?
           name.remove("Views::").underscore
         else
           name.underscore
@@ -42,6 +42,10 @@ module Vident
 
       def stimulus_identifier_from_path(path)
         path.split("/").map { |p| p.to_s.dasherize }.join("--")
+      end
+
+      def phlex_component?
+        @phlex_component ||= ancestors.map(&:name).include?("Phlex::HTML")
       end
 
       private
@@ -99,7 +103,7 @@ module Vident
     def parent_element(**options)
       @parent_element ||= begin
         # Note: we cant mix phlex and view_component render contexts
-        klass = if self.class.ancestors.include?(Phlex::HTML)
+        klass = if self.class.phlex_component?
           RootComponent::UsingPhlexHTML
         else
           RootComponent::UsingViewComponent
