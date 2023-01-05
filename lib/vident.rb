@@ -32,3 +32,9 @@ require_relative "vident/base"
 require_relative "vident/component"
 require_relative "vident/typed_component"
 require_relative "vident/caching/cache_key"
+
+require_relative "vident/testing/attributes_tester"
+require_relative "vident/testing/auto_test"
+
+# TODO: what if not using view_component?
+require_relative "vident/test_case"
