@@ -29,7 +29,7 @@ module Vident
 
       # stimulus controller identifier
       def stimulus_identifier
-        stimulus_identifier_from_path(identifier_name_path)
+        ::Vident::Base.stimulus_identifier_from_path(identifier_name_path)
       end
 
       def identifier_name_path
@@ -38,10 +38,6 @@ module Vident
         else
           name.underscore
         end
-      end
-
-      def stimulus_identifier_from_path(path)
-        path.split("/").map { |p| p.to_s.dasherize }.join("--")
       end
 
       def phlex_component?
@@ -144,6 +140,11 @@ module Vident
     def default_controller_path
       self.class.identifier_name_path
     end
+
+    def stimulus_identifier_from_path(path)
+      path.split("/").map { |p| p.to_s.dasherize }.join("--")
+    end
+    module_function :stimulus_identifier_from_path
 
     protected
 
