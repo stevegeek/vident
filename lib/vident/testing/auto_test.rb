@@ -45,7 +45,7 @@ module Vident
               def test_renders_with_valid_attrs_#{index}
                 test_attrs = #{test}
                 begin 
-                  render_inline(#{class_under_test}.new(**test_attrs))
+                  @results_content << render_inline(#{class_under_test}.new(**test_attrs))
                 rescue => error
                   assert(false, "Should not raise with #{test.to_s.tr("\"", "'")} but did raise \#{error}")
                 end
@@ -58,7 +58,7 @@ module Vident
               def test_raises_with_invalid_attrs_#{index}
                 test_attrs = #{test}
                 assert_raises(StandardError, "Should raise with #{test.to_s.tr("\"", "'")}") do
-                  render_inline(#{class_under_test}.new(**test_attrs))
+                  @results_content << render_inline(#{class_under_test}.new(**test_attrs))
                 end
               end
             RUBY
