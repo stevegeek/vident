@@ -60,32 +60,34 @@ if Gem.loaded_specs.has_key? "dry-struct"
 
           attr_reader :schema, :attribute_ivar_names
 
-          def attribute(name, type = :any, **options, &converter)
-            type_info = map_primitive_to_dry_type(type, !options[:convert], converter)
-            type_info = set_constraints(type_info, type, options, converter)
+          def attribute(name, signature = :any, **options, &converter)
+            type_info = map_primitive_to_dry_type(signature, options, converter)
+            type_info = set_constraints(type_info, options)
+            type_info = set_metadata(type_info, signature, options)
             define_on_schema(name, type_info, options)
           end
 
           private
 
-          def set_constraints(type_info, specified_type, options, converter)
-            member_klass = options[:type] || options[:sub_type]
-            if member_klass && type_info.respond_to?(:of)
-              # Sub types of collections currently can be nil - this should be an option
-              type_info = type_info.of(
-                map_primitive_to_dry_type(member_klass, !options[:convert], converter).optional.meta(required: false)
-              )
+          def set_constraints(type_info, options)
+            if allows_nil?(options)
+              type_info = type_info.optional.meta(required: false)
             end
-            type_info = type_info.optional.meta(required: false) if allows_nil?(options)
-            type_info = type_info.constrained(filled: true) unless allows_blank?(options)
+            unless allows_blank?(options)
+              type_info = type_info.constrained(filled: true)
+            end
             if options[:default]&.is_a?(Proc)
               type_info = type_info.default(options[:default].freeze)
             elsif !options[:default].nil?
               type_info = type_info.default(->(_) { options[:default] }.freeze)
             end
-            type_info = type_info.constrained(included_in: options[:in].freeze) if options[:in]
+            if options[:in]
+              type_info.constrained(included_in: options[:in].freeze)
+            end
+            type_info
+          end
 
-            # Store adapter type info in the schema for use by typed form
+          def set_metadata(type_info, specified_type, options)
             metadata = {typed_attribute_type: specified_type, typed_attribute_options: options}
             type_info.meta(**metadata)
           end
@@ -108,7 +110,7 @@ if Gem.loaded_specs.has_key? "dry-struct"
           def #{attr_name}
             @__attributes.attributes[:#{attr_name}]
           end
-  
+
           def #{attr_name}?
             send(:#{attr_name}).present?
           end
@@ -128,7 +130,29 @@ if Gem.loaded_specs.has_key? "dry-struct"
             allow_blank.nil? ? true : allow_blank
           end
 
-          def map_primitive_to_dry_type(type, strict, converter)
+          def map_primitive_to_dry_type(signature, options, converter)
+            strict = !options[:convert]
+            type, subtype = extract_member_type_and_subclass(signature, options)
+            dry_type = dry_type_from_primary_type(type, strict, converter)
+            if subtype && dry_type.respond_to?(:of)
+              # Sub types of collections currently can be nil - this should be an option
+              dry_type.of(
+                map_primitive_to_dry_type(subtype, options, converter).optional.meta(required: false)
+              )
+            else
+              dry_type
+            end
+          end
+
+          def extract_member_type_and_subclass(signature, options)
+            if signature.is_a?(Array)
+              [Array, signature.first]
+            else
+              [signature, options[:type] || options[:sub_type]]
+            end
+          end
+
+          def dry_type_from_primary_type(type, strict, converter)
             if type == :any
               Types::Nominal::Any
             elsif type == Integer
