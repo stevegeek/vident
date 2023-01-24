@@ -13,6 +13,8 @@ if Gem.loaded_specs.has_key? "dry-struct"
       module Typed
         extend ActiveSupport::Concern
 
+        # TODO: better handling of when either class.schema is undefined (as no attributes configured) or when
+        # other methods ar called before prepare_attributes is called
         def prepare_attributes(attributes)
           @__attributes = self.class.schema.new(**attributes)
         end
@@ -58,20 +60,20 @@ if Gem.loaded_specs.has_key? "dry-struct"
 
           attr_reader :schema, :attribute_ivar_names
 
-          def attribute(name, type = :any, **options)
-            type_info = map_primitive_to_dry_type(type, !options[:convert])
-            type_info = set_constraints(type_info, type, options)
+          def attribute(name, type = :any, **options, &converter)
+            type_info = map_primitive_to_dry_type(type, !options[:convert], converter)
+            type_info = set_constraints(type_info, type, options, converter)
             define_on_schema(name, type_info, options)
           end
 
           private
 
-          def set_constraints(type_info, specified_type, options)
+          def set_constraints(type_info, specified_type, options, converter)
             member_klass = options[:type] || options[:sub_type]
             if member_klass && type_info.respond_to?(:of)
               # Sub types of collections currently can be nil - this should be an option
               type_info = type_info.of(
-                map_primitive_to_dry_type(member_klass, !options[:convert]).optional.meta(required: false)
+                map_primitive_to_dry_type(member_klass, !options[:convert], converter).optional.meta(required: false)
               )
             end
             type_info = type_info.optional.meta(required: false) if allows_nil?(options)
@@ -126,7 +128,7 @@ if Gem.loaded_specs.has_key? "dry-struct"
             allow_blank.nil? ? true : allow_blank
           end
 
-          def map_primitive_to_dry_type(type, strict)
+          def map_primitive_to_dry_type(type, strict, converter)
             if type == :any
               Types::Nominal::Any
             elsif type == Integer
@@ -160,7 +162,7 @@ if Gem.loaded_specs.has_key? "dry-struct"
               # values using the default constructor, `new`.
               Types.Instance(type)
             else
-              Types.Constructor(type) { |values| type.new(**values) }
+              Types.Constructor(type) { |values| converter ? converter.call(values) : type.new(**values) }
             end
           end
         end
