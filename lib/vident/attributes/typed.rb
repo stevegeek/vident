@@ -135,10 +135,9 @@ if Gem.loaded_specs.has_key? "dry-struct"
             type, subtype = extract_member_type_and_subclass(signature, options)
             dry_type = dry_type_from_primary_type(type, strict, converter)
             if subtype && dry_type.respond_to?(:of)
+              subtype_info = dry_type_from_primary_type(subtype, strict, converter)
               # Sub types of collections currently can be nil - this should be an option
-              dry_type.of(
-                map_primitive_to_dry_type(subtype, options, converter).optional.meta(required: false)
-              )
+              dry_type.of(subtype_info.optional.meta(required: false))
             else
               dry_type
             end
