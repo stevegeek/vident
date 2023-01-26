@@ -96,12 +96,12 @@ if Gem.loaded_specs.has_key? "dry-struct"
             options[:delegates] != false
           end
 
-          def define_on_schema(name, type_info, options)
+          def define_on_schema(attribute_name, type_info, options)
             @attribute_ivar_names ||= {}
-            @attribute_ivar_names[name] = :"@#{name}"
-            define_attribute_delegate(name) if delegates?(options)
-            @schema ||= Class.new(Vident::Attributes::TypedNilingStruct)
-            @schema.attribute name, type_info
+            @attribute_ivar_names[attribute_name] = :"@#{attribute_name}"
+            define_attribute_delegate(attribute_name) if delegates?(options)
+            @schema ||= const_set("TypedSchema", Class.new(Vident::Attributes::TypedNilingStruct))
+            @schema.attribute attribute_name, type_info
           end
 
           def define_attribute_delegate(attr_name)
