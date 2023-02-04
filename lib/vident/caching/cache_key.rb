@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "benchmark"
-
 # Rails fragment caching works by either expecting the cached key object to respond to `cache_key` or for that object
 # to be an array or hash. In our case the object maybe an instance of Core::Presenter so here we add a default
 # `cache_key` implementation.
@@ -24,10 +22,6 @@ module Vident
           # Add view file to cache key
           attrs << :component_modified_time
           named_cache_key_includes(name, *attrs)
-        end
-
-        def enable_cache_key_benchmarking
-          @enable_cache_key_benchmarking = true
         end
 
         attr_reader :named_cache_key_attributes
@@ -100,14 +94,7 @@ module Vident
             else
               @cache_key ||= {}
             end
-            if @enable_cache_key_benchmarking
-              time = ::Benchmark.measure { generate_cache_key(n) }
-              ::Logging::Log.debug "Cache key #{self.class.name}: #{time.real}"
-              ::Thread.current[:total_key_generation_time] ||= 0
-              ::Thread.current[:total_key_generation_time] += time.real
-            else
-              generate_cache_key(n)
-            end
+            generate_cache_key(n)
             @cache_key[n]
           end
         end
