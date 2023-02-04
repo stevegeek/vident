@@ -132,22 +132,28 @@ if Gem.loaded_specs.has_key? "dry-struct"
 
           def map_primitive_to_dry_type(signature, options, converter)
             strict = !options[:convert]
-            type, subtype = extract_member_type_and_subclass(signature, options)
-            dry_type = dry_type_from_primary_type(type, strict, converter)
-            if subtype && dry_type.respond_to?(:of)
-              subtype_info = dry_type_from_primary_type(subtype, strict, converter)
-              # Sub types of collections currently can be nil - this should be an option
-              dry_type.of(subtype_info.optional.meta(required: false))
-            else
-              dry_type
+            signatures = extract_member_type_and_subclass(signature, options)
+            types = signatures.map do |type, subtype|
+              dry_type = dry_type_from_primary_type(type, strict, converter)
+              if subtype && dry_type.respond_to?(:of)
+                subtype_info = dry_type_from_primary_type(subtype, strict, converter)
+                # Sub types of collections currently can be nil - this should be an option
+                dry_type.of(subtype_info.optional.meta(required: false))
+              else
+                dry_type
+              end
             end
+            types.reduce(:|)
           end
 
           def extract_member_type_and_subclass(signature, options)
-            if signature.is_a?(Array)
-              [Array, signature.first]
+            case signature
+            when Set
+              signature.flat_map { |s| extract_member_type_and_subclass(s, options) }
+            when Array
+              [[Array, signature.first]]
             else
-              [signature, options[:type] || options[:sub_type]]
+              [[signature, options[:type] || options[:sub_type]]]
             end
           end
 
