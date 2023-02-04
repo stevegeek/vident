@@ -185,7 +185,16 @@ if Gem.loaded_specs.has_key? "dry-struct"
               # values using the default constructor, `new`.
               Types.Instance(type)
             else
-              Types.Constructor(type) { |values| converter ? converter.call(values) : type.new(**values) }
+              # dry calls this when initialising the Type. Check if type of input is correct or coerce
+              Types.Constructor(type) do |value|
+                next value if value.is_a?(type)
+
+                if converter
+                  converter.call(value)
+                else
+                  type.new(**value)
+                end
+              end
             end
           end
         end
