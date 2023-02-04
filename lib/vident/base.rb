@@ -104,7 +104,12 @@ module Vident
         else
           RootComponent::UsingViewComponent
         end
-        klass.new(**stimulus_options_for_component(options))
+        element_attrs = options
+          .except(:id, :element_tag, :html_options, :controller, :controllers, :actions, :targets, :named_classes, :data_maps)
+          .merge(
+            stimulus_options_for_component(options)
+          )
+        klass.new(**element_attrs)
       end
     end
     alias_method :root, :parent_element
@@ -146,12 +151,11 @@ module Vident
     end
     module_function :stimulus_identifier_from_path
 
-    protected
+    private
 
     # Prepare the stimulus attributes for a StimulusComponent
     def stimulus_options_for_component(options)
       {
-        **options.except(:id, :element_tag, :html_options, :controller, :controllers, :actions, :targets, :named_classes, :data_maps),
         id: respond_to?(:id) ? id : (attribute(:id) || options[:id]),
         element_tag: attribute(:element_tag) || options[:element_tag] || :div,
         html_options: prepare_html_options(options[:html_options]),
@@ -164,8 +168,6 @@ module Vident
         data_maps: prepare_stimulus_option(options, :data_maps)
       }
     end
-
-    private
 
     def prepare_html_options(erb_options)
       # Options should override in this order:
