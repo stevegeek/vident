@@ -158,6 +158,19 @@ if Gem.loaded_specs.has_key? "dry-struct"
           end
 
           def dry_type_from_primary_type(type, strict, converter)
+            # If a converter is provided, we should use it to coerce the value
+            if converter && !strict && !type.is_a?(Symbol)
+              return Types.Constructor(type) do |value|
+                next value if value.is_a?(type)
+
+                converter.call(value).tap do |new_value|
+                  unless new_value.is_a?(type)
+                    raise ArgumentError, "Type conversion proc did not convert #{value} to #{type}"
+                  end
+                end
+              end
+            end
+
             if type == :any
               Types::Nominal::Any
             elsif type == Integer
@@ -191,15 +204,11 @@ if Gem.loaded_specs.has_key? "dry-struct"
               # values using the default constructor, `new`.
               Types.Instance(type)
             else
-              # dry calls this when initialising the Type. Check if type of input is correct or coerce
+              # dry calls this when initialising the Type. Check if type of input is correct or create new instance
               Types.Constructor(type) do |value|
                 next value if value.is_a?(type)
 
-                if converter
-                  converter.call(value)
-                else
-                  type.new(**value)
-                end
+                type.new(**value)
               end
             end
           end
