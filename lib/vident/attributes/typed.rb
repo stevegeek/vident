@@ -61,9 +61,11 @@ if Gem.loaded_specs.has_key? "dry-struct"
           attr_reader :schema, :attribute_ivar_names
 
           def attribute(name, signature = :any, **options, &converter)
-            type_info = map_primitive_to_dry_type(signature, options, converter)
+            strict = !options[:convert]
+            signatures = extract_member_type_and_subclass(signature, options)
+            type_info = map_primitive_to_dry_type(signatures, strict, converter)
             type_info = set_constraints(type_info, options)
-            type_info = set_metadata(type_info, signature, options)
+            type_info = set_metadata(type_info, signatures, options)
             define_on_schema(name, type_info, options)
           end
 
@@ -87,8 +89,8 @@ if Gem.loaded_specs.has_key? "dry-struct"
             type_info
           end
 
-          def set_metadata(type_info, specified_type, options)
-            metadata = {typed_attribute_type: specified_type, typed_attribute_options: options}
+          def set_metadata(type_info, signatures, options)
+            metadata = {typed_attribute_type: signatures, typed_attribute_options: options}
             type_info.meta(**metadata)
           end
 
@@ -100,7 +102,7 @@ if Gem.loaded_specs.has_key? "dry-struct"
             @attribute_ivar_names ||= {}
             @attribute_ivar_names[attribute_name] = :"@#{attribute_name}"
             define_attribute_delegate(attribute_name) if delegates?(options)
-            @schema ||= const_set("TypedSchema", Class.new(Vident::Attributes::TypedNilingStruct))
+            @schema ||= const_set(:TypedSchema, Class.new(Vident::Attributes::TypedNilingStruct))
             @schema.attribute attribute_name, type_info
           end
 
@@ -130,9 +132,7 @@ if Gem.loaded_specs.has_key? "dry-struct"
             allow_blank.nil? ? true : allow_blank
           end
 
-          def map_primitive_to_dry_type(signature, options, converter)
-            strict = !options[:convert]
-            signatures = extract_member_type_and_subclass(signature, options)
+          def map_primitive_to_dry_type(signatures, strict, converter)
             types = signatures.map do |type, subtype|
               dry_type = dry_type_from_primary_type(type, strict, converter)
               if subtype && dry_type.respond_to?(:of)
