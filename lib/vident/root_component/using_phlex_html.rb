@@ -7,6 +7,9 @@ if Gem.loaded_specs.has_key? "phlex"
     module RootComponent
       class UsingPhlexHTML < Phlex::HTML
         include Base
+        if Gem.loaded_specs.has_key? "better_html"
+          include UsingBetterHTML
+        end
 
         VALID_TAGS = Set[*(Phlex::HTML::VOID_ELEMENTS.keys + Phlex::HTML::STANDARD_ELEMENTS.keys)].freeze
 

@@ -7,6 +7,9 @@ if Gem.loaded_specs.has_key? "view_component"
     module RootComponent
       class UsingViewComponent < ::ViewComponent::Base
         include Base
+        if Gem.loaded_specs.has_key? "better_html"
+          include UsingBetterHTML
+        end
 
         SELF_CLOSING_TAGS = Set[:area, :base, :br, :col, :embed, :hr, :img, :input, :link, :meta, :param, :source, :track, :wbr].freeze
 

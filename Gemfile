@@ -18,6 +18,7 @@ gem "stimulus-rails"
 gem "dry-struct"
 
 gem "phlex-rails"
+gem "better_html"
 
 # FIXME: versions greater than 2.74 cause issues: https://github.com/ViewComponent/view_component/pull/1571
 gem "view_component", "2.74.1"
