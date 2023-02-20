@@ -17,12 +17,14 @@ if Gem.loaded_specs.has_key? "better_html"
           attrs = build_target_data_attributes(parse_targets(targets))
           helpers.html_attributes(attrs.transform_keys! { |k| "data-#{k}" })
         end
+        alias_method :as_target, :as_targets
 
         # Return the HTML `data-action` attribute for the given actions
         def with_actions(*actions_to_set)
           actions_str = action_list(actions_to_set)
           actions_str.present? ? helpers.html_attributes("data-action" => actions_str) : nil
         end
+        alias_method :with_action, :with_actions
 
         private
 
