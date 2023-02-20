@@ -13,6 +13,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+## [0.6.1] - 2023-02-20
+
+### Fixed
+
+- `better_html` support fix for aliased dsl methods
+
+
 ## [0.6.0] - 2023-02-20
 
 ### Added
