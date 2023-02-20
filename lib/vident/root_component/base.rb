@@ -68,23 +68,21 @@ module Vident
 
       # Helpers for generating the Stimulus data-* attributes directly
 
-      # Return the HTML `data-controller` attribute
-      def with_controllers
-        "data-controller='#{controller_list}'".html_safe
+      # Return the HTML `data-controller` attribute for the given controllers
+      def with_controllers(*controllers_to_set)
+        "data-controller=\"#{controller_list(controllers_to_set)}\"".html_safe
       end
 
-      # Return the HTML `data-target` attribute
+      # Return the HTML `data-target` attribute for the given targets
       def as_targets(*targets)
-        build_target_data_attributes(parse_targets(targets))
-          .map { |dt, n| "data-#{dt}=\"#{n}\"" }
-          .join(" ")
-          .html_safe
+        attrs = build_target_data_attributes(parse_targets(targets))
+        attrs.map { |dt, n| "data-#{dt}=\"#{n}\"" }.join(" ").html_safe
       end
       alias_method :as_target, :as_targets
 
-      # Return the HTML `data-action` attribute to add these actions
-      def with_actions(*actions)
-        "data-action='#{parse_actions(actions).join(" ")}'".html_safe
+      # Return the HTML `data-action` attribute for the given actions
+      def with_actions(*actions_to_set)
+        "data-action='#{parse_actions(actions_to_set).join(" ")}'".html_safe
       end
       alias_method :with_action, :with_actions
 
@@ -101,14 +99,14 @@ module Vident
       end
 
       # A complete list of Stimulus controllers for this component
-      def controller_list
-        @controllers&.map { |c| stimulize_path(c) }&.join(" ")
+      def controller_list(controllers_to_set)
+        controllers_to_set&.map { |c| stimulize_path(c) }&.join(" ")
       end
 
       # Complete list of actions ready to be use in the data-action attribute
-      def action_list
-        return nil unless @actions&.size&.positive?
-        parse_actions(@actions).join(" ")
+      def action_list(actions_to_parse)
+        return nil unless actions_to_parse&.size&.positive?
+        parse_actions(actions_to_parse).join(" ")
       end
 
       # Complete list of targets ready to be use in the data attributes
@@ -124,7 +122,7 @@ module Vident
 
       # stimulus "data-*" attributes map for this component
       def tag_data_attributes
-        {controller: controller_list, action: action_list}
+        {controller: controller_list(@controllers), action: action_list(@actions)}
           .merge!(target_list)
           .merge!(named_classes_list)
           .merge!(data_map_attributes)
