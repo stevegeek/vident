@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.authors = ["Stephen Ierodiaconou"]
   spec.email = ["stevegeek@gmail.com"]
 
-  spec.summary = "Vident is a view component base class for your design system implementation, which provides helpers for working with Stimulus. For ViewComponent and Phlex."
-  spec.description = "Vident makes using Stimulus with your `ViewComponent` or `Phlex` view components as easy as writing Ruby. It also provides a base class for your components to inherit from."
+  spec.summary = "Vident is the base of your design system implementation, which provides helpers for working with Stimulus. For component libraries with ViewComponent or Phlex."
+  spec.description = "Vident makes using Stimulus with your `ViewComponent` or `Phlex` view components as easy as writing Ruby. Vident is the base of your design system implementation, which provides helpers for working with Stimulus. For component libraries with ViewComponent or Phlex."
   spec.homepage = "https://github.com/stevegeek/vident"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.0.0"
