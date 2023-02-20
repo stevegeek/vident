@@ -1,0 +1,48 @@
+
+# Change Log
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](http://keepachangelog.com/)
+and this project adheres to [Semantic Versioning](http://semver.org/).
+
+## [Unreleased]
+
+### Added
+
+### Changed
+
+### Fixed
+
+## [0.6.0] - 2023-02-20
+
+### Added
+
+- Experimental support for `better_html` in the root components (the stimulus attributes are generated with `html_attributes`)
+
+
+
+## [0.5.1] - 2023-02-17
+
+### Added
+
+- N/A
+
+### Changed
+
+- N/A
+
+### Fixed
+
+- Typed attributes was not always using custom coercion methods if they were defined 
+
+### Removed
+
+- N/A
+
+### Deprecated
+
+- N/A
+
+### Security
+
+- N/A
