@@ -38,7 +38,8 @@ if Gem.loaded_specs.has_key? "view_component"
           options = @html_options&.dup || {}
           data_attrs = tag_data_attributes
           options[:data] = options[:data].present? ? data_attrs.merge(options[:data]) : data_attrs
-          options.merge(id: @id) if @id
+          return options unless @id
+          options.merge(id: @id)
         end
 
         def content_tag_type
