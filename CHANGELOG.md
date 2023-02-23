@@ -13,6 +13,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+## [0.6.2] - 2023-02-23
+
+### Fixed
+
+- Element tag options are not set when no ID is provided
+
+
 ## [0.6.1] - 2023-02-20
 
 ### Fixed
