@@ -11,7 +11,9 @@ if Gem.loaded_specs.has_key? "phlex"
           include UsingBetterHTML
         end
 
-        VALID_TAGS = Set[*(Phlex::HTML::VOID_ELEMENTS.keys + Phlex::HTML::STANDARD_ELEMENTS.keys)].freeze
+        VALID_TAGS = Set[
+          *(Phlex::HTML::VoidElements::REGISTERED_ELEMENTS.keys + Phlex::HTML::StandardElements::REGISTERED_ELEMENTS.keys)
+        ].freeze
 
         # Create a tag for a target with a block containing content
         def target_tag(tag_name, targets, **options, &block)
