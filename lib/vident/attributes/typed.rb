@@ -7,7 +7,7 @@ if Gem.loaded_specs.has_key? "dry-struct"
   require_relative "./typed_niling_struct"
 
   module Vident
-    # Adapts Dry Types to confinus Typed Attributes. We use dry-struct (see ::Core::NilingStruct) but
+    # Adapts Dry Types to confinus Typed Attributes. We use dry-struct (see TypedNilingStruct) but
     # we could probably also use dry-initializer directly, saving us from maintaining the schema.
     module Attributes
       module Typed

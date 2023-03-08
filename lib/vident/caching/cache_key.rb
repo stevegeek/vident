@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 # Rails fragment caching works by either expecting the cached key object to respond to `cache_key` or for that object
-# to be an array or hash. In our case the object maybe an instance of Core::Presenter so here we add a default
-# `cache_key` implementation.
+# to be an array or hash.
 module Vident
   module Caching
     module CacheKey
