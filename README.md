@@ -4,6 +4,9 @@ Vident helps you create flexible & maintainable component libraries for your app
 
 Vident makes using Stimulus with your [`ViewComponent`](https://viewcomponent.org/) or [`Phlex`](https://phlex.fun) components easier.
 
+**Note: Vident does not work with ViewComponent 3.0.0.rc2 or later. I'm just starting to restructure the project as various gems at which point I will fix that**. 
+Looking to split into gems such as `vident-view_component`, `vident-phlex`,  `vident-typed`, `vident-view_component-caching`, `vident-rspec`, `vident-minitest`, `vident-tailwind` etc
+
 # Motivation
 
 I love working with Stimulus, but I find manually crafting the data attributes for
