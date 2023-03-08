@@ -4,6 +4,7 @@
   <ul>
     <li><a href="#hw">Simple Hello World examples</a></li>
     <li><a href="#greeter">Stimulus Greeter examples</a></li>
+    <li><a href="#avatar">Avatar examples</a></li>
   </ul>
 
   <div class="space-y-16">
@@ -23,7 +24,7 @@
       <%= render ::Views::HelloVidentView.new(name: "World from Vident + Phlex") %>
 
       <h3>1.5) With Vident we can do stuff like set classes at render site</h3>
-      <%= render ::HelloVidentComponent.new(name: "World from Vident + ViewComponent, in Red", html_options: {class: "text-red-600"}) %>
+      <%= render ::HelloVidentComponent.new(name: "World from Vident + ViewComponent, in Red", html_options: { class: "text-red-600" }) %>
 
       <h3>1.6) If Stimulus is not used (as in this simple component) we can opt out</h3>
       <%= render ::Views::HelloVidentNoStimulusView.new(name: "World from Vident (no stimulus used) + Phlex") %>
@@ -57,6 +58,59 @@
              }
            ) %>
       <% end %>
+    </section>
+
+    <h2 id="avatar">3) Rendering the AvatarComponent</h2>
+
+    <section class="space-y-8">
+      <div class="space-y-8">
+        <h3>with initials</h3>
+        <div class="block">
+          <span>example</span>
+          <%= render ::AvatarComponent.new(initials: "AB") %>
+        </div>
+        <code class="block">render ::AvatarComponent.new(initials: "AB")</code>
+      </div>
+      <div class="space-y-8">
+        <h3>with image</h3>
+        <div class="block">
+          <span>example</span>
+          <%= render AvatarComponent.new(url: "https://i.pravatar.cc/300", initials: "AB") %>
+        </div>
+        <code class="block">render AvatarComponent.new(url: "https://i.pravatar.cc/300", initials: "AB")</code>
+      </div>
+      <div class="space-y-8">
+        <h3>with image and x_large size</h3>
+        <div class="block">
+          <span>example</span>
+          <%= render AvatarComponent.new(url: "https://i.pravatar.cc/300", initials: "AB", size: :x_large) %>
+        </div>
+        <code class="block">render AvatarComponent.new(url: "https://i.pravatar.cc/300", initials: "AB", size: :x_large)</code>
+      </div>
+      <div class="space-y-8">
+        <h3>with image and alt and class set at render site (set to display block)</h3>
+        <div class="block">
+          <span>example</span>
+          <%= render AvatarComponent.new(url: "https://i.pravatar.cc/300", initials: "AB", html_options: { alt: "My alt text", class: "block" }) %>
+        </div>
+        <code class="block">render AvatarComponent.new(url: "https://i.pravatar.cc/300", initials: "AB", html_options: {alt: "My alt text", class: "block"})</code>
+      </div>
+      <div class="space-y-8">
+        <h3>with initials and small size and border</h3>
+        <div class="block">
+          <span>example</span>
+          <%= render AvatarComponent.new(initials: "SG", size: :small, border: true) %>
+        </div>
+        <code class="block">render AvatarComponent.new(initials: "SG", size: :small, border: true)</code>
+      </div>
+      <div class="space-y-8">
+        <h3>with initials and square shape and custom border color</h3>
+        <div class="block">
+          <span>example</span>
+          <%= render AvatarComponent.new(initials: "SG", size: :large, html_options: { class: "border-2 border-red-600" }) %>
+        </div>
+        <code class="block">render AvatarComponent.new(initials: "SG", size: :large, html_options: {class: "border-2 border-red-600"})</code>
+      </div>
     </section>
   </div>
 </div>
