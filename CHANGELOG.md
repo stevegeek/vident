@@ -13,6 +13,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+## [0.7.0] - 2023-03-08  
+
+### Added
+
+- new `Vident::Tailwind` module which uses [tailwind_merge](https://github.com/gjtorikian/tailwind_merge) to merge TailwindCSS classes
+
+### Changed
+
+- Removed a dependency on intenal constants from `phlex`
+
 ## [0.6.3] - 2023-03-03
 
 ### Fixed
