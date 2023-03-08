@@ -1,5 +1,6 @@
 class AvatarComponent < ViewComponent::Base
   include ::Vident::TypedComponent
+  include ::Vident::Tailwind
   include ::Vident::Caching::CacheKey
 
   no_stimulus_controller

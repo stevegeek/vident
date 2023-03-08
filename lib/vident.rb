@@ -33,7 +33,7 @@ require_relative "vident/base"
 require_relative "vident/component"
 require_relative "vident/typed_component"
 require_relative "vident/caching/cache_key"
-
+require_relative "vident/tailwind" if Gem.loaded_specs.has_key? "tailwind_merge"
 require_relative "vident/testing/attributes_tester"
 require_relative "vident/testing/auto_test"
 
