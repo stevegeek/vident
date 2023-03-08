@@ -11,9 +11,10 @@ if Gem.loaded_specs.has_key? "phlex"
           include UsingBetterHTML
         end
 
-        VALID_TAGS = Set[
-          *(Phlex::HTML::VoidElements::REGISTERED_ELEMENTS.keys + Phlex::HTML::StandardElements::REGISTERED_ELEMENTS.keys)
-        ].freeze
+        STANDARD_ELEMENTS = [:a, :abbr, :address, :article, :aside, :b, :bdi, :bdo, :blockquote, :body, :button, :caption, :cite, :code, :colgroup, :data, :datalist, :dd, :del, :details, :dfn, :dialog, :div, :dl, :dt, :em, :fieldset, :figcaption, :figure, :footer, :form, :g, :h1, :h2, :h3, :h4, :h5, :h6, :head, :header, :hgroup, :html, :i, :iframe, :ins, :kbd, :label, :legend, :li, :main, :map, :mark, :menuitem, :meter, :nav, :noscript, :object, :ol, :optgroup, :option, :output, :p, :path, :picture, :pre, :progress, :q, :rp, :rt, :ruby, :s, :samp, :script, :section, :select, :slot, :small, :span, :strong, :style, :sub, :summary, :sup, :svg, :table, :tbody, :td, :template_tag, :textarea, :tfoot, :th, :thead, :time, :title, :tr, :u, :ul, :video, :wbr].freeze
+        VOID_ELEMENTS = [:area, :br, :embed, :hr, :img, :input, :link, :meta, :param, :source, :track, :col].freeze
+
+        VALID_TAGS = Set[*(STANDARD_ELEMENTS + VOID_ELEMENTS)].freeze
 
         # Create a tag for a target with a block containing content
         def target_tag(tag_name, targets, **options, &block)
