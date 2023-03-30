@@ -33,15 +33,7 @@ module Vident
       end
 
       def identifier_name_path
-        if phlex_component?
-          name.remove("Views::").underscore
-        else
-          name.underscore
-        end
-      end
-
-      def phlex_component?
-        @phlex_component ||= ancestors.map(&:name).include?("Phlex::HTML")
+        name.underscore
       end
 
       private
@@ -52,7 +44,7 @@ module Vident
           def #{attr_name}
             #{@attribute_ivar_names[attr_name]}
           end
-
+  
           def #{attr_name}?
             #{@attribute_ivar_names[attr_name]}.present?
           end
@@ -95,25 +87,8 @@ module Vident
 
     # HTML and attribute definition and creation
 
-    # Helper to create the main element
-    def parent_element(**options)
-      @parent_element ||= begin
-        # Note: we cant mix phlex and view_component render contexts
-        klass = if self.class.phlex_component?
-          RootComponent::UsingPhlexHTML
-        else
-          RootComponent::UsingViewComponent
-        end
-        element_attrs = options
-          .except(:id, :element_tag, :html_options, :controller, :controllers, :actions, :targets, :named_classes, :data_maps)
-          .merge(
-            stimulus_options_for_component(options)
-          )
-        klass.new(**element_attrs)
-      end
-    end
-    alias_method :root, :parent_element
-
+    # FIXME: if we call them before `root` we will setup the root element before we intended
+    # The separation between component and root element is a bit messy. Might need rethinking.
     delegate :action, :target, :named_classes, to: :root
 
     # This can be overridden to return an array of extra class names

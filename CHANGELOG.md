@@ -9,9 +9,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- new gems for Vident related functionality, eg `vident-typed` and `vident-tailwind`
+- `vident` is now the core gem which can be used with any component system. Gems for Phlex and ViewComponent are available, `vident-phlex` and `vident-view_component` 
+
 ### Changed
 
+- removed functionality for `better_html`, `dry-types`, `view_component`, and `phlex` from the core gem
+- gem is now a Rails Engine and supports eager and autoloading
+
 ### Fixed
+
+- Fix untyped attributes inheritance
 
 ## [0.7.0] - 2023-03-08  
 

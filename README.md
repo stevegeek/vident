@@ -4,14 +4,25 @@ Vident helps you create flexible & maintainable component libraries for your app
 
 Vident makes using Stimulus with your [`ViewComponent`](https://viewcomponent.org/) or [`Phlex`](https://phlex.fun) components easier.
 
-**Note: Vident does not work with ViewComponent 3.0.0.rc2 or later. I'm just starting to restructure the project as various gems at which point I will fix that**. 
-Looking to split into gems such as `vident-view_component`, `vident-phlex`,  `vident-typed`, `vident-view_component-caching`, `vident-rspec`, `vident-minitest`, `vident-tailwind` etc
+This gem `vident` provides the base functionality for creating components. You will then want to add whichever gems you need for your specific use case
+from the vident ecosystem:
+
+- `vident-view_component` for using with `ViewComponent`
+- `vident-phlex` for using with `Phlex`
+- `vident-typed` to define typed attributes for your components
+- `vident-typed-view_component` for using with `ViewComponent` and typed attributes
+- `vident-typed-phlex` for using with `Phlex` and typed attributes
+- `vident-better_html` to use with `better_html`
+- `vident-tailwind` to use in projects where you use tailwindcss utility classes
+
+**The docs below need updating**
+
 
 # Motivation
 
 I love working with Stimulus, but I find manually crafting the data attributes for
 targets and actions error prone and tedious. Vident aims to make this process easier
-and keep me thinking in Ruby. 
+and keep me thinking in Ruby.
 
 I have been using Vident with `ViewComponent` in production apps for a while now and it has been constantly
 evolving.
@@ -28,7 +39,7 @@ This gem is a work in progress and I would love to get your feedback and contrib
 ### Various utilities
 
 - `Vident::Tailwind`: a mixin for your vident component which uses [tailwind_merge](https://github.com/gjtorikian/tailwind_merge) to merge TailwindCSS classes
-  so you can easily override classes when rendering a component. 
+  so you can easily override classes when rendering a component.
 
 - `Vident::Caching::CacheKey`: a mixin for your vident component which provides a `cache_key` method that can be used to generate a cache key for
   fragment caching or etag generation.
@@ -43,7 +54,7 @@ This gem is a work in progress and I would love to get your feedback and contrib
 - Component arguments are defined using the `attribute` method which allows you to define default values, (optionally) types and
   if blank or nil values should be allowed.
 - You can use the same component in multiple contexts and configure the root element differently in each context by passing
-  options to the component when instantiating it. 
+  options to the component when instantiating it.
 - Stimulus support is built in and sets a default controller name based on the component name.
 - Stimulus actions, targets and classes can be setup using a simple DSL to avoid hand crafting the data attributes.
 - Since data attribute names are generated from the component class name, you can rename easily refactor and move components without
@@ -64,10 +75,10 @@ This is a work in progress. Here's what's left to do for first release:
 - Add tests
 - Make the gem more configurable to fit more use cases
 - Create an example library of a few components for some design system
-  - Create a demo app with `lookbook` and those components
+    - Create a demo app with `lookbook` and those components
 - Add more documentation
 - split `vident` into `vident` + `vident-rails` gems (and maybe `vident-rspec`) (Phlex can be used outside of Rails)
-  - possibly also split into `vident-phlex` and `vident-view_component` gems ?
+    - possibly also split into `vident-phlex` and `vident-view_component` gems ?
 
 
 
@@ -92,9 +103,9 @@ and visit http://localhost:3000
 
 ## A Vident component example (without Stimulus)
 
-First is an example component that uses `Vident::TypedComponent` but no Stimulus features. 
+First is an example component that uses `Vident::TypedComponent` but no Stimulus features.
 
-It is an avatar component that can either be displayed as an image or as initials. 
+It is an avatar component that can either be displayed as an image or as initials.
 
 It supports numerous sizes and shapes and can optionally have a border. It also generates a cache key for use in fragment caching or etag generation.
 
