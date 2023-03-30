@@ -1,22 +1,10 @@
 # Vident
 
-Vident helps you create flexible & maintainable component libraries for your application.
+**Vident** is a collection of gems that help you create **flexible** & **maintainable** component libraries for your Rails application.
 
-Vident makes using Stimulus with your [`ViewComponent`](https://viewcomponent.org/) or [`Phlex`](https://phlex.fun) components easier.
+Vident also provides a neat Ruby DSL to make wiring up **Stimulus easier & less error prone** in your view components.
 
-This gem `vident` provides the base functionality for creating components. You will then want to add whichever gems you need for your specific use case
-from the vident ecosystem:
-
-- `vident-view_component` for using with `ViewComponent`
-- `vident-phlex` for using with `Phlex`
-- `vident-typed` to define typed attributes for your components
-- `vident-typed-view_component` for using with `ViewComponent` and typed attributes
-- `vident-typed-phlex` for using with `Phlex` and typed attributes
-- `vident-better_html` to use with `better_html`
-- `vident-tailwind` to use in projects where you use tailwindcss utility classes
-
-**The docs below need updating**
-
+[`ViewComponent`](https://viewcomponent.org/) and [`Phlex`](https://phlex.fun) supported.
 
 # Motivation
 
@@ -24,10 +12,16 @@ I love working with Stimulus, but I find manually crafting the data attributes f
 targets and actions error prone and tedious. Vident aims to make this process easier
 and keep me thinking in Ruby.
 
-I have been using Vident with `ViewComponent` in production apps for a while now and it has been constantly
-evolving.
+I have been using Vident with `ViewComponent` in production apps for a while now (and recently `Phlex`!) 
+and it has been constantly evolving.
 
 This gem is a work in progress and I would love to get your feedback and contributions!
+
+
+
+**The docs below need updating**
+
+
 
 ## What does Vident provide?
 
@@ -434,31 +428,44 @@ export default class extends Controller {
 
 ## Installation
 
-Add this line to your application's Gemfile:
+This gem (`vident`) provides only base functionality but there are a number of gems that provide additional functionality
+or a "out of the box" experience.
 
-```ruby
-gem 'vident'
-```
+It's a "pick your own adventure" approach. You decide what frameworks and features you want to use
+and add the gems as needed.
 
-Also ensure you have installed your chosen view component library, eg:
+Start by asking yorself these questions:
 
-```ruby
-gem 'view_component'
-```
+_Q1. Do you want to use [`ViewComponent`](https://viewcomponent.org/) or [`Phlex`](https://www.phlex.fun/) for your view components?_
 
-or
+_Q2. Do you want to use attributes with runtime type checking (powered by [`dry-types`](https://github.com/dry-rb/dry-types)), or not?_
 
-```ruby
-gem 'phlex' # Must be version 0.5 or higher
-```
+Depending on your answer to Q1, you can choose from either the `*-view_component` or `*-phlex` gems,
+then depending on your answer to Q2, you can choose from either the untyped or `*-typed-*` gems.
 
-or **both**!
+Note you can also use some or all of them in the same app.
 
-If you want to use typed attributes you must also include `dry-struct`
+- [`vident-view_component`](https://github.com/stevegeek/vident-view_component) for using with `ViewComponent` and untyped attributes
+- [`vident-typed-view_component`](https://github.com/stevegeek/vident-typed-view_component) for using with `ViewComponent` and typed attributes
+- [`vident-phlex`](https://github.com/stevegeek/vident-phlex) for using with `Phlex` and untyped attributes
+- [`vident-typed-phlex`](https://github.com/stevegeek/vident-typed-phlex) for using with `Phlex` and typed attributes
 
-```ruby
-gem 'dry-struct'
-```
+_Q3. Do you use or want to use [BetterHTML](https://github.com/Shopify/better-html) in your Rails project?_
+
+If yes, then include [`vident-better_html`](https://github.com/stevegeek/vident-better_html) in your Gemfile alongside `better_html` and your vident gems of choice.
+Note that `vident-better_html` automatically enables `better_html` support in Vident root components.
+
+_Q4. Do you use or want to use [TailwindCSS](https://tailwindcss.com/)?_
+
+If yes, then consider adding [`vident-tailwind`](https://github.com/stevegeek/vident-tailwind) to your Gemfile alongside your vident gems of choice. When creating
+your components you can then include `Vident::Tailwind` to get all the benefits of the amazing [`tailwind_merge`](https://github.com/gjtorikian/tailwind_merge/).
+
+Finally if none of the above gems suit your needs, you can always just use base `vident` gems to roll your own
+solution:
+
+- [`vident`](https://github.com/stevegeek/vident) to get the base functionality to mix with your own view component system
+- [`vident-typed`](https://github.com/stevegeek/vident-typed) to define typed attributes for your own view component system
+
 
 And then execute:
 
