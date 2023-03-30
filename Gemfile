@@ -25,8 +25,5 @@ gem "sqlite3"
 
 gem "rake", "~> 13.0"
 
-gem "minitest", "~> 5.0"
-gem "minitest-hooks"
-gem "faker"
 
 gem "standard", "~> 1.3"
