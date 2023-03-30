@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "vident/version"
-require_relative "vident/railtie"
+require "vident/version"
+require "vident/engine"
 
 module Vident
   class << self
