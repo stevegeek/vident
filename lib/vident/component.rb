@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "./attributes/not_typed"
-
 module Vident
   module Component
     extend ActiveSupport::Concern
