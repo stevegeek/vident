@@ -15,6 +15,7 @@ module Vident
           options = self.class.attribute_options
           default = options&.dig(attr_name, :default)
           allow_nil = options[attr_name] ? options[attr_name].fetch(:allow_nil, true) : true
+
           if attributes&.include? attr_name
             value = attributes[attr_name]
             @__attributes[attr_name] = (value.nil? && default) ? default : value
@@ -41,6 +42,8 @@ module Vident
       class_methods do
         def inherited(subclass)
           subclass.instance_variable_set(:@attribute_ivar_names, @attribute_ivar_names.clone)
+          subclass.instance_variable_set(:@attribute_names, @attribute_names.clone)
+          subclass.instance_variable_set(:@attribute_options, @attribute_options.clone)
           super
         end
 
