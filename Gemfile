@@ -10,7 +10,6 @@ gem "puma"
 gem "rails", ">= 7"
 # TODO: move examples to another app?
 gem "sprockets-rails"
-gem "tailwindcss-rails"
 gem "turbo-rails"
 gem "importmap-rails"
 gem "stimulus-rails"

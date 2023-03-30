@@ -6,16 +6,11 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
-    <script async src="https://ga.jspm.io/npm:es-module-shims@1.6.2/dist/es-module-shims.js"></script>
-    <%= stylesheet_link_tag "tailwind", "inter-font", "data-turbo-track": "reload" %>
-
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags("application") %>
   </head>
 
   <body>
-    <main class="container mx-auto my-28 px-5">
-      <%= yield %>
-    </main>
+    <%= yield %>
   </body>
 </html>
