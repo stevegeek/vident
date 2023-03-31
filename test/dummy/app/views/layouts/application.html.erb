@@ -8,10 +8,13 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <%= stylesheet_link_tag "application" %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags("application") %>
   </head>
 
   <body>
-    <%= yield %>
+    <main class="container mx-auto my-28 px-5">
+      <%= yield %>
+    </main>
   </body>
 </html>

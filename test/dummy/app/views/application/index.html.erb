@@ -1,5 +1,99 @@
-<p>Render an avatar:</p>
-<%= render AvatarComponent.new(initials: "V C") %>
-<br>
-<p>The following attempt to render will fail and the error be caught due to a type error in the attribute:</p>
-<%= render AvatarComponent.new(initials: 123, size: "foo") rescue "A type error was thrown as expected!" %>
+<div class="space-y-6">
+  <h1 class="text-3xl">Comparing components</h1>
+
+  <div class="space-y-16">
+    <h2 class="text-xl">Stimulus Greeter Examples</h2>
+
+    <section class="space-y-8">
+      <h3 class="text-md font-bold">A plain old ViewComponent</h3>
+      <code class="block bg-gray-100">render ::GreeterComponent.new(cta: "Greet w. ViewComponent")</code>
+      <%= render ::GreeterComponent.new(cta: "Greet w. ViewComponent") %>
+
+      <h3 class="text-md font-bold">A ViewComponent with Vident</h3>
+      <code class="block bg-gray-100">render ::GreeterVidentComponent.new(cta: "Greet w. Vident + ViewComponent")</code>
+      <%= render ::GreeterVidentComponent.new(cta: "Greet w. Vident + ViewComponent") %>
+
+      <h3 class="text-md font-bold">An example of a component where we use Vident to set Stimulus actions/targets on other components (eg in a ViewComponent slot)</h3>
+      <pre class="block bg-gray-100">
+&lt;%= render ::GreeterWithTriggerComponent.new do |greeter| %&gt;
+  &lt;% greeter.trigger(
+     before_clicked_message: &quot;I&#39;m a button component!&quot;,
+     after_clicked_message: &quot;Greeted! Click me again to reset.&quot;,
+     actions: [
+       greeter.action(:click, :greet),
+     ],
+     html_options: {
+       class: &quot;bg-red-500 hover:bg-red-700&quot;
+     }
+   ) %&gt;
+&lt;% end %&gt;
+      </pre>
+      <%= render ::GreeterWithTriggerComponent.new do |greeter| %>
+        <% greeter.trigger(
+             before_clicked_message: "I'm a button component!",
+             after_clicked_message: "Greeted! Click me again to reset.",
+             actions: [
+               greeter.action(:click, :greet),
+             ],
+             html_options: {
+               class: "bg-red-500 hover:bg-red-700"
+             }
+           ) %>
+      <% end %>
+    </section>
+
+    <h2 class="text-xl pt-6">Rendering the AvatarComponent</h2>
+
+    <section class="space-y-16">
+      <div class="space-y-6">
+        <h3 class="text-md font-bold">with initials</h3>
+        <code class="block bg-gray-100">render ::AvatarComponent.new(initials: "AB")</code>
+        <div class="block">
+          <%= render ::AvatarComponent.new(initials: "AB") %>
+        </div>
+      </div>
+      <div class="space-y-6">
+        <h3 class="text-md font-bold">with a value of invalid type passed to attributes, will raise an error.</h3>
+        <code class="block bg-gray-100">render AvatarComponent.new(initials: 123, size: "foo")</code>
+        <div class="block">
+          <%= render AvatarComponent.new(initials: 123, size: "foo") rescue "A type error was thrown as expected!" %>
+        </div>
+      </div>
+      <div class="space-y-6">
+        <h3 class="text-md font-bold">with image</h3>
+        <code class="block bg-gray-100">render AvatarComponent.new(url: "https://i.pravatar.cc/300", initials: "AB")</code>
+        <div class="block">
+          <%= render AvatarComponent.new(url: "https://i.pravatar.cc/300", initials: "AB") %>
+        </div>
+      </div>
+      <div class="space-y-6">
+        <h3 class="text-md font-bold">with image and x_large size</h3>
+        <code class="block bg-gray-100">render AvatarComponent.new(url: "https://i.pravatar.cc/300", initials: "AB", size: :x_large)</code>
+        <div class="block">
+          <%= render AvatarComponent.new(url: "https://i.pravatar.cc/300", initials: "AB", size: :x_large) %>
+        </div>
+      </div>
+      <div class="space-y-6">
+        <h3 class="text-md font-bold">with image and alt and class set at render site (ring)</h3>
+        <code class="block bg-gray-100">render AvatarComponent.new(url: "https://i.pravatar.cc/300", initials: "AB", html_options: {alt: "My alt text", class: "ring-2 ring-red-900"})</code>
+        <div class="block">
+          <%= render AvatarComponent.new(url: "https://i.pravatar.cc/300", initials: "AB", html_options: { alt: "My alt text", class: "ring-2 ring-red-900" }) %>
+        </div>
+      </div>
+      <div class="space-y-6">
+        <h3 class="text-md font-bold">with initials and small size and border</h3>
+        <div class="block">
+          <%= render AvatarComponent.new(initials: "SG", size: :small, border: true) %>
+        </div>
+        <code class="block bg-gray-100">render AvatarComponent.new(initials: "SG", size: :small, border: true)</code>
+      </div>
+      <div class="space-y-6">
+        <h3 class="text-md font-bold">with initials and square shape and custom border color (note if using Tailwind you will want to use `vident-tailwind` too to correctly override classes like this)</h3>
+        <code class="block bg-gray-100">render AvatarComponent.new(initials: "SG", shape: :square, html_options: {class: "border-2 border-red-600"})</code>
+        <div class="block">
+          <%= render AvatarComponent.new(initials: "SG", shape: :square, html_options: { class: "border-2 border-red-600" }) %>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
