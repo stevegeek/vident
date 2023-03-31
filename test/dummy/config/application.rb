@@ -9,8 +9,10 @@ require "vident"
 
 module Dummy
   class Application < Rails::Application
-    config.autoload_paths << "#{root}/app"
     config.load_defaults Rails::VERSION::STRING.to_f
+
+    # For compatibility with applications that use this config
+    config.action_controller.include_all_helpers = false
 
     # Configuration for the application, engines, and railties goes here.
     #
@@ -19,8 +21,5 @@ module Dummy
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
-
-    config.importmap.cache_sweepers.append(Rails.root.join("app/components"), Rails.root.join("app/views"))
-    config.assets.paths.append("app/components", "app/views")
   end
 end
