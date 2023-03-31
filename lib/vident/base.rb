@@ -128,6 +128,12 @@ module Vident
 
     private
 
+    def parent_element_attributes(options)
+      options
+        .except(:id, :element_tag, :html_options, :controller, :controllers, :actions, :targets, :named_classes, :data_maps)
+        .merge(stimulus_options_for_component(options))
+    end
+
     # Prepare the stimulus attributes for a StimulusComponent
     def stimulus_options_for_component(options)
       {
