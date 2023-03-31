@@ -2,6 +2,8 @@
 
 **Vident** is a collection of gems that help you create **flexible** & **maintainable** component libraries for your Rails application.
 
+<a href="https://github.com/stevegeek/vident"><img alt="Vident logo" src="https://raw.githubusercontent.com/stevegeek/vident/main/logo-by-sd-256-colors.png" width="180" /></a>
+
 Vident also provides a neat Ruby DSL to make wiring up **Stimulus easier & less error prone** in your view components.
 
 [`ViewComponent`](https://viewcomponent.org/) and [`Phlex`](https://phlex.fun) supported.
