@@ -19,11 +19,42 @@ and it has been constantly evolving.
 
 This gem is a work in progress and I would love to get your feedback and contributions!
 
+# Vident is a collection of gems
+
+- [`vident-view_component`](https://github.com/stevegeek/vident-view_component) for using with `ViewComponent` and untyped attributes
+- [`vident-typed-view_component`](https://github.com/stevegeek/vident-typed-view_component) for using with `ViewComponent` and typed attributes
+- [`vident-phlex`](https://github.com/stevegeek/vident-phlex) for using with `Phlex` and untyped attributes
+- [`vident-typed-phlex`](https://github.com/stevegeek/vident-typed-phlex) for using with `Phlex` and typed attributes
+
+There is also:
+
+- [`vident-typed-minitest`](https://github.com/stevegeek/vident-typed-minitest) to get some test helpers for typed attributes (auto generates inputs to test attributes)
+- [`vident-better_html`](https://github.com/stevegeek/vident-better_html) to support `better_html` if you use it in your Rails app
+- [`vident-tailwind`](https://github.com/stevegeek/vident-tailwind) to get all the benefits of the amazing [`tailwind_merge`](https://github.com/gjtorikian/tailwind_merge/).
+- [`vident-view_component-caching`](https://github.com/stevegeek/vident-view_component-caching) to get `.cache_key` support for your components
+
+And if you want to go low level:
+
+- [`vident`](https://github.com/stevegeek/vident) to get the base functionality to mix with your own view component system
+- [`vident-typed`](https://github.com/stevegeek/vident-typed) to define typed attributes for your own view component system
+
+
+# Things still to do...
+
+This is a work in progress. Here's what's left to do for first release:
+
+- Iterate on the interfaces and functionality
+- Add tests
+- Make the gem more configurable to fit more use cases
+- Create an example library of a few components for some design system
+  - Create a demo app with `lookbook` and those components
+- Add more documentation
 
 
 **The docs below need updating**
+--------------------------------
 
-
+# About Vident
 
 ## What does Vident provide?
 
@@ -44,7 +75,7 @@ This gem is a work in progress and I would love to get your feedback and contrib
   exposes a simple API for configuring and adding Stimulus controllers, targets and actions. Normally you create these
   using the `root` helper method on `Vident::Component`/`Vident::TypedComponent`.
 
-# Features
+## Features
 
 - A helper to create the root HTML element for your component, which then handles creation of attributes.
 - Component arguments are defined using the `attribute` method which allows you to define default values, (optionally) types and
@@ -61,20 +92,6 @@ This gem is a work in progress and I would love to get your feedback and contrib
 - (experimental) A test helper to make testing components easier by utilising type information from the component arguments to render
   automatically configured good and bad examples of the component.
 - (experimental) support for `better_html`
-
-
-## Things still to do...
-
-This is a work in progress. Here's what's left to do for first release:
-
-- Iterate on the interfaces and functionality
-- Add tests
-- Make the gem more configurable to fit more use cases
-- Create an example library of a few components for some design system
-    - Create a demo app with `lookbook` and those components
-- Add more documentation
-- split `vident` into `vident` + `vident-rails` gems (and maybe `vident-rspec`) (Phlex can be used outside of Rails)
-    - possibly also split into `vident-phlex` and `vident-view_component` gems ?
 
 
 
