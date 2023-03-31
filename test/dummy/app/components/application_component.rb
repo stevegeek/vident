@@ -1,0 +1,2 @@
+class ApplicationComponent < ::Vident::Typed::ViewComponent::Base
+end

@@ -1,0 +1,5 @@
+<p>Render an avatar:</p>
+<%= render AvatarComponent.new(initials: "V C") %>
+<br>
+<p>The following attempt to render will fail and the error be caught due to a type error in the attribute:</p>
+<%= render AvatarComponent.new(initials: 123, size: "foo") rescue "A type error was thrown as expected!" %>
