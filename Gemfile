@@ -6,4 +6,7 @@ gemspec
 
 gem "sqlite3"
 
+gem "vident"
+gem "better_html"
+
 gem "standard", "~> 1.3"

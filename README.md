@@ -4,6 +4,23 @@ Short description and motivation.
 ## Usage
 How to use my plugin.
 
+```ruby
+BetterHtml.config = BetterHtml::Config.new(YAML.load(File.read(".better-html.yml")))
+
+BetterHtml.configure do |config|
+  config.template_exclusion_filter = proc { |filename| !filename.start_with?(Rails.root.to_s) }
+end
+# ViewComponent needs to do this hack to work in certain cases
+# see https://github.com/Shopify/better-html/pull/98
+class BetterHtml::HtmlAttributes
+  alias_method :to_s_without_html_safe, :to_s
+
+  def to_s
+    to_s_without_html_safe.html_safe
+  end
+end
+```
+
 ## Installation
 Add this line to your application's Gemfile:
 
