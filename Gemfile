@@ -12,6 +12,4 @@ gem "sprockets-rails"
 
 gem "view_component"
 
-gem "vident"
-
 gem "standard"
