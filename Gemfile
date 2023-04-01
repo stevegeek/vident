@@ -17,7 +17,3 @@ gem "phlex-rails"
 gem "vident"
 
 gem "standard"
-
-# gem "better_html"
-# gem "vident-better_html"
-
