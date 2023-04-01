@@ -14,10 +14,11 @@ class ApplicationLayout < ApplicationView
         csrf_meta_tags
         script src: "https://cdn.tailwindcss.com"
         stylesheet_link_tag "application", data_turbo_track: "reload"
+        javascript_importmap_tags "application"
       end
 
       body do
-        main(&block)
+        main(class: "container mx-auto my-28 px-5", &block)
       end
     end
   end

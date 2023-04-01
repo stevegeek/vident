@@ -18,7 +18,7 @@ Gem::Specification.new do |spec|
     Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
   end
 
-  spec.add_dependency "rails", ">= 7.0.4.3"
+  spec.add_dependency "rails", ">= 7"
   spec.add_dependency "vident-phlex", ">= 0.1.0", "< 1"
   spec.add_dependency "vident-typed", ">= 0.1.0", "< 1"
 end

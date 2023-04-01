@@ -24,5 +24,13 @@ module Dummy
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+
+    config.importmap.cache_sweepers.append(Rails.root.join("app/components"), Rails.root.join("app/views"))
+
+    # Add the paths to the components sidecar assets to the asset pipeline. The paths are those to which the
+    # components are 'rooted' in the application. E.g if a component `Foo::MyComponent` is defined in
+    # "app/components/foo/my_component", then the path to the assets for that component to specify
+    # for sprockets here is "app/components/". In `phlex-rails` the paths are typically as follows:
+    config.assets.paths.append("app/views/components", "app/views/layouts")
   end
 end

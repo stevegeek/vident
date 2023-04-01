@@ -8,9 +8,11 @@ gem "puma"
 
 gem "sqlite3"
 
+# Asset things for the dummy app
 gem "sprockets-rails"
-
-gem "view_component"
+gem "turbo-rails"
+gem "importmap-rails"
+gem "stimulus-rails"
 
 gem "phlex-rails"
 
