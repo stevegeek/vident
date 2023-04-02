@@ -21,6 +21,13 @@ This gem is a work in progress and I would love to get your feedback and contrib
 
 # Vident is a collection of gems
 
+The core gems are:
+
+- [`vident`](https://github.com/stevegeek/vident) to get the base functionality
+- [`vident-typed`](https://github.com/stevegeek/vident-typed) to optionally define typed attributes for your view components
+
+Gems that provide support for `ViewComponent` and `Phlex`:
+
 - [`vident-view_component`](https://github.com/stevegeek/vident-view_component) for using with `ViewComponent` and untyped attributes
 - [`vident-typed-view_component`](https://github.com/stevegeek/vident-typed-view_component) for using with `ViewComponent` and typed attributes
 - [`vident-phlex`](https://github.com/stevegeek/vident-phlex) for using with `Phlex` and untyped attributes
@@ -32,11 +39,6 @@ There is also:
 - [`vident-better_html`](https://github.com/stevegeek/vident-better_html) to support `better_html` if you use it in your Rails app
 - [`vident-tailwind`](https://github.com/stevegeek/vident-tailwind) to get all the benefits of the amazing [`tailwind_merge`](https://github.com/gjtorikian/tailwind_merge/).
 - [`vident-view_component-caching`](https://github.com/stevegeek/vident-view_component-caching) to get `.cache_key` support for your components
-
-The core gems are:
-
-- [`vident`](https://github.com/stevegeek/vident) to get the base functionality to mix with your own view component system
-- [`vident-typed`](https://github.com/stevegeek/vident-typed) to define typed attributes for your own view component system
 
 
 # Things still to do...
