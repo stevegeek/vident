@@ -1,10 +1,10 @@
 require_relative "lib/vident/view_component/caching/version"
 
 Gem::Specification.new do |spec|
-  spec.name        = "vident-view_component-caching"
-  spec.version     = Vident::ViewComponent::Caching::VERSION
-  spec.authors     = ["Stephen Ierodiaconou"]
-  spec.email       = ["stevegeek@gmail.com"]
+  spec.name = "vident-view_component-caching"
+  spec.version = Vident::ViewComponent::Caching::VERSION
+  spec.authors = ["Stephen Ierodiaconou"]
+  spec.email = ["stevegeek@gmail.com"]
   spec.homepage = "https://github.com/stevegeek/vident-view_component-caching"
   spec.summary = "Cache key computation for Vident components with ViewComponent"
   spec.description = "Cache key computation for Vident components with ViewComponent"
@@ -18,6 +18,6 @@ Gem::Specification.new do |spec|
     Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
   end
 
-  spec.add_dependency "rails", ">= 7.0.4.3"
+  spec.add_dependency "rails", ">= 7"
   spec.add_dependency "vident-view_component", ">= 0.1.0", "< 1"
 end
