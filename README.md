@@ -33,7 +33,7 @@ There is also:
 - [`vident-tailwind`](https://github.com/stevegeek/vident-tailwind) to get all the benefits of the amazing [`tailwind_merge`](https://github.com/gjtorikian/tailwind_merge/).
 - [`vident-view_component-caching`](https://github.com/stevegeek/vident-view_component-caching) to get `.cache_key` support for your components
 
-And if you want to go low level:
+The core gems are:
 
 - [`vident`](https://github.com/stevegeek/vident) to get the base functionality to mix with your own view component system
 - [`vident-typed`](https://github.com/stevegeek/vident-typed) to define typed attributes for your own view component system
@@ -101,42 +101,85 @@ or an "out of the box" experience.
 It's a "pick your own adventure" approach. You decide what frameworks and features you want to use
 and add the gems as needed.
 
-Here we go:
+First, add this line to your application's Gemfile:
+
+```ruby 
+gem 'vident'
+```
+
+Then go on to choose the gems you want to use:
 
 #### Q1. Do you want to use [`ViewComponent`](https://viewcomponent.org/) or [`Phlex`](https://www.phlex.fun/) for your view components?
 
-For ViewComponent, you can choose from the `*-view_component` gems.
+For ViewComponent use:
 
-For Phlex, you can choose from the `*-phlex` gems.
+- [`vident-view_component`](https://github.com/stevegeek/vident-view_component)
+
+For Phlex use:
+
+- [`vident-phlex`](https://github.com/stevegeek/vident-phlex)
+
 
 Note: you can also use both in the same app.
 
-#### Q2. Do you want to use attributes with runtime type checking (powered by [`dry-types`](https://github.com/dry-rb/dry-types)), or not?
+For example, if you want to use ViewComponent and Phlex in the same app, you might end up with:
 
-If you don't want typed attributes: 
- 
-- use [`vident-view_component`](https://github.com/stevegeek/vident-view_component)
-- and/or [`vident-phlex`](https://github.com/stevegeek/vident-phlex)
+```ruby
+gem 'vident'
+gem 'vident-view_component'
+gem 'vident-phlex'
+```
 
-Or if you want the type checks, then use the `*-typed-*` gems:
+#### Q2. Do you want to build components where the attributes have runtime type checking (powered by [`dry-types`](https://github.com/dry-rb/dry-types))?
+
+If yes, then add `vident-typed` to your Gemfile:
+
+```ruby
+gem 'vident-typed'
+```
+
+and then use the relavent `*-typed-*` gems for your chosen view component system:
 
 - use [`vident-typed-view_component`](https://github.com/stevegeek/vident-typed-view_component)
 - and/or [`vident-typed-phlex`](https://github.com/stevegeek/vident-typed-phlex)
+
+Note you must also include the gem for the view component system you are using.
+
+For example, for ViewComponent, you might end up with:
+
+```ruby
+gem 'vident'
+gem 'vident-view_component'
+gem 'vident-typed'
+gem 'vident-typed-view_component'
+```
 
 #### Q3. Do you use or want to use [BetterHTML](https://github.com/Shopify/better-html) in your Rails project?
 
 If yes, then include [`vident-better_html`](https://github.com/stevegeek/vident-better_html) in your Gemfile alongside `better_html` and your vident gems of choice.
 
+```ruby
+...
+gem 'better_html'
+gem 'vident-better_html'
+```
+
 Note that `vident-better_html` automatically enables `better_html` support in Vident root components.
 
 ### Q4. Do you use or want to use [TailwindCSS](https://tailwindcss.com/)?
 
-If yes, then consider adding [`vident-tailwind`](https://github.com/stevegeek/vident-tailwind) to your Gemfile alongside your vident gems of choice. When creating
-your components you can then include `Vident::Tailwind` to get all the benefits of the amazing [`tailwind_merge`](https://github.com/gjtorikian/tailwind_merge/).
+If yes, then consider adding [`vident-tailwind`](https://github.com/stevegeek/vident-tailwind) to your Gemfile alongside your vident gems of choice. 
+
+```ruby
+...
+gem 'vident-tailwind'
+```
+
+When creating your components you can then include `Vident::Tailwind` to get all the benefits of the amazing [`tailwind_merge`](https://github.com/gjtorikian/tailwind_merge/).
 
 ### Q5. Did none of the above gems suit your needs?
 
-You can always just use base `vident` gems to roll your own solution:
+You can always just use base `vident` gems and then roll your own solutions:
 
 - [`vident`](https://github.com/stevegeek/vident) to get the base functionality to mix with your own view component system
 - [`vident-typed`](https://github.com/stevegeek/vident-typed) to define typed attributes for your own view component system
