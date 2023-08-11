@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 
+## [0.9.0] - 2023-08-11
+
+### Added
+
+- `#cache_key` support is now part of the core gem, and can be added to components using `Vident::Caching` module
+
 ## [0.8.0] - 2023-03-31
 
 ### Added
