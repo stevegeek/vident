@@ -10,4 +10,4 @@ gem "sprockets-rails"
 
 gem "puma"
 
-gem "standard", "~> 1.3"
+gem "standard", "~> 1.25"
