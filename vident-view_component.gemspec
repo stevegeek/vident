@@ -19,6 +19,6 @@ Gem::Specification.new do |spec|
   end
 
   spec.add_dependency "rails", ">= 7", "< 8"
-  spec.add_dependency "vident", ">= 0.8.0", "< 1"
+  spec.add_dependency "vident", ">= 0.9.0", "< 1"
   spec.add_dependency "view_component", ">= 2.74.1", "< 4"
 end

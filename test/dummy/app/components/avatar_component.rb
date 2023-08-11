@@ -1,5 +1,8 @@
 class AvatarComponent < ::Vident::ViewComponent::Base
+  include Vident::Caching
+
   no_stimulus_controller
+  with_cache_key
 
   attribute :url, allow_nil: true
   attribute :initials, allow_nil: false
