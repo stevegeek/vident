@@ -44,7 +44,13 @@ module Vident
       attr_reader :component_dependencies
 
       def component_modified_time
-        raise StandardError, "Must be implemented in subclass"
+        return @component_modified_time if Rails.env.production? && @component_modified_time
+
+        raise StandardError, "Must implement current_component_modified_time" unless respond_to?(:current_component_modified_time)
+
+        # FIXME: This could stack overflow if there are circular dependencies
+        deps = component_dependencies&.map(&:component_modified_time)&.join("-") || ""
+        @component_modified_time = deps + current_component_modified_time
       end
 
       private
