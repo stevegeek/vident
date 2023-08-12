@@ -16,7 +16,7 @@
       <h3 class="text-md font-bold">An example of a component where we use Vident to set Stimulus actions/targets on other components (eg in a ViewComponent slot)</h3>
       <pre class="block bg-gray-100">
 &lt;%= render ::GreeterWithTriggerComponent.new do |greeter| %&gt;
-  &lt;% greeter.trigger(
+  &lt;% greeter.with_trigger(
      before_clicked_message: &quot;I&#39;m a button component!&quot;,
      after_clicked_message: &quot;Greeted! Click me again to reset.&quot;,
      actions: [
@@ -29,7 +29,7 @@
 &lt;% end %&gt;
       </pre>
       <%= render ::GreeterWithTriggerComponent.new do |greeter| %>
-        <% greeter.trigger(
+        <% greeter.with_trigger(
              before_clicked_message: "I'm a button component!",
              after_clicked_message: "Greeted! Click me again to reset.",
              actions: [
@@ -91,8 +91,15 @@
         <h3 class="text-md font-bold">with initials and square shape and custom border color (note if using Tailwind you will want to use `vident-tailwind` too to correctly override classes like this)</h3>
         <code class="block bg-gray-100">render AvatarComponent.new(initials: "SG", shape: :square, html_options: {class: "border-2 border-red-600"})</code>
         <div class="block">
-          <%= render AvatarComponent.new(initials: "SG", shape: :square, html_options: { class: "border-2 border-red-600" }) %>
+          <% component = AvatarComponent.new(initials: "SG", shape: :square, html_options: { class: "border-2 border-red-600" }) %>
+
+          <%= render component %>
         </div>
+      </div>
+      <div class="space-y-6">
+        <h3 class="text-md font-bold">components can also generate cache keys based on their attributes and the last modified time of the component and sidecar view files</h3>
+        <code class="block bg-gray-100">component.cache_key</code>
+        <pre class="block"><%= component.cache_key %></pre>
       </div>
     </section>
   </div>

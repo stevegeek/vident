@@ -1,5 +1,7 @@
 class AvatarComponent < ApplicationComponent
+  include ::Vident::Caching
   no_stimulus_controller
+  with_cache_key
 
   attribute :url, String, allow_nil: true, allow_blank: false
   attribute :initials, String, allow_blank: false
