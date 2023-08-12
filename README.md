@@ -1,5 +1,13 @@
 # Vident::Phlex
-Short description and motivation.
+
+[Phlex](https://phlex.fun/) powered [Vident](https://github.com/stevegeek/vident) components.
+
+```ruby
+class ApplicationComponent < ::Vident::Phlex::HTML
+end
+```
+
+For more details see [vident](https://github.com/stevegeek/vident).
 
 ## Usage
 How to use my plugin.
