@@ -1,6 +1,13 @@
 # Vident::Typed::ViewComponent
-Short description and motivation.
 
+Adds typed attributes to Vident ViewComponent components.
+
+```ruby
+class ApplicationComponent < ::Vident::Typed::ViewComponent::Base
+end
+```
+
+For more details see [vident](https://github.com/stevegeek/vident).
 
 # Examples
 
@@ -29,7 +36,7 @@ It supports numerous sizes and shapes and can optionally have a border. It also 
 ```ruby
 class AvatarComponent < ::Vident::Typed::ViewComponent::Base
   include ::Vident::Tailwind
-  include ::Vident::ViewComponent::Caching
+  include ::Vident::Caching
 
   no_stimulus_controller
   with_cache_key :attributes
@@ -168,7 +175,7 @@ used to greet the user. At the same time the button changes to be a 'reset' butt
 <!-- render the Greeter ViewComponent (that uses Vident) -->
 <%= render ::GreeterComponent.new(cta: "Hey!", html_options: {class: "my-4"}) do |greeter| %>
   <%# this component has a slot called `trigger` that renders a `ButtonComponent` (which also uses Vident) %> 
-  <% greeter.trigger(
+  <% greeter.with_trigger(
        
        # The button component has attributes that are typed
        before_clicked: "Greet",
