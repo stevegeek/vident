@@ -7,6 +7,8 @@ class ApplicationComponent < ::Vident::ViewComponent::Base
 end
 ```
 
+For more details see [vident](https://github.com/stevegeek/vident).
+
 # Examples
 
 Before we dive into a specific example note that there are some components implemented in the `test/dummy/app/components`.
