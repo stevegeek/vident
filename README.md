@@ -1,7 +1,11 @@
 # Vident::ViewComponent
-Short description and motivation.
 
+[ViewComponent](https://viewcomponent.org/) powered [Vident](https://github.com/stevegeek/vident) components.
 
+```ruby
+class ApplicationComponent < ::Vident::ViewComponent::Base
+end
+```
 
 # Examples
 
@@ -28,7 +32,7 @@ It is an avatar component that can either be displayed as an image or as initial
 ```ruby
 class AvatarComponent < ::Vident::ViewComponent::Base
   include ::Vident::Tailwind
-  include ::Vident::ViewComponent::Caching
+  include ::Vident::Caching
 
   no_stimulus_controller
   with_cache_key :attributes
