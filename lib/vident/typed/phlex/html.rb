@@ -3,7 +3,7 @@
 module Vident
   module Typed
     module Phlex
-      class HTML < ::Phlex::HTML
+      class HTML < ::Vident::Phlex::Core
         include ::Vident::Typed::Component
 
         class << self
@@ -15,12 +15,6 @@ module Vident
             super
           end
         end
-
-        # Helper to create the main element
-        def parent_element(**options)
-          @parent_element ||= ::Vident::Phlex::RootComponent.new(**parent_element_attributes(options))
-        end
-        alias_method :root, :parent_element
       end
     end
   end
