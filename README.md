@@ -1,5 +1,13 @@
 # Vident::Typed::Phlex
-Short description and motivation.
+
+Adds typed attributes to Vident Phlex based components.
+
+```ruby
+class ApplicationComponent < ::Vident::Typed::Phlex::HTML
+end
+```
+
+For more details see [vident](https://github.com/stevegeek/vident).
 
 ## Usage
 How to use my plugin.
