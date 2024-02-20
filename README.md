@@ -23,7 +23,7 @@ I would love to get your feedback and contributions!
 
 The Greeter ViewComponent (that uses Vident):
 
-![docs/images/ex1.gif](examples%2Fex1.gif)
+![docs/images/ex1.gif](docs/images/ex1.gif)
 
 Consider a component, the `GreeterComponent`:
 
