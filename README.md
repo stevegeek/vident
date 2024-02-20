@@ -48,7 +48,6 @@ with ERB as follows:
   post_click: "text-xl text-blue-700",
   html_options: {class: "py-2"}
 } do |greeter| %>
-
   <%# `greeter` is the root element and exposes methods to generate stimulus targets and actions %>
   <input type="text"
          <%= greeter.as_target(:name) %>
@@ -67,13 +66,11 @@ with ERB as follows:
     ...
   <% end %>
 <% end %>
-
 ```
 
 Now, imagine we render it in a view, and render a `ButtonComponent` in the `trigger` slot:
 
 ```erb
-<!-- render  -->
 <%= render ::GreeterComponent.new(cta: "Hey!", html_options: {class: "my-4"}) do |greeter| %>
   <%# this component has a slot called `trigger` that renders a `ButtonComponent` (which also uses Vident) %> 
   <% greeter.with_trigger(
