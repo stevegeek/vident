@@ -2,7 +2,7 @@
 
 **Vident** is a collection of gems that help you create **flexible** & **maintainable** component libraries for your Rails application.
 
-<a href="https://github.com/stevegeek/vident"><img alt="Vident logo" src="https://raw.githubusercontent.com/stevegeek/vident/main/logo-by-sd-256-colors.png" width="180" /></a>
+<a href="https://github.com/stevegeek/vident"><img alt="Vident logo" src="https://raw.githubusercontent.com/stevegeek/vident/main/docs/images/logo-by-sd-256-colors.png" width="180" /></a>
 
 Vident also provides a neat Ruby DSL to make wiring up **Stimulus easier & less error prone** in your view components.
 
@@ -14,10 +14,114 @@ I love working with Stimulus, but I find manually crafting the data attributes f
 targets and actions error-prone and tedious. Vident aims to make this process easier
 and keep me thinking in Ruby.
 
-I have been using Vident with `ViewComponent` in production apps for a while now (and recently `Phlex`!) 
-and it has been constantly evolving.
+Vident has been used with `ViewComponent` and `Phlex` in production apps for a while now 
+but is still evolving.
 
-This gem is a work in progress and I would love to get your feedback and contributions!
+I would love to get your feedback and contributions!
+
+## Example
+
+The Greeter ViewComponent (that uses Vident):
+
+![docs/images/ex1.gif](examples%2Fex1.gif)
+
+Consider a component, the `GreeterComponent`:
+
+```ruby
+# app/components/greeter_component.rb
+
+class GreeterComponent < ::Vident::ViewComponent::Base
+  renders_one :trigger, ButtonComponent
+end
+```
+
+with ERB as follows:
+
+```erb
+<%# app/components/greeter_component.html.erb %>
+
+<%# Rendering the `root` element creates a tag which has stimulus `data-*`s, a unique id & other attributes set. %>
+<%# The stimulus controller name (identifier) is derived from the component name, and then used to generate the relavent data attribute names. %>
+
+<%= render root named_classes: {
+  pre_click: "text-md text-gray-500", # named classes are exposed to Stimulus as `data-<controller>-<name>-class` attributes
+  post_click: "text-xl text-blue-700",
+  html_options: {class: "py-2"}
+} do |greeter| %>
+
+  <%# `greeter` is the root element and exposes methods to generate stimulus targets and actions %>
+  <input type="text"
+         <%= greeter.as_target(:name) %>
+         class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+  
+  <%# Render the slot %>
+  <%= trigger %>
+  
+  <%# you can also use the `target_tag` helper to render targets %>
+  <%= greeter.target_tag(
+        :span, 
+        :output, 
+        # Stimulus named classes can be referenced to set class attributes at render time
+        class: "ml-4 #{greeter.named_classes(:pre_click)}" 
+      ) do %>
+    ...
+  <% end %>
+<% end %>
+
+```
+
+Now, imagine we render it in a view, and render a `ButtonComponent` in the `trigger` slot:
+
+```erb
+<!-- render  -->
+<%= render ::GreeterComponent.new(cta: "Hey!", html_options: {class: "my-4"}) do |greeter| %>
+  <%# this component has a slot called `trigger` that renders a `ButtonComponent` (which also uses Vident) %> 
+  <% greeter.with_trigger(
+       
+       # The button component has attributes that are typed
+       before_clicked: "Greet",
+       after_clicked: "Greeted! Reset?",
+       
+       # A stimulus action is added to the button that triggers the `greet` action on the greeter stimulus controller.
+       # This action will be added to any defined on the button component itself
+       actions: [
+         greeter.action(:click, :greet),
+       ],
+       
+       # We can also override the default button classes of our component, or set other HTML attributes
+       html_options: {
+         class: "bg-red-500 hover:bg-red-700"
+       }
+     ) %>
+<% end %>
+```
+
+The output HTML of the above, using Vident, is:
+
+```html 
+<div class="greeter-component py-2 my-4" 
+     data-controller="greeter-component" 
+     data-greeter-component-pre-click-class="text-md text-gray-500" 
+     data-greeter-component-post-click-class="text-xl text-blue-700" 
+     id="greeter-component-1599855-6">
+  <input type="text" 
+         data-greeter-component-target="name" 
+         class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+  <button class="button-component ml-4 whitespace-no-wrap bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded bg-red-500 hover:bg-red-700" 
+          data-controller="button-component" 
+          data-action="click->greeter-component#greet button-component#changeMessage" 
+          data-button-component-after-clicked-message="Greeted! Reset?" 
+          data-button-component-before-clicked-message="Greet" 
+          id="button-component-7799479-7">Hey!</button>
+  <!-- you can also use the `target_tag` helper to render targets -->
+  <span class="ml-4 text-md text-gray-500" 
+        data-greeter-component-target="output">
+    ...
+  </span>
+</div>
+```
+
+To see this example in more detail, see the [vident-typed-view_component](https://github.com/stevegeek/vident-typed-view_component/tree/main/test/dummy/app/components) test dummy app.
 
 # Vident is a collection of gems
 
