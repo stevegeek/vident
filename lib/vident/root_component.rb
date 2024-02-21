@@ -7,6 +7,7 @@ module Vident
       actions: nil,
       targets: nil,
       outlets: nil,
+      outlet_host: nil,
       named_classes: nil, # https://stimulus.hotwired.dev/reference/css-classes
       data_maps: nil,
       element_tag: nil,
@@ -23,6 +24,13 @@ module Vident
       @named_classes = named_classes
       @data_map_kvs = {}
       @data_maps = data_maps
+
+      outlet_host.connect_outlet(self) if outlet_host.respond_to?(:connect_outlet)
+    end
+
+    def connect_outlet(outlet)
+      @outlets ||= []
+      @outlets << outlet
     end
 
     # The view component's helpers for setting stimulus data-* attributes on this component.
@@ -59,6 +67,15 @@ module Vident
 
     def target_data_attribute(name)
       build_target_data_attributes([target(name)])
+    end
+
+    def outlet(css_selector: nil)
+      controller = implied_controller_name
+      if css_selector.nil?
+        [controller, "[data-controller~=#{controller}]"]
+      else
+        [controller, css_selector]
+      end
     end
 
     # Getter for a named classes list so can be used in view to set initial state on SSR
@@ -139,8 +156,10 @@ module Vident
           [outlet_config, "[data-controller~=#{outlet_config}]"]
         elsif outlet_config.is_a?(Array)
           outlet_config[..1]
-        elsif respond_to?(:stimulus_identifier)
+        elsif outlet_config.respond_to?(:stimulus_identifier) # Is a Component
           [outlet_config.stimulus_identifier, "[data-controller~=#{outlet_config.stimulus_identifier}]"]
+        elsif outlet_config.send(:implied_controller_name) # Is a RootComponent ?
+          [outlet_config.send(:implied_controller_name), "[data-controller~=#{outlet_config.send(:implied_controller_name)}]"]
         else
           raise ArgumentError, "Invalid outlet config: #{outlet_config}"
         end

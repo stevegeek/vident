@@ -151,6 +151,7 @@ module Vident
         actions: attribute(:actions) + Array.wrap(options[:actions]),
         targets: attribute(:targets) + Array.wrap(options[:targets]),
         outlets: attribute(:outlets) + Array.wrap(options[:outlets]),
+        outlet_host: attribute(:outlet_host),
         named_classes: merge_stimulus_option(options, :named_classes),
         data_maps: prepare_stimulus_option(options, :data_maps)
       }
