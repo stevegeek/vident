@@ -26,11 +26,12 @@ module Vident
       def call
         # Generate outer tag options and render
         tag_type = content_tag_type
+        child_content = content # Evaluate before generating the outer tag options to ensure DSL methods are executed
         options = content_tag_options
         if SELF_CLOSING_TAGS.include?(tag_type)
           view_context.tag(tag_type, options)
         else
-          view_context.content_tag(tag_type, content, options)
+          view_context.content_tag(tag_type, child_content, options)
         end
       end
 
