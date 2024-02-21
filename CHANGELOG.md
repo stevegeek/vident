@@ -14,6 +14,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+
+## [0.11.0] - 2024-02-21
+
+### Added
+
+- `outlet_host` DSL method to support components hooking themselves into a host component's outlets
+
+
+
 ## [0.10.1] - 2024-02-21
 
 ### Added
