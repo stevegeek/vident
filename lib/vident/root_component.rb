@@ -6,6 +6,7 @@ module Vident
       controllers: nil,
       actions: nil,
       targets: nil,
+      outlets: nil,
       named_classes: nil, # https://stimulus.hotwired.dev/reference/css-classes
       data_maps: nil,
       element_tag: nil,
@@ -18,6 +19,7 @@ module Vident
       @controllers = Array.wrap(controllers)
       @actions = actions
       @targets = targets
+      @outlets = outlets
       @named_classes = named_classes
       @data_map_kvs = {}
       @data_maps = data_maps
@@ -123,9 +125,15 @@ module Vident
     def tag_data_attributes
       {controller: controller_list(@controllers), action: action_list(@actions)}
         .merge!(target_list)
+        .merge!(outlet_list)
         .merge!(named_classes_list)
         .merge!(data_map_attributes)
         .compact_blank!
+    end
+
+    def outlet_list
+      return {} unless @outlets&.size&.positive?
+      @outlets.each_with_object({}) { |o, obj| obj["#{implied_controller_name}-#{o.stimulus_identifier}-outlet"] = "[data-controller~=#{o.stimulus_identifier}]" }
     end
 
     # Actions can be specified as a symbol, in which case they imply an action on the primary
@@ -173,7 +181,7 @@ module Vident
     end
 
     def build_target_data_attributes(targets)
-      targets.map { |t| ["#{t[:controller]}-target".to_sym, t[:name]] }.to_h
+      targets.map { |t| [:"#{t[:controller]}-target", t[:name]] }.to_h
     end
 
     def parse_actions(actions)
