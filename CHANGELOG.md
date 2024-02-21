@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+## [0.10.0] - 2024-02-21
+
+### Added
+
+- `outlets` option for components, used to specify Stimulus outlets 
 
 ## [0.9.0] - 2023-08-11
 
