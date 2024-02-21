@@ -133,7 +133,19 @@ module Vident
 
     def outlet_list
       return {} unless @outlets&.size&.positive?
-      @outlets.each_with_object({}) { |o, obj| obj["#{implied_controller_name}-#{o.stimulus_identifier}-outlet"] = "[data-controller~=#{o.stimulus_identifier}]" }
+
+      @outlets.each_with_object({}) do |outlet_config, obj|
+        identifier, css_selector = if outlet_config.is_a?(String)
+          [outlet_config, "[data-controller~=#{outlet_config}]"]
+        elsif outlet_config.is_a?(Array)
+          outlet_config[..1]
+        elsif respond_to?(:stimulus_identifier)
+          [outlet_config.stimulus_identifier, "[data-controller~=#{outlet_config.stimulus_identifier}]"]
+        else
+          raise ArgumentError, "Invalid outlet config: #{outlet_config}"
+        end
+        obj[:"#{implied_controller_name}-#{identifier}-outlet"] = css_selector
+      end
     end
 
     # Actions can be specified as a symbol, in which case they imply an action on the primary
@@ -189,7 +201,7 @@ module Vident
     end
 
     def parse_attributes(attrs, controller = nil)
-      attrs.transform_keys { |k| "#{controller || implied_controller_name}-#{k}" }
+      attrs.transform_keys { |k| :"#{controller || implied_controller_name}-#{k}" }
     end
 
     def data_map_attributes
@@ -219,7 +231,7 @@ module Vident
 
     def build_named_classes_data_attributes(named_classes)
       parse_named_classes_hash(named_classes)
-        .map { |c| ["#{c[:controller]}-#{c[:name]}-class", c[:classes]] }
+        .map { |c| [:"#{c[:controller]}-#{c[:name]}-class", c[:classes]] }
         .to_h
     end
 

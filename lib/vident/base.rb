@@ -80,6 +80,11 @@ module Vident
       @id.presence || random_id
     end
 
+    # If connecting an outlet to this specific component instance, use this ID
+    def outlet_id
+      @outlet_id ||= [stimulus_identifier, "##{id}"]
+    end
+
     # Methods to use in component views
     # ---------------------------------
 
@@ -185,7 +190,7 @@ module Vident
     end
 
     def random_id
-      @random_id ||= "#{self.class.component_name}-#{StableId.next_id_in_sequence}"
+      @random_id ||= "#{component_class_name}-#{StableId.next_id_in_sequence}"
     end
 
     CLASSNAME_SEPARATOR = " "
