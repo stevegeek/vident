@@ -14,6 +14,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+## [0.10.1] - 2024-02-21
+
+### Added
+
+- `outlets` option now accepts either a string stimulus controller identifier, a component instance, or a tuple of 
+  identifier and CSS selector for the outlet.
+
+
 ## [0.10.0] - 2024-02-21
 
 ### Added
