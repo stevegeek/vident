@@ -16,6 +16,7 @@ module Vident
         # StimulusJS support
         attribute :controllers, Array, default: [], delegates: false
         attribute :actions, Array, default: [], delegates: false
+        attribute :outlets, Array, default: [], delegates: false
         attribute :targets, Array, default: [], delegates: false
         attribute :data_maps, Array, default: [], delegates: false
 
