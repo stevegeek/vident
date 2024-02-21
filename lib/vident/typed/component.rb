@@ -17,6 +17,8 @@ module Vident
         attribute :controllers, Array, default: [], delegates: false
         attribute :actions, Array, default: [], delegates: false
         attribute :outlets, Array, default: [], delegates: false
+        attribute :outlet_host, :any, delegates: false
+
         attribute :targets, Array, default: [], delegates: false
         attribute :data_maps, Array, default: [], delegates: false
 
