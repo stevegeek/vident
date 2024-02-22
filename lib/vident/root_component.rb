@@ -69,10 +69,14 @@ module Vident
       build_target_data_attributes([target(name)])
     end
 
+    def build_outlet_selector(outlet_selector)
+      "##{@id} [data-controller~=#{outlet_selector}]"
+    end
+
     def outlet(css_selector: nil)
       controller = implied_controller_name
       if css_selector.nil?
-        [controller, "[data-controller~=#{controller}]"]
+        [controller, build_outlet_selector(controller)]
       else
         [controller, css_selector]
       end
@@ -153,13 +157,13 @@ module Vident
 
       @outlets.each_with_object({}) do |outlet_config, obj|
         identifier, css_selector = if outlet_config.is_a?(String)
-          [outlet_config, "[data-controller~=#{outlet_config}]"]
+          [outlet_config, build_outlet_selector(outlet_config)]
         elsif outlet_config.is_a?(Array)
           outlet_config[..1]
         elsif outlet_config.respond_to?(:stimulus_identifier) # Is a Component
-          [outlet_config.stimulus_identifier, "[data-controller~=#{outlet_config.stimulus_identifier}]"]
+          [outlet_config.stimulus_identifier, build_outlet_selector(outlet_config.stimulus_identifier)]
         elsif outlet_config.send(:implied_controller_name) # Is a RootComponent ?
-          [outlet_config.send(:implied_controller_name), "[data-controller~=#{outlet_config.send(:implied_controller_name)}]"]
+          [outlet_config.send(:implied_controller_name), build_outlet_selector(outlet_config.send(:implied_controller_name))]
         else
           raise ArgumentError, "Invalid outlet config: #{outlet_config}"
         end
