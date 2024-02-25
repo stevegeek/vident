@@ -70,7 +70,8 @@ module Vident
     end
 
     def build_outlet_selector(outlet_selector)
-      "##{@id} [data-controller~=#{outlet_selector}]"
+      prefix = @id ? "##{@id} " : ""
+      "#{prefix}[data-controller~=#{outlet_selector}]"
     end
 
     def outlet(css_selector: nil)
@@ -107,6 +108,13 @@ module Vident
       "data-action='#{parse_actions(actions_to_set).join(" ")}'".html_safe
     end
     alias_method :with_action, :with_actions
+
+    # Return the HTML `data-` attribute for the given outlets
+    def with_outlets(*outlets)
+      attrs = build_outlet_data_attributes(outlets)
+      attrs.map { |dt, n| "data-#{dt}=\"#{n}\"" }.join(" ").html_safe
+    end
+    alias_method :with_outlet, :with_outlets
 
     private
 
@@ -154,19 +162,29 @@ module Vident
 
     def outlet_list
       return {} unless @outlets&.size&.positive?
+      build_outlet_data_attributes(@outlets)
+    end
 
-      @outlets.each_with_object({}) do |outlet_config, obj|
-        identifier, css_selector = if outlet_config.is_a?(String)
-          [outlet_config, build_outlet_selector(outlet_config)]
-        elsif outlet_config.is_a?(Array)
-          outlet_config[..1]
-        elsif outlet_config.respond_to?(:stimulus_identifier) # Is a Component
-          [outlet_config.stimulus_identifier, build_outlet_selector(outlet_config.stimulus_identifier)]
-        elsif outlet_config.send(:implied_controller_name) # Is a RootComponent ?
-          [outlet_config.send(:implied_controller_name), build_outlet_selector(outlet_config.send(:implied_controller_name))]
-        else
-          raise ArgumentError, "Invalid outlet config: #{outlet_config}"
-        end
+    def parse_outlet(outlet_config)
+      if outlet_config.is_a?(String)
+        [outlet_config, build_outlet_selector(outlet_config)]
+      elsif outlet_config.is_a?(Symbol)
+        outlet_config = outlet_config.to_s.tr("_", "-")
+        [outlet_config, build_outlet_selector(outlet_config)]
+      elsif outlet_config.is_a?(Array)
+        outlet_config[..1]
+      elsif outlet_config.respond_to?(:stimulus_identifier) # Is a Component
+        [outlet_config.stimulus_identifier, build_outlet_selector(outlet_config.stimulus_identifier)]
+      elsif outlet_config.send(:implied_controller_name) # Is a RootComponent ?
+        [outlet_config.send(:implied_controller_name), build_outlet_selector(outlet_config.send(:implied_controller_name))]
+      else
+        raise ArgumentError, "Invalid outlet config: #{outlet_config}"
+      end
+    end
+
+    def build_outlet_data_attributes(outlets)
+      outlets.each_with_object({}) do |outlet_config, obj|
+        identifier, css_selector = parse_outlet(outlet_config)
         obj[:"#{implied_controller_name}-#{identifier}-outlet"] = css_selector
       end
     end

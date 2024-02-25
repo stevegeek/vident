@@ -3,14 +3,14 @@ require "test_helper"
 module Vident
   class RootComponentTest < Minitest::Test
     def setup
-      component = Class.new do
+      @component = Class.new do
         include Vident::RootComponent
 
         def get_all_data_attrs
           tag_data_attributes
         end
       end
-      @root_component = component.new(controllers: ["foo/my_controller"])
+      @root_component = @component.new(controllers: ["foo/my_controller"])
     end
 
     def test_action
@@ -26,8 +26,8 @@ module Vident
     end
 
     def test_named_classes
-      @root_component.instance_variable_set(:@named_classes, {my_class: "my-class"})
-      assert_equal "my-class", @root_component.named_classes(:my_class)
+      root = @component.new(controllers: ["foo/my_controller"], named_classes: {my_class: "my-class"})
+      assert_equal "my-class", root.named_classes(:my_class)
     end
 
     def test_action_data_attribute
@@ -51,27 +51,39 @@ module Vident
       assert_equal "data-action='foo--my-controller#myAction'", @root_component.with_actions(:my_action)
     end
 
+    def test_outlet_selector_when_no_id
+      root_component = @component.new(controllers: ["foo/my_controller"], id: "the-id")
+      assert_equal "data-foo--my-controller-my-outlet-outlet=\"#the-id [data-controller~=my-outlet]\"", root_component.with_outlets(:my_outlet)
+    end
+
+    def test_with_outlets_no_id
+      assert_equal "data-foo--my-controller-my-outlet-outlet=\"[data-controller~=my-outlet]\"", @root_component.with_outlets(:my_outlet)
+    end
+
     def test_get_all_data_attrs
-      # Setup
-      @root_component.instance_variable_set(:@named_classes, {my_class: "my-class"})
-      @root_component.instance_variable_set(:@outlets, ["my-outlet", ["other-component", "#my_id"]])
-      @root_component.instance_variable_set(:@data_maps, [{my_key: "my-value"}])
-      @root_component.instance_variable_set(:@actions, [:my_action])
-      @root_component.instance_variable_set(:@targets, [:my_target])
+      root_component = @component.new(
+        id: "the-id",
+        controllers: ["foo/my_controller"],
+        named_classes: {my_class: "my-class"},
+        outlets: ["my-outlet", ["other-component", ".custom-selector"]],
+        data_maps: [{my_key: "my-value"}],
+        actions: [:my_action],
+        targets: [:my_target]
+      )
 
       # Expected result
       expected_result = {
         controller: "foo--my-controller",
         action: "foo--my-controller#myAction",
         "foo--my-controller-target": "myTarget",
-        "foo--my-controller-my-outlet-outlet": "[data-controller~=my-outlet]",
-        "foo--my-controller-other-component-outlet": "#my_id",
+        "foo--my-controller-my-outlet-outlet": "#the-id [data-controller~=my-outlet]",
+        "foo--my-controller-other-component-outlet": ".custom-selector",
         "foo--my-controller-my-class-class": "my-class",
         "foo--my-controller-my_key": "my-value"
       }
 
       # Test
-      assert_equal expected_result, @root_component.get_all_data_attrs
+      assert_equal expected_result, root_component.get_all_data_attrs
     end
   end
 end
