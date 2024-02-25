@@ -15,6 +15,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 
+## [0.12.0] - 2024-02-25
+
+### Added
+
+- `outlet` DSL methods updated so that the selector is scoped to the component's root element by default. This 
+  is probably the most common use case, and it's now the default.
+- `with_outlets` DSL method added to generate the data-* attributes for the outlets and return as a fragment  
+  of HTML
+
+
 ## [0.11.0] - 2024-02-21
 
 ### Added
