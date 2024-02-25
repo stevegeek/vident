@@ -1,6 +1,12 @@
 # frozen_string_literal: true
 
-require "random/formatter"
+begin
+  # Introduced in Ruby 3.1
+  require "random/formatter"
+rescue LoadError
+  # to support Ruby 3.0
+  require "securerandom"
+end
 
 module Vident
   class StableId
