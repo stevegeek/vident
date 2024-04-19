@@ -22,5 +22,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency "activesupport", ">= 7", "< 8.0"
   spec.add_dependency "vident", ">= 0.9.0", "< 1"
   spec.add_dependency "phlex", ">= 1.5.0", "< 2"
-  spec.add_dependency "phlex-rails", ">= 0.8.1", "< 1"
+  spec.add_dependency "phlex-rails", ">= 0.8.1", "< 2"
 end
