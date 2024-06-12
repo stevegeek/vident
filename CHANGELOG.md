@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+## [0.12.1] - 2024-06-12
+
+### Fixed
+
+- parsing of targets where the controller is also specified
 
 ## [0.12.0] - 2024-02-25
 
