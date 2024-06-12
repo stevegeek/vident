@@ -229,7 +229,11 @@ module Vident
 
     def parse_target(raw_target)
       return raw_target if raw_target.is_a?(String)
-      return raw_target if raw_target.is_a?(Hash)
+      if raw_target.is_a?(Hash)
+        raw_target[:name] = js_name(raw_target[:name]) if raw_target[:name].is_a?(Symbol)
+        return raw_target
+      end
+      return target(*raw_target) if raw_target.is_a?(Array)
       target(raw_target)
     end
 
