@@ -13,7 +13,7 @@ class AvatarComponent < ApplicationComponent
 
   private
 
-  def template
+  def view_template
     render root_component do
       unless image_avatar?
         span(class: "#{text_size_class} font-medium leading-none text-white") { @initials }

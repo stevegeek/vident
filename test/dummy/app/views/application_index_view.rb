@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class ApplicationIndexView < ApplicationView
-  def template
+  def view_template
     p { "Render an avatar" }
     render AvatarComponent.new(initials: "V C")
     br

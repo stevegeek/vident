@@ -28,7 +28,7 @@ module Vident
 
       # Build a tag with the attributes determined by this components properties and stimulus
       # data attributes.
-      def template(&block)
+      def view_template(&block)
         # Generate tag options and render
         tag_type = @element_tag.presence&.to_sym || :div
         raise ArgumentError, "Unsupported HTML tag name #{tag_type}" unless VALID_TAGS.include?(tag_type)
