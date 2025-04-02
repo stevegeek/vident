@@ -3,8 +3,7 @@
 module TypedViewComponent
   class GreeterComponent < ::ViewComponent::Base
     def initialize(cta: "Greet")
-    @cta = cta
+      @cta = cta
+    end
   end
-end
-
 end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class GreeterComponent < ::Phlex::HTML
+class TypedPhlex::GreeterComponent < ::Phlex::HTML
   def initialize(cta:)
     @cta = cta
   end
@@ -20,6 +20,4 @@ class GreeterComponent < ::Phlex::HTML
            class: "ml-4 text-xl text-gray-700"
     end
   end
-end
-
 end

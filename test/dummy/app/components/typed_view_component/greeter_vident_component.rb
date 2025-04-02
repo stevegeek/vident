@@ -3,6 +3,5 @@
 module TypedViewComponent
   class GreeterVidentComponent < ApplicationComponent
     attribute :cta, default: "Greet"
-end
-
+  end
 end

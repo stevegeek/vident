@@ -18,10 +18,14 @@
     <link rel="apple-touch-icon" href="/icon.png">
 
     <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <%= stylesheet_link_tag "tailwind", "inter-font", "data-turbo-track": "reload" %>
     <%= stylesheet_link_tag "application" %>
+    <%= javascript_importmap_tags "application" %>
   </head>
 
   <body>
-    <%= yield %>
+    <main class="container mx-auto my-28 px-5 prose">
+      <%= yield %>
+    </main>
   </body>
 </html>
