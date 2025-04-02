@@ -18,7 +18,8 @@ Gem::Specification.new do |spec|
     Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
   end
 
-  spec.add_dependency "rails", ">= 7", "< 8.0"
+  spec.add_dependency "railties", ">= 7", "< 8"
+  spec.add_dependency "activesupport", ">= 7", "< 8"
   spec.add_dependency "vident-typed", ">= 0.1.0", "< 1.0"
   spec.add_dependency "minitest", ">= 5.14.4", "< 6.0"
   spec.add_dependency "minitest-hooks", ">= 1.5.0", "< 2.0"
