@@ -17,11 +17,19 @@ Dir["vident-*.gemspec"].each do |gemspec|
   gemspec(name: "vident-#{plugin}", development_group: plugin)
 end
 
-
 # Development and testing gems
+gem "appraisal"
+gem "standard"
+
 gem "rake", "~> 13.0"
 gem "minitest", "~> 5.0"
-gem "rails", "~> #{ENV['RAILS_VERSION'] || '7.0'}"
-gem "appraisal", "~> 2.5"
-gem "sqlite3"
 gem "puma"
+gem "rails", "~> #{ENV["RAILS_VERSION"] || "7.0"}"
+gem "sqlite3"
+
+# Asset things for the dummy app
+gem "sprockets-rails"
+gem "turbo-rails"
+gem "importmap-rails"
+gem "stimulus-rails"
+gem "tailwindcss-rails", "~> 3.3.1"
