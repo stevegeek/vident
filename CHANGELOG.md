@@ -33,7 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [0.3.0] - 2023-08-12
 
-- Update to depend on `vident` v0.3.0
+- Update to depend on `vident-view_component` v0.3.0
 - Adds support for new `Vident::Caching` module
 - Update examples to support view_component v3
 
