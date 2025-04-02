@@ -1,8 +1,10 @@
+require_relative "lib/vident/version"
+require_relative "lib/vident/typed/version"
 require_relative "lib/vident/typed/minitest/version"
 
 Gem::Specification.new do |spec|
   spec.name = "vident-typed-minitest"
-  spec.version = Vident::Typed::Minitest::VERSION
+  spec.version = Vident::VERSION
   spec.authors = ["Stephen Ierodiaconou"]
   spec.email = ["stevegeek@gmail.com"]
   spec.homepage = "https://github.com/stevegeek/vident"
@@ -16,10 +18,12 @@ Gem::Specification.new do |spec|
 
   spec.files = Dir.chdir(File.expand_path(__dir__)) do
     files = `git ls-files -z`.split("\x0")
-    
+
     # Only include files relevant to this gem
     files.select do |f|
       f.match?(%r{^(lib/vident[-_]typed[-_]minitest|lib/vident/typed/minitest)}) ||
+      f == "lib/vident/version.rb" ||
+      f == "lib/vident/typed/version.rb" ||
       f == "vident-typed-minitest.gemspec" ||
       f == "README.md" ||
       f == "LICENSE.txt" ||
@@ -29,7 +33,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "railties", ">= 7", "< 8"
   spec.add_dependency "activesupport", ">= 7", "< 8"
-  spec.add_dependency "vident-typed", ">= 0.1.0", "< 1.0"
+  spec.add_dependency "vident-typed", "~> #{Vident::VERSION}"
   spec.add_dependency "minitest", ">= 5.14.4", "< 6.0"
   spec.add_dependency "minitest-hooks", ">= 1.5.0", "< 2.0"
   spec.add_dependency "faker", ">= 2.22.0", "< 4.0"

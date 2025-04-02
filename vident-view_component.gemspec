@@ -1,8 +1,9 @@
+require_relative "lib/vident/version"
 require_relative "lib/vident/view_component/version"
 
 Gem::Specification.new do |spec|
   spec.name = "vident-view_component"
-  spec.version = Vident::ViewComponent::VERSION
+  spec.version = Vident::VERSION
   spec.authors = ["Stephen Ierodiaconou"]
   spec.email = ["stevegeek@gmail.com"]
   spec.homepage = "https://github.com/stevegeek/vident"
@@ -16,10 +17,11 @@ Gem::Specification.new do |spec|
 
   spec.files = Dir.chdir(File.expand_path(__dir__)) do
     files = `git ls-files -z`.split("\x0")
-    
+
     # Only include files relevant to this gem
     files.select do |f|
       f.match?(%r{^(lib/vident[-_]view_component\.rb|lib/vident/view_component(?!/caching))}) ||
+      f == "lib/vident/version.rb" ||
       f == "vident-view_component.gemspec" ||
       f == "README.md" ||
       f == "LICENSE.txt" ||
@@ -29,6 +31,6 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "railties", ">= 7", "< 8"
   spec.add_dependency "activesupport", ">= 7", "< 8"
-  spec.add_dependency "vident", ">= 0.9.0", "< 1"
+  spec.add_dependency "vident", "~> #{Vident::VERSION}"
   spec.add_dependency "view_component", ">= 2.74.1", "< 4"
 end
