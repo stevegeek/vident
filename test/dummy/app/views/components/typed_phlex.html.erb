@@ -1,0 +1,23 @@
+<h1>Typed Phlex Components</h1>
+
+<h2>Avatar Component</h2>
+<div class="component-demo">
+  <%= render TypedPhlex::AvatarComponent.new(initials: "JS", size: :medium) %>
+</div>
+
+<h2>Greeter Component</h2>
+<div class="component-demo">
+  <%= render TypedPhlex::GreeterComponent.new %>
+</div>
+
+<h2>Greeter Button Component</h2>
+<div class="component-demo">
+  <%= render TypedPhlex::GreeterButtonComponent.new(name: "Claude") %>
+</div>
+
+<h2>Greeter Vident Component</h2>
+<div class="component-demo">
+  <%= render TypedPhlex::GreeterVidentComponent.new(name: "Claude") %>
+</div>
+
+<a href="<%= components_path %>">Back to All Components</a>

@@ -1,0 +1,23 @@
+<h1>Typed ViewComponent Components</h1>
+
+<h2>Avatar Component</h2>
+<div class="component-demo">
+  <%= render TypedViewComponent::AvatarComponent.new(initials: "JS", size: :medium) %>
+</div>
+
+<h2>Greeter Component</h2>
+<div class="component-demo">
+  <%= render TypedViewComponent::GreeterComponent.new %>
+</div>
+
+<h2>Greeter Button Component</h2>
+<div class="component-demo">
+  <%= render TypedViewComponent::GreeterButtonComponent.new(name: "Claude") %>
+</div>
+
+<h2>Greeter Vident Component</h2>
+<div class="component-demo">
+  <%= render TypedViewComponent::GreeterVidentComponent.new(name: "Claude") %>
+</div>
+
+<a href="<%= components_path %>">Back to All Components</a>

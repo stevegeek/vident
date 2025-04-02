@@ -31,10 +31,6 @@
 .ruby-gemset
 .rvmrc
 
-# Rails test directories
-/test/dummy/*/
-/test/*/dummy/*/
-
 # Local development configuration
 .env
 .env.local

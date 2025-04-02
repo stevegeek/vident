@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - New monorepo structure for the Vident project, retaining the separate gems however.
+- All gems now have the same version and are released together.
 
 ### Changed
 
