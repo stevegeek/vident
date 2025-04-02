@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+set -vx
+
+# Install dependencies
+bundle install
+
+# Run any gem-specific setup needed
+echo "Setup complete!"

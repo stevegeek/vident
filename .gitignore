@@ -1,0 +1,44 @@
+.idea/
+
+# Ruby specific
+/.bundle/
+/.yardoc
+/_yardoc/
+/coverage/
+/doc/
+/pkg/
+/spec/reports/
+/tmp/
+
+# Gem builds
+*.gem
+
+# Log files
+*.log
+
+# Temp files
+.DS_Store
+.byebug_history
+.rspec_status
+
+# Environment normalization
+/.bundle/
+/vendor/bundle
+/lib/bundler/man/
+
+# Development files
+.ruby-version
+.ruby-gemset
+.rvmrc
+
+# Rails test directories
+/test/dummy/*/
+/test/*/dummy/*/
+
+# Local development configuration
+.env
+.env.local
+
+*.lock
+
+old/

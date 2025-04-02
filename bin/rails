@@ -1,0 +1,15 @@
+#!/usr/bin/env ruby
+# This command will automatically be run when you run "rails" with Rails gems
+# installed from the root of your application.
+
+# Add pathname which is missing
+require 'pathname'
+
+# Set up the application path
+APP_PATH = File.expand_path('../test/dummy/vident/config/application', __dir__)
+
+# Include the necessary Rails components
+require_relative "../test/dummy/vident/config/boot"
+require "rails"
+require "rails/all"
+require "rails/commands"
