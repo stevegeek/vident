@@ -1,7 +1,9 @@
+require "vident/version"
+
 module Vident
   module Typed
     module Phlex
-      VERSION = "0.3.0"
+      VERSION = Vident::VERSION
     end
   end
 end

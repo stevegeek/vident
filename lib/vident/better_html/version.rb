@@ -1,5 +1,7 @@
+require "vident/version"
+
 module Vident
   module BetterHtml
-    VERSION = "0.1.0"
+    VERSION = Vident::VERSION
   end
 end

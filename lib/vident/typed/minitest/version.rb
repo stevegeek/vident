@@ -1,7 +1,9 @@
+require "vident/version"
+
 module Vident
   module Typed
     module Minitest
-      VERSION = "0.1.0"
+      VERSION = Vident::VERSION
     end
   end
 end

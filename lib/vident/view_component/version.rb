@@ -1,5 +1,7 @@
+require "vident/version"
+
 module Vident
   module ViewComponent
-    VERSION = "0.4.0"
+    VERSION = Vident::VERSION
   end
 end
