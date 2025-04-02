@@ -1,0 +1,8 @@
+<%= render root(
+             element_tag: image_avatar? ? :img : :div,
+             html_options: default_html_options
+           ) do %>
+  <% unless image_avatar? %>
+    <span class="<%= text_size_class %> font-medium leading-none text-white"><%= initials %></span>
+  <% end %>
+<% end %>

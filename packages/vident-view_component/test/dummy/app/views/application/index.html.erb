@@ -1,0 +1,12 @@
+<p>Render an avatar:</p>
+<%= render AvatarComponent.new(initials: "V C") %>
+<br>
+<% component = AvatarComponent.new(initials: "V C", html_options: {class: "bg-red-500"}) %>
+<p>The following example sets a background color override using a tailwind utility class (note that sometimes you will
+  find overrides don't work due to CSS specificity. To solve this use the `vident-tailwind` module in your component!)</p>
+<%= render component %>
+<br>
+<p>Components can also have a `#cache_key` method which plays nicely with fragment caching.</p>
+<p>Cache Key for above component: <%= component.cache_key %></p>
+
+<p>Cache Key for Avatar component with different attributes: <%= AvatarComponent.new(initials: "V C").cache_key %></p>
