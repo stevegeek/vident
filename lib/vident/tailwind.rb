@@ -1,5 +1,5 @@
 require "vident/tailwind/version"
-require "vident/tailwind/railtie"
+require 'vident/tailwind/railtie' if defined?(Rails)
 
 require "tailwind_merge"
 

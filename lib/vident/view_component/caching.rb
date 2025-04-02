@@ -1,5 +1,6 @@
+require "vident/view_component"
 require "vident/view_component/caching/version"
-require "vident/view_component/caching/railtie"
+require "vident/view_component/caching/railtie" if defined?(Rails)
 
 module Vident
   module ViewComponent
