@@ -1,5 +1,5 @@
 require "vident/tailwind/version"
-require 'vident/tailwind/railtie' if defined?(Rails)
+require "vident/tailwind/railtie" if defined?(Rails)
 
 require "tailwind_merge"
 
@@ -17,7 +17,7 @@ module Vident
     # If needed this can be overridden in your component to provide options for the merger.
     def tailwind_class_merger
       return @tailwind_class_merger if defined? @tailwind_class_merger
-      @tailwind_class_merger= (Thread.current[:tailwind_class_merger] ||= ::TailwindMerge::Merger.new)
+      @tailwind_class_merger = (Thread.current[:tailwind_class_merger] ||= ::TailwindMerge::Merger.new)
     end
   end
 end

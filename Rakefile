@@ -7,7 +7,7 @@ desc "Run tests for all gems"
 task :test do
   # Find all test directories
   test_dirs = Dir.glob("test/*").select { |d| File.directory?(d) }
-  
+
   test_dirs.each do |dir|
     puts "Running tests for #{File.basename(dir)}..."
     Rake::TestTask.new("test:#{File.basename(dir)}") do |t|
@@ -30,7 +30,7 @@ task :build do
 end
 
 desc "Install all gems locally"
-task :install => :build do
+task install: :build do
   gem_files = Dir.glob("*.gem")
   gem_files.each do |gem_file|
     puts "Installing #{gem_file}..."
@@ -39,4 +39,4 @@ task :install => :build do
 end
 
 # Define the default task
-task :default => :test
+task default: :test

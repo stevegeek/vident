@@ -5,7 +5,7 @@ require_relative "lib/vident/version"
 # Collect files from other gemspecs to exclude them from the main gem
 plugin_files = []
 
-Dir['vident-*.gemspec'].each do |gemspec_file|
+Dir["vident-*.gemspec"].each do |gemspec_file|
   spec = Gem::Specification.load(gemspec_file)
   plugin_files << spec.files if spec
 end
@@ -34,7 +34,7 @@ Gem::Specification.new do |spec|
     all_files = `git ls-files -z`.split("\x0").reject do |f|
       f.start_with?(*%w[bin/ test/ spec/ features/ examples/ docs/ .git .github appveyor Gemfile])
     end
-    
+
     # Exclude files from other gemspecs
     all_files - ignored_files
   end

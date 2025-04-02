@@ -147,7 +147,7 @@ module Vident
         def allows_blank?(options)
           return true unless options
           allow_blank = options[:allow_blank]
-          allow_blank.nil? ? true : allow_blank
+          allow_blank.nil? || allow_blank
         end
 
         def map_primitive_to_dry_type(signatures, strict, converter)

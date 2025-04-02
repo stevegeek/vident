@@ -22,11 +22,11 @@ Gem::Specification.new do |spec|
     # Only include files relevant to this gem
     files.select do |f|
       f.match?(%r{^(lib/vident[-_]better_html|lib/vident/better_html)}) ||
-      f == "lib/vident/version.rb" ||
-      f == "vident-better_html.gemspec" ||
-      f == "README.md" ||
-      f == "LICENSE.txt" ||
-      f == "CHANGELOG.md"
+        f == "lib/vident/version.rb" ||
+        f == "vident-better_html.gemspec" ||
+        f == "README.md" ||
+        f == "LICENSE.txt" ||
+        f == "CHANGELOG.md"
     end
   end
 

@@ -2,7 +2,7 @@
 
 module Vident
   VERSION = "0.13.0"
-  
+
   # Shared version for all vident gems
   def self.version
     VERSION
