@@ -40,13 +40,14 @@ module Vident
 
         class_methods do
           def auto_test(class_under_test, **param_config)
-            attribute_tester = Vident::Testing::AttributesTester.new(param_config)
+            attribute_tester = AttributesTester.new(param_config)
             attribute_tester.valid_configurations.each_with_index do |test, index|
               class_eval(<<-RUBY, __FILE__, __LINE__ + 1)
                 def test_renders_with_valid_attrs_#{index}
                   test_attrs = #{test}
                   begin 
                     @results_content << render_inline(#{class_under_test}.new(**test_attrs))
+                    assert @results_content.present?, "Should render with #{test.to_s.tr("\"", "'")}"
                   rescue => error
                     assert(false, "Should not raise with #{test.to_s.tr("\"", "'")} but did raise \#{error}")
                   end

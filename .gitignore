@@ -26,6 +26,7 @@
 /test/dummy/storage/
 /test/dummy/tmp/
 /log/*.log
+render_*.html
 
 # Environment normalization
 /.bundle/
@@ -40,7 +41,4 @@
 # Local development configuration
 .env
 .env.local
-
 *.lock
-
-old/

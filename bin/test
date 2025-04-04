@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-bundle exec rake test
+bundle exec bin/rails test
