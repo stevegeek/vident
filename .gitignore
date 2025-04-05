@@ -25,6 +25,7 @@
 /test/dummy/log/*.log
 /test/dummy/storage/
 /test/dummy/tmp/
+/test/dummy/app/assets/builds/
 /log/*.log
 render_*.html
 
