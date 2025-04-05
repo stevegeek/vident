@@ -1,5 +1,3 @@
-require "vident/version"
-
 module Vident
   module ViewComponent
     module Caching
