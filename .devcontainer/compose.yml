@@ -1,0 +1,8 @@
+name: "vident"
+
+services:
+  vident-dev-env:
+    container_name: vident-dev-env
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile

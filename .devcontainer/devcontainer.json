@@ -1,0 +1,12 @@
+{
+  "name": "Vident Gem Development",
+  "dockerComposeFile": "compose.yml",
+  "service": "vident-dev-env",
+  "containerEnv": {
+    "RAILS_ENV": "development"
+  },
+  "forwardPorts": [3000],
+  "postCreateCommand": "bundle install && bundle exec appraisal install",
+  "postStartCommand": "bundle exec rake test",
+  "remoteUser": "vscode"
+}
