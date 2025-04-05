@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+cd test/dummy/
+./bin/dev "$@"

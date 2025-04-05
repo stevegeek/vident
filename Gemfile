@@ -26,6 +26,7 @@ gem "minitest", "~> 5.0"
 gem "faker"
 gem "puma"
 gem "rails", "~> #{ENV["RAILS_VERSION"] || "8"}"
+gem "foreman"
 gem "sqlite3"
 
 # Asset things for the dummy app
