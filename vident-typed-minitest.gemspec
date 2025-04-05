@@ -11,6 +11,7 @@ Gem::Specification.new do |spec|
   spec.summary = "Vident test helper for Minitest"
   spec.description = "Vident test helper for Minitest"
   spec.license = "MIT"
+  spec.required_ruby_version = ">= 3.1.0"
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = spec.homepage
@@ -31,8 +32,8 @@ Gem::Specification.new do |spec|
     end
   end
 
-  spec.add_dependency "railties", ">= 7", "< 8"
-  spec.add_dependency "activesupport", ">= 7", "< 8"
+  spec.add_dependency "railties", ">= 7.2", "< 9"
+  spec.add_dependency "activesupport", ">= 7.2", "< 9"
   spec.add_dependency "vident-typed", "~> #{Vident::VERSION}"
   spec.add_dependency "minitest", ">= 5.14.4", "< 6.0"
   spec.add_dependency "minitest-hooks", ">= 1.5.0", "< 2.0"

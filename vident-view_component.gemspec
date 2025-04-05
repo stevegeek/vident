@@ -10,6 +10,7 @@ Gem::Specification.new do |spec|
   spec.summary = "Vident with ViewComponent"
   spec.description = "Vident with ViewComponent"
   spec.license = "MIT"
+  spec.required_ruby_version = ">= 3.1.0"
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = spec.homepage
@@ -29,8 +30,8 @@ Gem::Specification.new do |spec|
     end
   end
 
-  spec.add_dependency "railties", ">= 7", "< 8"
-  spec.add_dependency "activesupport", ">= 7", "< 8"
+  spec.add_dependency "railties", ">= 7.2", "< 9"
+  spec.add_dependency "activesupport", ">= 7.2", "< 9"
   spec.add_dependency "vident", "~> #{Vident::VERSION}"
   spec.add_dependency "view_component", ">= 2.74.1", "< 4"
 end

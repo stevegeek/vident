@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.description = "Vident support for better_html. If you use better_html, you will need to install this gem too."
   spec.homepage = "https://github.com/stevegeek/vident"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 3.0.0"
+  spec.required_ruby_version = ">= 3.1.0"
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = spec.homepage
@@ -30,8 +30,8 @@ Gem::Specification.new do |spec|
     end
   end
 
-  spec.add_dependency "railties", ">= 7", "< 8"
-  spec.add_dependency "activesupport", ">= 7", "< 8"
+  spec.add_dependency "railties", ">= 7.2", "< 9"
+  spec.add_dependency "activesupport", ">= 7.2", "< 9"
   spec.add_dependency "vident", "~> #{Vident::VERSION}"
   spec.add_dependency "better_html", ">= 2.0.0", "< 3"
 end

@@ -25,7 +25,7 @@ gem "rake", "~> 13.0"
 gem "minitest", "~> 5.0"
 gem "faker"
 gem "puma"
-gem "rails", "~> #{ENV["RAILS_VERSION"] || "7.0"}"
+gem "rails", "~> #{ENV["RAILS_VERSION"] || "8"}"
 gem "sqlite3"
 
 # Asset things for the dummy app
