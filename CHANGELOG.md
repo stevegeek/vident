@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Breaking
 
 - `data_maps` has been renamed to `values` and support has been added for the Stimulus 2+ Values API.
+- `root`/`parent_element` no longer takes options, to define attributes for it, you can use `root_element_attributes` or the view component helper `root_component_attributes`. This change means
+  that root elements can be instantiated outside of `render` which is useful if you refer to the instance in the components body block 
 
 ### Added
 
