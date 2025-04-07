@@ -30,13 +30,17 @@ Gem::Specification.new do |spec|
   spec.metadata["changelog_uri"] = spec.homepage + "/blob/main/CHANGELOG.md"
 
   spec.files = Dir.chdir(__dir__) do
-    # Get all files from git
-    all_files = `git ls-files -z`.split("\x0").reject do |f|
-      f.start_with?(*%w[bin/ test/ spec/ features/ examples/ docs/ .git .github appveyor Gemfile])
+    files = `git ls-files -z`.split("\x0")
+
+    # Only include files relevant to this gem
+    all_files = files.select do |f|
+      f.start_with?('lib/')
     end
 
     # Exclude files from other gemspecs
-    all_files - ignored_files
+    all_files - ignored_files + [
+      'README.md', 'LICENSE.txt', 'CHANGELOG.md'
+    ]
   end
 
   spec.add_dependency "railties", ">= 7.2", "< 9"

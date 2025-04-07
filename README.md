@@ -4,16 +4,22 @@ Vident is a collection of gems that provide a set of tools for building web appl
 
 ## Included Gems
 
+The core gems:
+
 - `vident`: The core Vident library
-- `vident-better_html`: Better HTML integration for Vident
 - `vident-phlex`: Phlex integration for Vident
+- `vident-view_component`: ViewComponent integration for Vident
+
+Note that you can use both `Phlex` and `ViewComponent` in the same application if desired.
+
+And then optional extra features:
+
 - `vident-tailwind`: Tailwind CSS integration for Vident
 - `vident-typed`: Type system for Vident components
 - `vident-typed-minitest`: Minitest integration for typed Vident components
 - `vident-typed-phlex`: Phlex integration for typed Vident components
 - `vident-typed-view_component`: ViewComponent integration for typed Vident
-- `vident-view_component`: ViewComponent integration for Vident
-- `vident-view_component-caching`: Caching support for Vident ViewComponents
+- `vident-better_html`: Better HTML integration for Vident
 
 ## Directory Structure
 
@@ -97,172 +103,6 @@ The gems are available as open source under the terms of the [MIT License](LICEN
 ---
 
 # Component Documentation
-
-## gem: vident-better_html
-
-# Vident::BetterHtml
-Short description and motivation.
-
-### Usage
-How to use my plugin.
-
-```ruby
-BetterHtml.config = BetterHtml::Config.new(YAML.load(File.read(".better-html.yml")))
-
-BetterHtml.configure do |config|
-  config.template_exclusion_filter = proc { |filename| !filename.start_with?(Rails.root.to_s) }
-end
-# ViewComponent needs to do this hack to work in certain cases
-# see https://github.com/Shopify/better-html/pull/98
-class BetterHtml::HtmlAttributes
-  alias_method :to_s_without_html_safe, :to_s
-
-  def to_s
-    to_s_without_html_safe.html_safe
-  end
-end
-```
-
-### Installation
-Add this line to your application's Gemfile:
-
-```ruby
-gem "vident-better_html"
-```
-
-And then execute:
-```bash
-$ bundle
-```
-
-Or install it yourself as:
-```bash
-$ gem install vident-better_html
-```
-
----
-
-## gem: vident-phlex
-
-# Vident::Phlex
-
-[Phlex](https://phlex.fun/) powered [Vident](https://github.com/stevegeek/vident) components.
-
-```ruby
-class ApplicationComponent < ::Vident::Phlex::HTML
-end
-```
-
-For more details see [vident](https://github.com/stevegeek/vident).
-
-### Usage
-How to use my plugin.
-
-### Installation
-Add this line to your application's Gemfile:
-
-```ruby
-gem "vident-phlex"
-```
-
-And then execute:
-```bash
-$ bundle
-```
-
-Or install it yourself as:
-```bash
-$ gem install vident-phlex
-```
-
----
-
-## gem: vident-tailwind
-
-# Vident::Tailwind
-Short description and motivation.
-
-### Usage
-How to use my plugin.
-
-### Installation
-Add this line to your application's Gemfile:
-
-```ruby
-gem "vident-tailwind"
-```
-
-And then execute:
-```bash
-$ bundle
-```
-
-Or install it yourself as:
-```bash
-$ gem install vident-tailwind
-```
-
----
-
-## gem: vident-typed-minitest
-
-# Vident::Typed::Minitest
-Short description and motivation.
-
-### Usage
-How to use my plugin.
-
-### Installation
-Add this line to your application's Gemfile:
-
-```ruby
-gem "vident-typed-minitest"
-```
-
-And then execute:
-```bash
-$ bundle
-```
-
-Or install it yourself as:
-```bash
-$ gem install vident-typed-minitest
-```
-
----
-
-## gem: vident-typed-phlex
-
-# Vident::Typed::Phlex
-
-Adds typed attributes to Vident Phlex based components.
-
-```ruby
-class ApplicationComponent < ::Vident::Typed::Phlex::HTML
-end
-```
-
-For more details see [vident](https://github.com/stevegeek/vident).
-
-### Usage
-How to use my plugin.
-
-### Installation
-Add this line to your application's Gemfile:
-
-```ruby
-gem "vident-typed-phlex"
-```
-
-And then execute:
-```bash
-$ bundle
-```
-
-Or install it yourself as:
-```bash
-$ gem install vident-typed-phlex
-```
 
 ---
 
@@ -643,59 +483,6 @@ $ gem install vident-typed-view_component
 
 ---
 
-## gem: vident-typed
-
-# Vident::Typed
-Short description and motivation.
-
-### Usage
-How to use my plugin.
-
-### Installation
-Add this line to your application's Gemfile:
-
-```ruby
-gem "vident-typed"
-```
-
-And then execute:
-```bash
-$ bundle
-```
-
-Or install it yourself as:
-```bash
-$ gem install vident-typed
-```
-
----
-
-## gem: vident-view_component-caching
-
-# Vident::ViewComponent::Caching
-Short description and motivation.
-
-### Usage
-How to use my plugin.
-
-### Installation
-Add this line to your application's Gemfile:
-
-```ruby
-gem "vident-view_component-caching"
-```
-
-And then execute:
-```bash
-$ bundle
-```
-
-Or install it yourself as:
-```bash
-$ gem install vident-view_component-caching
-```
-
----
 
 ## gem: vident-view_component
 
@@ -864,3 +651,201 @@ Or install it yourself as:
 ```bash
 $ gem install vident-view_component
 ```
+
+---
+
+## gem: vident-better_html
+
+# Vident::BetterHtml
+Short description and motivation.
+
+### Usage
+How to use my plugin.
+
+```ruby
+BetterHtml.config = BetterHtml::Config.new(YAML.load(File.read(".better-html.yml")))
+
+BetterHtml.configure do |config|
+  config.template_exclusion_filter = proc { |filename| !filename.start_with?(Rails.root.to_s) }
+end
+# ViewComponent needs to do this hack to work in certain cases
+# see https://github.com/Shopify/better-html/pull/98
+class BetterHtml::HtmlAttributes
+  alias_method :to_s_without_html_safe, :to_s
+
+  def to_s
+    to_s_without_html_safe.html_safe
+  end
+end
+```
+
+### Installation
+Add this line to your application's Gemfile:
+
+```ruby
+gem "vident-better_html"
+```
+
+And then execute:
+```bash
+$ bundle
+```
+
+Or install it yourself as:
+```bash
+$ gem install vident-better_html
+```
+
+---
+
+## gem: vident-phlex
+
+# Vident::Phlex
+
+[Phlex](https://phlex.fun/) powered [Vident](https://github.com/stevegeek/vident) components.
+
+```ruby
+class ApplicationComponent < ::Vident::Phlex::HTML
+end
+```
+
+For more details see [vident](https://github.com/stevegeek/vident).
+
+### Usage
+How to use my plugin.
+
+### Installation
+Add this line to your application's Gemfile:
+
+```ruby
+gem "vident-phlex"
+```
+
+And then execute:
+```bash
+$ bundle
+```
+
+Or install it yourself as:
+```bash
+$ gem install vident-phlex
+```
+
+---
+
+## gem: vident-tailwind
+
+# Vident::Tailwind
+Short description and motivation.
+
+### Usage
+How to use my plugin.
+
+### Installation
+Add this line to your application's Gemfile:
+
+```ruby
+gem "vident-tailwind"
+```
+
+And then execute:
+```bash
+$ bundle
+```
+
+Or install it yourself as:
+```bash
+$ gem install vident-tailwind
+```
+
+---
+
+## gem: vident-typed-minitest
+
+# Vident::Typed::Minitest
+Short description and motivation.
+
+### Usage
+How to use my plugin.
+
+### Installation
+Add this line to your application's Gemfile:
+
+```ruby
+gem "vident-typed-minitest"
+```
+
+And then execute:
+```bash
+$ bundle
+```
+
+Or install it yourself as:
+```bash
+$ gem install vident-typed-minitest
+```
+
+---
+
+## gem: vident-typed-phlex
+
+# Vident::Typed::Phlex
+
+Adds typed attributes to Vident Phlex based components.
+
+```ruby
+class ApplicationComponent < ::Vident::Typed::Phlex::HTML
+end
+```
+
+For more details see [vident](https://github.com/stevegeek/vident).
+
+### Usage
+How to use my plugin.
+
+### Installation
+Add this line to your application's Gemfile:
+
+```ruby
+gem "vident-typed-phlex"
+```
+
+And then execute:
+```bash
+$ bundle
+```
+
+Or install it yourself as:
+```bash
+$ gem install vident-typed-phlex
+```
+
+---
+
+
+## gem: vident-typed
+
+# Vident::Typed
+Short description and motivation.
+
+### Usage
+How to use my plugin.
+
+### Installation
+Add this line to your application's Gemfile:
+
+```ruby
+gem "vident-typed"
+```
+
+And then execute:
+```bash
+$ bundle
+```
+
+Or install it yourself as:
+```bash
+$ gem install vident-typed
+```
+
+---
