@@ -11,10 +11,14 @@ gem "better_html", ">= 2.0.0", "< 3"
 gem "tailwind_merge", ">= 0.5.2", "< 1"
 gem "dry-struct", ">= 1.5.0", "< 2"
 
+require "pathname"
+
 # All vident plugin gemspecs
-Dir["vident-*.gemspec"].each do |gemspec|
+# Create absolute path based on fact that gemspecs is next to this file
+gemspecs = Pathname(__FILE__).dirname.join("vident-*.gemspec").expand_path
+Dir[gemspecs].each do |gemspec|
   plugin = gemspec.scan(/vident-(.*)\.gemspec/).flatten.first
-  gemspec(name: "vident-#{plugin}", development_group: plugin)
+  gemspec(name: "vident-#{plugin}")
 end
 
 # Development and testing gems

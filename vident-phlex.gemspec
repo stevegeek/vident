@@ -21,7 +21,7 @@ Gem::Specification.new do |spec|
 
     # Only include files relevant to this gem
     files.select do |f|
-      f.match?(%r{^(lib/vident[-_]phlex|lib/vident/phlex)}) ||
+      f.match?(%r{^(lib/vident/phlex)}) ||
         f == "lib/vident/version.rb" ||
         f == "vident-phlex.gemspec" ||
         f == "README.md" ||

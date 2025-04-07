@@ -21,7 +21,7 @@ Gem::Specification.new do |spec|
 
     # Only include files relevant to this gem
     files.select do |f|
-      f.match?(%r{^(lib/vident[-_]view_component\.rb|lib/vident/view_component(?!/caching))}) ||
+      f.match?(%r{^(lib/vident/view_component(?!/caching))}) ||
         f == "lib/vident/version.rb" ||
         f == "vident-view_component.gemspec" ||
         f == "README.md" ||

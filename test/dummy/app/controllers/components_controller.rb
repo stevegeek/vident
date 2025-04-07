@@ -9,12 +9,12 @@ class ComponentsController < ApplicationController
 
   def phlex
     # For testing Phlex components
-    render ApplicationIndexView.new
+    render PhlexExamplesView.new
   end
 
   def typed_phlex
     # For testing Typed Phlex components
-    render TypedPhlex::ApplicationIndexView.new
+    render TypedPhlex::ExamplesView.new
   end
 
   def view_component

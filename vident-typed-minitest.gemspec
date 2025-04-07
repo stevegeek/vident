@@ -22,7 +22,7 @@ Gem::Specification.new do |spec|
 
     # Only include files relevant to this gem
     files.select do |f|
-      f.match?(%r{^(lib/vident[-_]typed[-_]minitest|lib/vident/typed/minitest)}) ||
+      f.match?(%r{^(lib/vident/typed/minitest)}) ||
         f == "lib/vident/version.rb" ||
         f == "lib/vident/typed/version.rb" ||
         f == "vident-typed-minitest.gemspec" ||

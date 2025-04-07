@@ -21,7 +21,7 @@ Gem::Specification.new do |spec|
 
     # Only include files relevant to this gem
     files.select do |f|
-      f.match?(%r{^(lib/vident[-_]typed[-_]view_component|lib/vident/typed/view_component)}) ||
+      f.match?(%r{^(lib/vident/typed/view_component)}) ||
         f == "lib/vident/version.rb" ||
         f == "lib/vident/typed/version.rb" ||
         f == "vident-typed-view_component.gemspec" ||

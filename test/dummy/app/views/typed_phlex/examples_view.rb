@@ -1,6 +1,6 @@
 # frozen-string-literal: true
 
-class TypedPhlex::ApplicationIndexView < TypedPhlex::ApplicationView
+class TypedPhlex::ExamplesView < TypedPhlex::ApplicationView
   def view_template
     div(class: "space-y-6") do
       h1(class: "text-3xl") { "Comparing components" }
@@ -22,7 +22,7 @@ class TypedPhlex::ApplicationIndexView < TypedPhlex::ApplicationView
           h3(class: "text-md font-bold") do
             "An example of a component where we use Vident to set Stimulus actions/targets on other components (eg in a Phlex::HTML slot)"
           end
-          pre(class: "block bg-gray-100") do
+          pre do
             %(
 <%= render ::GreeterWithTriggerComponent.new do |greeter| %>
   <% greeter.trigger(

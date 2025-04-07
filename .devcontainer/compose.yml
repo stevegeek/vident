@@ -6,3 +6,5 @@ services:
     build:
       context: ..
       dockerfile: .devcontainer/Dockerfile
+    ports:
+      - "3000"
