@@ -6,7 +6,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
-## [Unreleased]
+## [0.13.0] - 2024-04-07
+
+### Breaking
+
+- `data_maps` has been renamed to `values` and support has been added for the Stimulus 2+ Values API.
 
 ### Added
 
