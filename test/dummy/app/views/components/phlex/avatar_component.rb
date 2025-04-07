@@ -15,18 +15,18 @@ module Phlex
     private
 
     def view_template
-      render root_component do
+      render root do
         unless image_avatar?
           span(class: "#{text_size_class} font-medium leading-none text-white") { @initials }
         end
       end
     end
 
-    def root_component
-      root(
+    def root_element_attributes
+      {
         element_tag: image_avatar? ? :img : :div,
         html_options: default_html_options
-      )
+      }
     end
 
     def default_html_options

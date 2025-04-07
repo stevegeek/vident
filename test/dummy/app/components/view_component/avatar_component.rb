@@ -16,6 +16,13 @@ module ViewComponent
 
     private
 
+    def root_element_attributes
+      {
+        element_tag: image_avatar? ? :img : :div,
+        html_options: default_html_options
+      }
+    end
+
     def default_html_options
       if image_avatar?
         {class: "inline-block object-contain", src: url, alt: t(".image")}

@@ -1,7 +1,12 @@
-<%= render root named_classes: {
-  pre_click: "text-md text-gray-500",
-  post_click: "text-xl text-blue-700"
-} do |greeter| %>
+<%
+  root_component_attributes(
+    named_classes: {
+      pre_click: "text-md text-gray-500",
+      post_click: "text-xl text-blue-700"
+    }
+  )
+%>
+<%= render root do |greeter| %>
   <input type="text"
          <%= greeter.as_target(:name) %>
          class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">

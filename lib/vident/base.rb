@@ -136,8 +136,31 @@ module Vident
       {}
     end
 
+    def merge_element_attributes!(element_attributes, attributes)
+      attributes.each_with_object(element_attributes) do |(k, v), h|
+        if h[k].is_a?(Hash)
+          h[k].merge!(v)
+        elsif h[k].is_a?(Array)
+          h[k] << v
+        else
+          h[k] = v
+        end
+      end
+    end
+
+    def root_component_attributes(**attributes)
+      @root_component_attributes ||= {}
+      merge_element_attributes!(@root_component_attributes, attributes)
+    end
+
+    def stimulus_options_for_root_component
+      attributes = root_element_attributes
+      merge_element_attributes!(attributes, @root_component_attributes) if @root_component_attributes.present?
+      stimulus_options_for_component(attributes)
+    end
+
     # Prepare the stimulus attributes for a StimulusComponent
-    def stimulus_options_for_component(options = root_element_attributes)
+    def stimulus_options_for_component(options)
       # Add pending actions
       all_actions = attribute(:actions) + Array.wrap(options[:actions])
       all_actions += @pending_actions if @pending_actions&.any?

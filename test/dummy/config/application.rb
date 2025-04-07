@@ -8,6 +8,7 @@ Bundler.require(*Rails.groups)
 
 module Dummy
   class Application < Rails::Application
+    config.autoload_paths << "#{root}/app/components"
     config.autoload_paths << "#{root}/app/views"
     config.autoload_paths << "#{root}/app/views/layouts"
     config.autoload_paths << "#{root}/app/views/components"
@@ -27,12 +28,12 @@ module Dummy
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
 
-    config.importmap.cache_sweepers.append(Rails.root.join("app/components"), Rails.root.join("app/views"))
+    config.importmap.cache_sweepers.append(Rails.root.join("app/components"), Rails.root.join("app/views/layouts"), Rails.root.join("app/views/components"))
 
     # Add the paths to the components sidecar assets to the asset pipeline. The paths are those to which the
     # components are 'rooted' in the application. E.g if a component `Foo::MyComponent` is defined in
     # "app/components/foo/my_component", then the path to the assets for that component to specify
-    # for sprockets here is "app/components/". In `phlex-rails` the paths are typically as follows:
-    config.assets.paths.append("app/views/components", "app/views/layouts")
+    # for sprockets here is "app/components/". The paths are typically as follows:
+    config.assets.paths.append("app/components/", "app/views/components", "app/views/layouts")
   end
 end
