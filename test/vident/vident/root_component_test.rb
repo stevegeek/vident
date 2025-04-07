@@ -66,7 +66,7 @@ module Vident
         controllers: ["foo/my_controller"],
         named_classes: {my_class: "my-class"},
         outlets: ["my-outlet", ["other-component", ".custom-selector"]],
-        data_maps: [{my_key: "my-value"}],
+        values: [{my_key: "my-value"}],
         actions: [:my_action],
         targets: [:my_target]
       )
@@ -79,7 +79,7 @@ module Vident
         "foo--my-controller-my-outlet-outlet": "#the-id [data-controller~=my-outlet]",
         "foo--my-controller-other-component-outlet": ".custom-selector",
         "foo--my-controller-my-class-class": "my-class",
-        "foo--my-controller-my_key": "my-value"
+        "foo--my-controller-my-key-value": "my-value"
       }
 
       # Test
