@@ -9,22 +9,22 @@ class TypedPhlex::ExamplesView < TypedPhlex::ApplicationView
         section(class: "space-y-8") do
           h3(class: "text-md font-bold") { "A plain old Phlex::HTML" }
           code(class: "block bg-gray-100") do
-            %(render ::GreeterComponent.new(cta: "Greet w. Phlex::HTML"))
+            %(render ::TypedPhlex::GreeterComponent.new(cta: "Greet w. Phlex::HTML"))
           end
           render TypedPhlex::GreeterComponent.new(cta: "Greet w. Phlex::HTML")
           h3(class: "text-md font-bold") { "A Phlex::HTML with Vident" }
           code(class: "block bg-gray-100") do
-            %(render ::GreeterVidentComponent.new(cta: "Greet w. Vident + Phlex::HTML"))
+            %(render ::TypedPhlex::GreeterVidentComponent.new(cta: "Greet w. Vident + Phlex::HTML"))
           end
           render TypedPhlex::GreeterVidentComponent.new(
             cta: "Greet w. Vident + Phlex::HTML"
           )
           h3(class: "text-md font-bold") do
-            "An example of a component where we use Vident to set Stimulus actions/targets on other components (eg in a Phlex::HTML slot)"
+            "An example of a component where we use Vident to set Stimulus actions/targets on other components"
           end
           pre do
             %(
-<%= render ::GreeterWithTriggerComponent.new do |greeter| %>
+<%= render ::TypedPhlex::GreeterWithTriggerComponent.new do |greeter| %>
   <% greeter.trigger(
      before_clicked_message: "I'm a button component!",
      after_clicked_message: "Greeted! Click me again to reset.",

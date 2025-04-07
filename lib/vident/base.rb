@@ -92,8 +92,7 @@ module Vident
 
     # HTML and attribute definition and creation
 
-    # FIXME: if we call them before `root` we will setup the root element before we intended
-    # The separation between component and root element is a bit messy. Might need rethinking.
+    # Generate action/target/etc Stimulus attribute string that can be used externally to this component
     delegate :action, :target, :named_classes, to: :root
 
     # This can be overridden to return an array of extra class names
@@ -133,14 +132,26 @@ module Vident
 
     private
 
-    def parent_element_attributes(options)
-      options
-        .except(:id, :element_tag, :html_options, :controller, :controllers, :actions, :targets, :named_classes, :data_maps)
-        .merge(stimulus_options_for_component(options))
+    def root_element_attributes
+      {}
     end
 
     # Prepare the stimulus attributes for a StimulusComponent
-    def stimulus_options_for_component(options)
+    def stimulus_options_for_component(options = root_element_attributes)
+      # Add pending actions
+      all_actions = attribute(:actions) + Array.wrap(options[:actions])
+      all_actions += @pending_actions if @pending_actions&.any?
+
+      # Add pending targets
+      all_targets = attribute(:targets) + Array.wrap(options[:targets])
+      all_targets += @pending_targets if @pending_targets&.any?
+
+      # Merge pending named classes
+      named_classes_option = merge_stimulus_option(options, :named_classes)
+      if @pending_named_classes&.any?
+        named_classes_option = named_classes_option.merge(@pending_named_classes)
+      end
+
       {
         id: respond_to?(:id) ? id : (attribute(:id) || options[:id]),
         element_tag: attribute(:element_tag) || options[:element_tag] || :div,
@@ -148,12 +159,12 @@ module Vident
         controllers: (
           self.class.stimulus_controller? ? [default_controller_path] : []
         ) + Array.wrap(options[:controllers]) + attribute(:controllers),
-        actions: attribute(:actions) + Array.wrap(options[:actions]),
-        targets: attribute(:targets) + Array.wrap(options[:targets]),
+        actions: all_actions,
+        targets: all_targets,
         outlets: attribute(:outlets) + Array.wrap(options[:outlets]),
         outlet_host: attribute(:outlet_host),
-        named_classes: merge_stimulus_option(options, :named_classes),
-        data_maps: prepare_stimulus_option(options, :data_maps)
+        named_classes: named_classes_option,
+        values: prepare_stimulus_option(options, :values)
       }
     end
 

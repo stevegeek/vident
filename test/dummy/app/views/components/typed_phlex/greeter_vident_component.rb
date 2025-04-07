@@ -4,7 +4,7 @@ module TypedPhlex
   class GreeterVidentComponent < ApplicationComponent
     attribute :cta, allow_nil: false
 
-    def template
+    def view_template
       render root do |greeter|
         input type: "text",
           data: greeter.target_data_attribute(:name),

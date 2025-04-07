@@ -5,7 +5,7 @@ class TypedPhlex::GreeterComponent < ::Phlex::HTML
     @cta = cta
   end
 
-  def template
+  def view_template
     div(data_controller: "greeter") do
       input data_greeter_target: "name",
             type: "text",

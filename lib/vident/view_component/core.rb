@@ -28,8 +28,8 @@ module Vident
       end
 
       # Helper to create the main element
-      def parent_element(**options)
-        @parent_element ||= ::Vident::ViewComponent::RootComponent.new(**parent_element_attributes(options))
+      def parent_element
+        @parent_element ||= ::Vident::ViewComponent::RootComponent.new(**stimulus_options_for_component)
       end
       alias_method :root, :parent_element
     end

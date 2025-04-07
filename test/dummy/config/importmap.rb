@@ -18,6 +18,8 @@ components_directories.each do |components_path|
   # Pinning all Stimulus controllers from components_path under 'prefix'
   components_path.glob("**/*_controller.js").each do |controller|
     name = controller.relative_path_from(components_path).to_s.remove(/\.js$/)
+    puts "Pinning #{controller} to #{prefix}/#{controller.relative_path_from(components_path)} as #{name}"
+
     pin "#{prefix}/#{name}", to: name
   end
 end
