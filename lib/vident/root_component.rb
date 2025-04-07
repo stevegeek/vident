@@ -9,7 +9,7 @@ module Vident
       outlets: nil,
       outlet_host: nil,
       named_classes: nil, # https://stimulus.hotwired.dev/reference/css-classes
-      data_maps: nil,
+      values: nil,
       element_tag: nil,
       id: nil,
       html_options: nil
@@ -22,8 +22,7 @@ module Vident
       @targets = targets
       @outlets = outlets
       @named_classes = named_classes
-      @data_map_kvs = {}
-      @data_maps = data_maps
+      @values = values
 
       outlet_host.connect_outlet(self) if outlet_host.respond_to?(:connect_outlet)
     end
@@ -150,13 +149,18 @@ module Vident
       build_named_classes_data_attributes(@named_classes)
     end
 
+    def values_list
+      return {} unless @values&.size&.positive?
+      build_values_attributes
+    end
+
     # stimulus "data-*" attributes map for this component
     def tag_data_attributes
       {controller: controller_list(@controllers), action: action_list(@actions)}
         .merge!(target_list)
         .merge!(outlet_list)
         .merge!(named_classes_list)
-        .merge!(data_map_attributes)
+        .merge!(values_list)
         .compact_blank!
     end
 
@@ -245,21 +249,26 @@ module Vident
       actions.map! { |a| a.is_a?(String) ? a : action(*a) }
     end
 
-    def parse_attributes(attrs, controller = nil)
-      attrs.transform_keys { |k| :"#{controller || implied_controller_name}-#{k}" }
+    def parse_value_attributes(attrs, controller: nil)
+      attrs.transform_keys do |value_name|
+        :"#{controller || implied_controller_name}-#{value_name.to_s.dasherize}-value"
+      end
     end
 
-    def data_map_attributes
-      return {} unless @data_maps
-      @data_maps.each_with_object({}) do |m, obj|
+    def build_values_attributes
+      @values.each_with_object({}) do |m, obj|
         if m.is_a?(Hash)
-          obj.merge!(parse_attributes(m))
+          obj.merge!(parse_value_attributes(m))
         elsif m.is_a?(Array)
           controller_path = m.first
           data = m.last
-          obj.merge!(parse_attributes(data, stimulize_path(controller_path)))
+          obj.merge!(parse_value_attributes(data, controller: stimulize_path(controller_path)))
         end
       end
+    end
+
+    def build_values_data_attributes(values)
+      values.map { |name, value| [:"#{name}-value", value] }.to_h
     end
 
     def parse_named_classes_hash(named_classes)

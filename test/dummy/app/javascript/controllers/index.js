@@ -6,5 +6,6 @@ eagerLoadControllersFrom("controllers", application)
 
 // Also load controllers from 'under' the "components" group
 // eg "app_components" if components are in "app/components"
+eagerLoadControllersFrom("app_components", application)
 eagerLoadControllersFrom("app_views_components", application)
 eagerLoadControllersFrom("app_views_layouts", application)

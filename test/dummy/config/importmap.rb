@@ -11,7 +11,7 @@ pin_all_from "app/javascript/controllers", under: "controllers"
 
 # In this example we are using directory structure as typical in phlex-rails
 root = Rails.root
-components_directories = [root.join("app/views/layouts"), root.join("app/views/components")]
+components_directories = [root.join("app/views/layouts"), root.join("app/views/components"), root.join("app/components")]
 components_directories.each do |components_path|
   prefix = components_path.relative_path_from(root).to_s.tr("/", "_")
 

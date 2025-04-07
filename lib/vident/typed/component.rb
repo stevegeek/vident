@@ -20,7 +20,7 @@ module Vident
         attribute :outlet_host, :any, delegates: false
 
         attribute :targets, Array, default: [], delegates: false
-        attribute :data_maps, Array, default: [], delegates: false
+        attribute :values, Array, default: [], delegates: false
 
         # TODO normalise the syntax of defining actions, controllers, etc
         attribute :named_classes, Hash, delegates: false
