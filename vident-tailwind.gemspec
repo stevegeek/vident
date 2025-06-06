@@ -31,5 +31,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency "railties", ">= 7.2", "< 9"
   spec.add_dependency "activesupport", ">= 7.2", "< 9"
   spec.add_dependency "vident", "~> #{Vident::VERSION}"
-  spec.add_dependency "tailwind_merge", ">= 0.5.2", "< 1"
+  spec.add_dependency "tailwind_merge", ">= 0.5.2", "< 2"
 end
