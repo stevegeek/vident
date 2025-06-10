@@ -27,13 +27,13 @@ module Vident
       end
 
       def initialize(attrs = {})
-        before_initialise(attrs)
+        before_initialize(attrs)
         prepare_attributes(attrs)
         # The attributes need to also be set as ivars
         attributes.each do |attr_name, attr_value|
           instance_variable_set(self.class.attribute_ivar_names[attr_name], attr_value)
         end
-        after_initialise
+        after_initialize
         super()
       end
     end

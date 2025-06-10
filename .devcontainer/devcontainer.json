@@ -5,7 +5,7 @@
   "containerEnv": {
     "RAILS_ENV": "development"
   },
-  "forwardPorts": [3000],
+  "forwardPorts": [3200],
   "postCreateCommand": "bundle install && bundle exec appraisal install",
   "postStartCommand": "bundle exec rake test",
   "remoteUser": "vscode"

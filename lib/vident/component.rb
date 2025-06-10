@@ -23,9 +23,9 @@ module Vident
     end
 
     def initialize(attrs = {})
-      before_initialise(attrs)
+      before_initialize(attrs)
       prepare_attributes(attrs)
-      after_initialise
+      after_initialize
       super()
     end
   end

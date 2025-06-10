@@ -7,4 +7,9 @@ services:
       context: ..
       dockerfile: .devcontainer/Dockerfile
     ports:
-      - "3000"
+      - "3200"
+    volumes:
+      - vscode-home:/home/vscode
+
+volumes:
+  vscode-home:

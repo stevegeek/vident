@@ -57,11 +57,11 @@ module Vident
     end
 
     # Override this method to perform any initialisation before attributes are set
-    def before_initialise(_attrs)
+    def before_initialize(_attrs)
     end
 
     # Override this method to perform any initialisation after attributes are set
-    def after_initialise
+    def after_initialize
     end
 
     def clone(overrides = {})
