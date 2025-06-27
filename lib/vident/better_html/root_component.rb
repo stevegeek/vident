@@ -27,6 +27,19 @@ module Vident
       end
       alias_method :with_action, :with_actions
 
+      def controller_attribute(*controllers_to_set)
+        {"data-controller" => controller_list(controllers_to_set)&.html_safe}
+      end
+      
+      def target_attributes(*targets)
+        attrs = build_target_data_attributes(parse_targets(targets))
+        attrs.transform_keys { |dt| "data-#{dt}" }
+      end
+
+      def action_attribute(*actions_to_set)
+        {"data-action" => parse_actions(actions_to_set).join(" ").html_safe}
+      end
+      
       private
 
       # Complete list of actions ready to be use in the data-action attribute
