@@ -27,7 +27,7 @@ end
 
 desc "Inspect gem contents by unpacking them to tmp/inspect"
 task :unpack do
-  require 'fileutils'
+  require "fileutils"
 
   # Create and clean the inspect directory
   inspect_dir = "tmp/inspect"
@@ -60,7 +60,7 @@ task :release do
   print "\nAre you sure you want to continue? [y/N] "
   confirmation = $stdin.gets.chomp.downcase
 
-  if confirmation == 'y'
+  if confirmation == "y"
     # Push each gem
     gem_files.each do |gem_file|
       puts "\nPushing #{gem_file}..."

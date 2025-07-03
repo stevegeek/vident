@@ -19,13 +19,13 @@ module Vident
       end
 
       def stimulus_controller? = !@no_stimulus_controller
-      
+
       # The "path" of the Stimulus controller, which is used to generate the controller name.
       def stimulus_identifier_path = name.underscore
 
       # Stimulus controller identifier
       def stimulus_identifier = ::Vident::Component.stimulus_identifier_from_path(stimulus_identifier_path)
-      
+
       # The "name" of the component from its class name and namespace. This is used to generate an HTML class name
       # that can helps identify the component type in the DOM or for styling purposes.
       def component_name
@@ -87,7 +87,6 @@ module Vident
 
     # The prefix for Stimulus events, which is used to generate the event names for Stimulus actions
     def js_event_name_prefix = self.class.js_event_name_prefix
-
 
     # Methods to use in component views
     # ---------------------------------

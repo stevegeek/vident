@@ -14,7 +14,6 @@ module TypedViewComponent
       }
     end
 
-
     def call
       render root do
         @before_clicked_message
