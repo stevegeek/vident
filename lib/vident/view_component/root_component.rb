@@ -5,14 +5,6 @@ module Vident
     class RootComponent < ::ViewComponent::Base
       include ::Vident::RootComponent
 
-      if Gem.loaded_specs.has_key? "better_html"
-        begin
-          include ::Vident::BetterHtml::RootComponent
-        rescue
-          raise "if `better_html`` is being used you must install `vident-better_html"
-        end
-      end
-
       SELF_CLOSING_TAGS = Set[:area, :base, :br, :col, :embed, :hr, :img, :input, :link, :meta, :param, :source, :track, :wbr].freeze
 
       def target_tag(tag_name, targets, **options, &block)
