@@ -15,7 +15,7 @@ module Vident
       def with_cache_key(*attrs, name: :_collection)
         # Add view file to cache key
         attrs << :component_modified_time
-        attrs << :attributes
+        attrs << :to_h if respond_to?(:to_h)
         named_cache_key_includes(name, *attrs.uniq)
       end
 
