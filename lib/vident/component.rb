@@ -4,6 +4,8 @@ module Vident
   module Component
     extend ActiveSupport::Concern
 
+    include Tailwind
+
     # Module utilities for working with Stimulus identifiers
 
     def stimulus_identifier_from_path(path)
@@ -38,20 +40,20 @@ module Vident
 
     # Components have the following properties
     included do
-      include Literal::Properties
+      extend Literal::Properties
 
       prop :id, _Nilable(String)
       prop :html_options, Hash, default: -> { {} }
       prop :element_tag, Symbol, default: :div
 
       # StimulusJS support
-      prop :controllers, _Array(_Union(String, Symbol)), default: [] # TODO: revisit how we define controllers
-      prop :actions, _Array(_Union(String, Symbol, Array, Hash)), default: [] # TODO: revisit how we define actions
-      prop :targets, _Array(_Union(String, Symbol, Hash)), default: [] # TODO: revisit how we define targets
-      prop :outlets, _Array(_Union(String, Symbol)), default: []
-      prop :outlet_host, _Nilable(Vident::Component)
-      prop :values, _Array(_Hash(Symbol, _Any)), default: [] # TODO: instead of _Any, is it _Interface(:to_s)?
-      prop :named_classes, _Hash(Symbol, String), default: {}
+      prop :stimulus_controllers, _Array(_Union(String, Symbol)), default: -> { [] } # TODO: revisit how we define controllers
+      prop :stimulus_actions, _Array(_Union(String, Symbol, Array, Hash)), default: -> { [] } # TODO: revisit how we define actions
+      prop :stimulus_targets, _Array(_Union(String, Symbol, Hash)), default: -> { [] } # TODO: revisit how we define targets
+      prop :stimulus_outlets, _Array(_Union(String, Symbol)), default: -> { [] }
+      prop :stimulus_outlet_host, _Nilable(Vident::Component)
+      prop :stimulus_values, _Array(_Hash(Symbol, _Any)), default: -> { [] } # TODO: instead of _Any, is it _Interface(:to_s)?
+      prop :stimulus_classes, _Hash(Symbol, String), default: -> { {} }
     end
 
     # Override this method to perform any initialisation before attributes are set
@@ -60,6 +62,16 @@ module Vident
 
     # Override this method to perform any initialisation after attributes are set
     def after_initialize
+    end
+
+    # This can be overridden to return an array of extra class names, or a string of class names.
+    def element_classes
+    end
+
+    # Properties/attributes passed to the "root" element of the component. You normally override this method to
+    # return a hash of attributes that should be applied to the root element of your component.
+    def root_element_attributes
+      {}
     end
 
     # Create a new component instance with optional overrides for properties.
@@ -88,37 +100,15 @@ module Vident
     # The prefix for Stimulus events, which is used to generate the event names for Stimulus actions
     def js_event_name_prefix = self.class.js_event_name_prefix
 
-    # Methods to use in component views
-    # ---------------------------------
-
-    delegate :params, to: :helpers
-
-    # HTML and attribute definition and creation
-
-    # Generate action/target/etc Stimulus attribute string that can be used externally to this component
-    delegate :action, :target, :named_classes, to: :root
-
-    # This can be overridden to return an array of extra class names, or a string of class names.
-    def element_classes
-    end
-
     # The `component` class name is used to create the controller name.
     # The path of the Stimulus controller when none is explicitly set
-    def default_controller_path
-      self.class.stimulus_identifier_path
-    end
+    def default_controller_path = self.class.stimulus_identifier_path
 
     private
 
     # Generate a random ID for the component, which is used to ensure uniqueness in the DOM.
     def random_id
       @random_id ||= "#{component_class_name}-#{StableId.next_id_in_sequence}"
-    end
-
-    # Properties/attributes passed to the "root" element of the component. You normally override this method to
-    # return a hash of attributes that should be applied to the root element of your component.
-    def root_element_attributes
-      {}
     end
 
     def stimulus_options_for_root_component = stimulus_options_for_component(root_element_attributes)
