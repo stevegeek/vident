@@ -1,4 +1,4 @@
 module Greeters
-  class ApplicationComponent < ::Vident::Typed::ViewComponent::Base
+  class ApplicationComponent < ::Vident::ViewComponent::Base
   end
 end

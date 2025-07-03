@@ -2,8 +2,6 @@
 
 module PhlexGreeters
   class GreeterWithTriggerComponent < ApplicationComponent
-    include Phlex::DeferredRender
-
     def trigger(**args)
       @trigger ||= GreeterButtonComponent.new(**args)
     end
@@ -22,7 +20,8 @@ module PhlexGreeters
       }
     end
 
-    def view_template
+    def view_template(&)
+      vanish(&)
       render root do |greeter|
         input(type: "text", data: greeter.target_data_attribute(:name), class: %(shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline))
         trigger_or_default(greeter)

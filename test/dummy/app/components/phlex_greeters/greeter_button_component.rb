@@ -2,8 +2,8 @@
 
 module PhlexGreeters
   class GreeterButtonComponent < ApplicationComponent
-    attribute :after_clicked_message, String, default: "Greeted!"
-    attribute :before_clicked_message, String, default: "Greet"
+    prop :after_clicked_message, String, default: "Greeted!"
+    prop :before_clicked_message, String, default: "Greet"
 
     private
 

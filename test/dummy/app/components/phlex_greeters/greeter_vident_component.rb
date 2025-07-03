@@ -2,7 +2,7 @@
 
 module PhlexGreeters
   class GreeterVidentComponent < ApplicationComponent
-    attribute :cta, allow_nil: false
+    prop :cta, String
 
     def view_template
       render root do |greeter|

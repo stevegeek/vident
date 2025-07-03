@@ -2,6 +2,6 @@
 
 module Greeters
   class GreeterVidentComponent < ApplicationComponent
-    attribute :cta, default: "Greet"
+    prop :cta, String, default: "Greet"
   end
 end
