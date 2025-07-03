@@ -114,83 +114,18 @@ module Vident
     def stimulus_options_for_root_component = stimulus_options_for_component(root_element_attributes)
 
     # Generates the full list of HTML classes for the component
-    def render_classes(extra_classes = nil)  = class_list_builder.build(extra_classes)
+    def render_classes(extra_classes = nil) = class_list_builder.build(extra_classes)
 
     # Prepare the stimulus attributes for a StimulusComponent
     def stimulus_options_for_component(options)
-      # Add pending actions
-      all_actions = attribute(:actions) + Array.wrap(options[:actions])
-      all_actions += @pending_actions if @pending_actions&.any?
-
-      # Add pending targets
-      all_targets = attribute(:targets) + Array.wrap(options[:targets])
-      all_targets += @pending_targets if @pending_targets&.any?
-
-      # Merge pending named classes
-      named_classes_option = merge_stimulus_option(options, :named_classes)
-      if @pending_named_classes&.any?
-        named_classes_option = named_classes_option.merge(@pending_named_classes)
-      end
-
-      {
-        id: respond_to?(:id) ? id : (attribute(:id) || options[:id]),
-        element_tag: attribute(:element_tag) || options[:element_tag] || :div,
-        html_options: prepare_html_options(options[:html_options]),
-        controllers: (
-          self.class.stimulus_controller? ? [default_controller_path] : []
-        ) + Array.wrap(options[:controllers]) + attribute(:controllers),
-        actions: all_actions,
-        targets: all_targets,
-        outlets: attribute(:outlets) + Array.wrap(options[:outlets]),
-        outlet_host: attribute(:outlet_host),
-        named_classes: named_classes_option,
-        values: prepare_stimulus_option(options, :values)
-      }
+      stimulus_options_builder.build(
+        options,
+        pending_actions: @pending_actions || [],
+        pending_targets: @pending_targets || [],
+        pending_named_classes: @pending_named_classes || {}
+      )
     end
 
-    def prepare_html_options(erb_options)
-      # Options should override in this order:
-      # - defined on component class methods (lowest priority)
-      # - defined by passing to component erb
-      # - defined by passing to component constructor (highest priority)
-      options = erb_options&.except(:class) || {}
-      classes_from_view = Array.wrap(erb_options[:class]) if erb_options&.key?(:class)
-      options[:class] = render_classes(classes_from_view)
-      options.merge!(attribute(:html_options).except(:class)) if attribute(:html_options)
-      options
-    end
-
-    # TODO: deprecate the ability to set via method on class (responds_to?) and just use component attributes
-    # or attributes passed to parent_element
-    def prepare_stimulus_option(options, name)
-      resolved = respond_to?(name) ? Array.wrap(send(name)) : []
-      resolved.concat(Array.wrap(attribute(name)))
-      resolved.concat(Array.wrap(options[name]))
-      resolved
-    end
-
-    def merge_stimulus_option(options, name)
-      (attribute(name) || {}).merge(options[name] || {})
-    end
-
-    def produce_style_classes(class_names)
-      dedupe_view_component_classes(class_names)
-    end
-
-    CLASSNAME_SEPARATOR = " "
-
-    # Join all the various class definisions possible and dedupe
-    def dedupe_view_component_classes(html_classes)
-      html_classes.reject!(&:blank?)
-
-      # Join, then dedupe.
-      # This ensures that entries from the classes array such as "a b", "a", "b" are correctly deduped.
-      # Note we are trying to do this with less allocations to avoid GC churn
-      # classes = classes.join(" ").split(" ").uniq
-      html_classes.map! { |x| x.include?(CLASSNAME_SEPARATOR) ? x.split(CLASSNAME_SEPARATOR) : x }
-        .flatten!
-      html_classes.uniq!
-      html_classes.present? ? html_classes.join(CLASSNAME_SEPARATOR) : nil
     # Get or create a class list builder instance
     # Automatically detects if Tailwind module is included and TailwindMerge gem is available
     def class_list_builder
@@ -198,9 +133,27 @@ module Vident
         tailwind_merger:,
         component_class_name:,
         element_classes:,
-        html_class: attribute(:html_options)&.fetch(:class, nil)
+        html_class: @html_options&.fetch(:class, nil)
       )
     end
+
+    # Get or create a stimulus options builder instance
+    def stimulus_options_builder
+      @stimulus_options_builder ||= StimulusOptionsBuilder.new(
+        id: respond_to?(:id) ? id : attribute(:id),
+        element_tag: @element_tag,
+        html_options: @html_options,
+        stimulus_controllers: @stimulus_controllers,
+        stimulus_actions: @stimulus_actions,
+        stimulus_targets: @stimulus_targets,
+        stimulus_outlets: @stimulus_outlets,
+        stimulus_outlet_host: @stimulus_outlet_host,
+        stimulus_classes: @stimulus_classes,
+        stimulus_values: @stimulus_values,
+        default_controller_path: default_controller_path,
+        stimulus_controller_enabled: self.class.stimulus_controller?,
+        class_list_builder: class_list_builder
+      )
     end
   end
 end
