@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-module TypedPhlex
-  class ApplicationComponent < ::Vident::Typed::Phlex::HTML
+module PhlexGreeters
+  class ApplicationComponent < ::Vident::Phlex::HTML
     include ::Phlex::Rails::Helpers::Routes
 
     if Rails.env.development?

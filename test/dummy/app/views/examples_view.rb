@@ -1,6 +1,6 @@
 # frozen-string-literal: true
 
-class TypedPhlex::ExamplesView < TypedPhlex::ApplicationView
+class ExamplesView < ApplicationView
   def view_template
     div(class: "space-y-6") do
       h1(class: "text-3xl") { "Comparing components" }
@@ -9,14 +9,14 @@ class TypedPhlex::ExamplesView < TypedPhlex::ApplicationView
         section(class: "space-y-8") do
           h3(class: "text-md font-bold") { "A plain old Phlex::HTML" }
           code(class: "block bg-gray-100") do
-            %(render ::TypedPhlex::GreeterComponent.new(cta: "Greet w. Phlex::HTML"))
+            %(render ::PhlexGreeters::GreeterComponent.new(cta: "Greet w. Phlex::HTML"))
           end
-          render TypedPhlex::GreeterComponent.new(cta: "Greet w. Phlex::HTML")
+          render PhlexGreeters::GreeterComponent.new(cta: "Greet w. Phlex::HTML")
           h3(class: "text-md font-bold") { "A Phlex::HTML with Vident" }
           code(class: "block bg-gray-100") do
-            %(render ::TypedPhlex::GreeterVidentComponent.new(cta: "Greet w. Vident + Phlex::HTML"))
+            %(render ::PhlexGreeters::GreeterVidentComponent.new(cta: "Greet w. Vident + Phlex::HTML"))
           end
-          render TypedPhlex::GreeterVidentComponent.new(
+          render PhlexGreeters::GreeterVidentComponent.new(
             cta: "Greet w. Vident + Phlex::HTML"
           )
           h3(class: "text-md font-bold") do
@@ -24,7 +24,7 @@ class TypedPhlex::ExamplesView < TypedPhlex::ApplicationView
           end
           pre do
             %(
-<%= render ::TypedPhlex::GreeterWithTriggerComponent.new do |greeter| %>
+<%= render ::PhlexGreeters::GreeterWithTriggerComponent.new do |greeter| %>
   <% greeter.trigger(
      before_clicked_message: "I'm a button component!",
      after_clicked_message: "Greeted! Click me again to reset.",
@@ -38,7 +38,7 @@ class TypedPhlex::ExamplesView < TypedPhlex::ApplicationView
 <% end %>
 )
           end
-          render TypedPhlex::GreeterWithTriggerComponent.new do |greeter|
+          render PhlexGreeters::GreeterWithTriggerComponent.new do |greeter|
             greeter.trigger(
               before_clicked_message: "I'm a button component!",
               after_clicked_message: "Greeted! Click me again to reset.",
@@ -56,7 +56,7 @@ class TypedPhlex::ExamplesView < TypedPhlex::ApplicationView
             code(class: "block bg-gray-100") do
               %(render ::AvatarComponent.new(initials: "AB"))
             end
-            div(class: "block") { render TypedPhlex::AvatarComponent.new(initials: "AB") }
+            div(class: "block") { render Phlex::AvatarComponent.new(initials: "AB") }
           end
           div(class: "space-y-6") do
             h3(class: "text-md font-bold") do
@@ -66,7 +66,7 @@ class TypedPhlex::ExamplesView < TypedPhlex::ApplicationView
               %(render AvatarComponent.new(initials: 123, size: "foo"))
             end
             div(class: "block") do
-              render TypedPhlex::AvatarComponent.new(initials: 123, size: "foo")
+              render Phlex::AvatarComponent.new(initials: 123, size: "foo")
             rescue
               "A type error was thrown as expected!"
             end
@@ -77,7 +77,7 @@ class TypedPhlex::ExamplesView < TypedPhlex::ApplicationView
               %(render AvatarComponent.new(url: "https://i.pravatar.cc/300", initials: "AB"))
             end
             div(class: "block") do
-              render TypedPhlex::AvatarComponent.new(
+              render Phlex::AvatarComponent.new(
                 url: "https://i.pravatar.cc/300",
                 initials: "AB"
               )
@@ -89,7 +89,7 @@ class TypedPhlex::ExamplesView < TypedPhlex::ApplicationView
               %(render AvatarComponent.new(url: "https://i.pravatar.cc/300", initials: "AB", size: :x_large))
             end
             div(class: "block") do
-              render TypedPhlex::AvatarComponent.new(
+              render Phlex::AvatarComponent.new(
                 url: "https://i.pravatar.cc/300",
                 initials: "AB",
                 size: :x_large
@@ -104,7 +104,7 @@ class TypedPhlex::ExamplesView < TypedPhlex::ApplicationView
               %(render AvatarComponent.new(url: "https://i.pravatar.cc/300", initials: "AB", html_options: {alt: "My alt text", class: "ring-2 ring-red-900"}))
             end
             div(class: "block") do
-              render TypedPhlex::AvatarComponent.new(
+              render Phlex::AvatarComponent.new(
                 url: "https://i.pravatar.cc/300",
                 initials: "AB",
                 html_options: {
@@ -119,7 +119,7 @@ class TypedPhlex::ExamplesView < TypedPhlex::ApplicationView
               "with initials and small size and border"
             end
             div(class: "block") do
-              render TypedPhlex::AvatarComponent.new(
+              render Phlex::AvatarComponent.new(
                 initials: "SG",
                 size: :small,
                 border: true
@@ -137,7 +137,7 @@ class TypedPhlex::ExamplesView < TypedPhlex::ApplicationView
               %(render AvatarComponent.new(initials: "SG", shape: :square, html_options: {class: "border-2 border-red-600"}))
             end
             div(class: "block") do
-              render TypedPhlex::AvatarComponent.new(
+              render Phlex::AvatarComponent.new(
                 initials: "SG",
                 shape: :square,
                 html_options: {
@@ -146,6 +146,21 @@ class TypedPhlex::ExamplesView < TypedPhlex::ApplicationView
               )
             end
           end
+
+          p { "Render an avatar" }
+          render Phlex::AvatarComponent.new(initials: "V C")
+          br
+          component = Phlex::AvatarComponent.new(initials: "V C", html_options: {class: "bg-red-500"})
+          p {
+            "The following example sets a background color override using a tailwind utility class (note that sometimes you will find overrides don't work due to CSS specificity. To solve this use the `vident-tailwind` module in your component!)"
+          }
+          render component
+          br
+          p { "Components can also have a `#cache_key` method which plays nicely with fragment caching." }
+          p { "Cache Key for above component:" }
+          pre { component.cache_key }
+          p { "Cache Key for Avatar component with different attributes:" }
+          pre { Phlex::AvatarComponent.new(initials: "V C").cache_key }
         end
       end
     end

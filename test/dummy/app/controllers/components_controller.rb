@@ -5,23 +5,14 @@ class ComponentsController < ApplicationController
     # This controller is just for displaying components in the browser
   end
 
-  layout -> { ApplicationLayout }, only: [:phlex, :typed_phlex]
+  layout -> { ApplicationLayout }, only: [:phlex]
 
   def phlex
     # For testing Phlex components
-    render PhlexExamplesView.new
-  end
-
-  def typed_phlex
-    # For testing Typed Phlex components
-    render TypedPhlex::ExamplesView.new
+    render ExamplesView.new
   end
 
   def view_component
     # For testing ViewComponent components
-  end
-
-  def typed_view_component
-    # For testing Typed ViewComponent components
   end
 end

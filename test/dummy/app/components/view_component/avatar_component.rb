@@ -5,14 +5,14 @@ module ViewComponent
     no_stimulus_controller
     with_cache_key
 
-    attribute :url, allow_nil: true
-    attribute :initials, allow_nil: false
+    prop :url, _Nilable(String), predicate: :private, reader: :public
+    prop :initials, String, reader: :public
 
-    attribute :shape, default: :circle
+    prop :shape, Symbol, default: :circle, reader: :public
 
-    attribute :border, default: false
+    prop :border, _Boolean, default: false, predicate: :private, reader: :public
 
-    attribute :size, default: :normal
+    prop :size, Symbol, default: :normal, reader: :public
 
     private
 
@@ -25,7 +25,7 @@ module ViewComponent
 
     def default_html_options
       if image_avatar?
-        {class: "inline-block object-contain", src: url, alt: t(".image")}
+        {class: "inline-block object-contain", src: @url, alt: t(".image")}
       else
         {class: "inline-flex items-center justify-center bg-gray-500"}
       end
@@ -38,11 +38,11 @@ module ViewComponent
     alias_method :image_avatar?, :url?
 
     def shape_class
-      (shape == :circle) ? "rounded-full" : "rounded-md"
+      (@shape == :circle) ? "rounded-full" : "rounded-md"
     end
 
     def size_classes
-      case size
+      case @size
       when :tiny
         "w-6 h-6"
       when :small
@@ -61,7 +61,7 @@ module ViewComponent
     end
 
     def text_size_class
-      case size
+      case @size
       when :tiny
         "text-xs"
       when :small

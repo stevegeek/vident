@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module TypedViewComponent
+module Greeters
   class GreeterVidentComponent < ApplicationComponent
     attribute :cta, default: "Greet"
   end

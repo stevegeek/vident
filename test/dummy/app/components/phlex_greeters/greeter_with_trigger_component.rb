@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module TypedPhlex
+module PhlexGreeters
   class GreeterWithTriggerComponent < ApplicationComponent
     include Phlex::DeferredRender
 

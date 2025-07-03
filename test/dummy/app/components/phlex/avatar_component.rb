@@ -1,24 +1,18 @@
-module TypedPhlex
+module Phlex
   class AvatarComponent < ApplicationComponent
     no_stimulus_controller
+    with_cache_key
 
-    attribute :url, String, allow_nil: true, allow_blank: false
-    attribute :initials, String, allow_blank: false
+    prop :url, _Nilable(String), predicate: :private, reader: :public
+    prop :initials, String, reader: :public
 
-    attribute :shape, Symbol, in: %i[circle square], default: :circle
+    prop :shape, Symbol, default: :circle, reader: :public
 
-    attribute :border, :boolean, default: false
+    prop :border, _Boolean, default: false, predicate: :private, reader: :public
 
-    attribute :size, Symbol, in: %i[tiny small normal medium large x_large xx_large], default: :normal
+    prop :size, Symbol, default: :normal, reader: :public
 
     private
-
-    def root_element_attributes
-      {
-        element_tag: image_avatar? ? :img : :div,
-        html_options: default_html_options
-      }
-    end
 
     def view_template
       render root do
@@ -26,6 +20,13 @@ module TypedPhlex
           span(class: "#{text_size_class} font-medium leading-none text-white") { @initials }
         end
       end
+    end
+
+    def root_element_attributes
+      {
+        element_tag: image_avatar? ? :img : :div,
+        html_options: default_html_options
+      }
     end
 
     def default_html_options

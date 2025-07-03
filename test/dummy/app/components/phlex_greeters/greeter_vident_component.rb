@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module TypedPhlex
+module PhlexGreeters
   class GreeterVidentComponent < ApplicationComponent
     attribute :cta, allow_nil: false
 
