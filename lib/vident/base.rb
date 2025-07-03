@@ -4,56 +4,36 @@ module Vident
   module Base
     extend ActiveSupport::Concern
 
+    # Module utilities for working with Stimulus identifiers
+
+    def stimulus_identifier_from_path(path)
+      path.split("/").map { |p| p.to_s.dasherize }.join("--")
+    end
+    module_function :stimulus_identifier_from_path
+
+    # Base class for all Vident components, which provides common functionality and properties.
+
     class_methods do
       def no_stimulus_controller
         @no_stimulus_controller = true
       end
 
-      def stimulus_controller?
-        !@no_stimulus_controller
-      end
+      def stimulus_controller? = !@no_stimulus_controller
+      
+      # The "path" of the Stimulus controller, which is used to generate the controller name.
+      def stimulus_identifier_path = name.underscore
 
-      # The "name" of the component from its class name and namespace. This is used to generate a HTML class name
+      # Stimulus controller identifier
+      def stimulus_identifier = ::Vident::Base.stimulus_identifier_from_path(stimulus_identifier_path)
+      
+      # The "name" of the component from its class name and namespace. This is used to generate an HTML class name
       # that can helps identify the component type in the DOM or for styling purposes.
       def component_name
         @component_name ||= stimulus_identifier
       end
-
-      def slots?
-        registered_slots.present?
-      end
-
-      # Dont check collection params, we use kwargs
-      def validate_collection_parameter!(validate_default: false)
-      end
-
-      # stimulus controller identifier
-      def stimulus_identifier
-        ::Vident::Base.stimulus_identifier_from_path(identifier_name_path)
-      end
-
-      def identifier_name_path
-        name.underscore
-      end
-
-      private
-
-      # Define reader & presence check method, for performance use ivar directly
-      def define_attribute_delegate(attr_name)
-        class_eval(<<-RUBY, __FILE__, __LINE__ + 1)
-          def #{attr_name}
-            #{@attribute_ivar_names[attr_name]}
-          end
-  
-          def #{attr_name}?
-            #{@attribute_ivar_names[attr_name]}.present?
-          end
-        RUBY
-      end
-    end
-
-    def prepare_attributes(attributes)
-      raise NotImplementedError
+      alias_method :component_class_name, :component_name
+      # It is also used to generate the prefix for Stimulus events
+      alias_method :js_event_name_prefix, :component_name
     end
 
     # Override this method to perform any initialisation before attributes are set
@@ -64,26 +44,32 @@ module Vident
     def after_initialize
     end
 
-    def clone(overrides = {})
-      new_set = to_hash.merge(**overrides)
-      self.class.new(**new_set)
-    end
+    # Create a new component instance with optional overrides for properties.
+    def clone(overrides = {}) = self.class.new(**to_h.merge(**overrides))
 
     def inspect(klass_name = "Component")
-      attr_text = attributes.map { |k, v| "#{k}=#{v.inspect}" }.join(", ")
+      attr_text = to_h.map { |k, v| "#{k}=#{v.inspect}" }.join(", ")
       "#<#{self.class.name}<Vident::#{klass_name}> #{attr_text}>"
     end
 
     # Generate a unique ID for a component, can be overridden as required. Makes it easier to setup things like ARIA
     # attributes which require elements to reference by ID. Note this overrides the `id` accessor
-    def id
-      @id.presence || random_id
-    end
+    def id = @id.presence || random_id
 
     # If connecting an outlet to this specific component instance, use this ID
     def outlet_id
       @outlet_id ||= [stimulus_identifier, "##{id}"]
     end
+
+    # The Stimulus controller identifier for this component
+    def stimulus_identifier = self.class.stimulus_identifier
+
+    # An HTML class name that can helps identify the component type in the DOM or for styling purposes.
+    def component_class_name = self.class.component_class_name
+
+    # The prefix for Stimulus events, which is used to generate the event names for Stimulus actions
+    def js_event_name_prefix = self.class.js_event_name_prefix
+
 
     # Methods to use in component views
     # ---------------------------------
@@ -95,15 +81,10 @@ module Vident
     # Generate action/target/etc Stimulus attribute string that can be used externally to this component
     delegate :action, :target, :named_classes, to: :root
 
-    # This can be overridden to return an array of extra class names
+    # This can be overridden to return an array of extra class names, or a string of class names.
     def element_classes
     end
 
-    # A HTML class name that can helps identify the component type in the DOM or for styling purposes.
-    def component_class_name
-      self.class.component_name
-    end
-    alias_method :js_event_name_prefix, :component_class_name
 
     # Generates the full list of HTML classes for the component
     def render_classes(erb_defined_classes = nil)
@@ -115,37 +96,23 @@ module Vident
       produce_style_classes(base_classes)
     end
 
-    def stimulus_identifier
-      self.class.stimulus_identifier
-    end
-
     # The `component` class name is used to create the controller name.
     # The path of the Stimulus controller when none is explicitly set
     def default_controller_path
       self.class.identifier_name_path
     end
 
-    def stimulus_identifier_from_path(path)
-      path.split("/").map { |p| p.to_s.dasherize }.join("--")
-    end
-    module_function :stimulus_identifier_from_path
-
     private
 
-    def root_element_attributes
-      {}
+    # Generate a random ID for the component, which is used to ensure uniqueness in the DOM.
+    def random_id
+      @random_id ||= "#{component_class_name}-#{StableId.next_id_in_sequence}"
     end
 
-    def merge_element_attributes!(element_attributes, attributes)
-      attributes.each_with_object(element_attributes) do |(k, v), h|
-        if h[k].is_a?(Hash)
-          h[k].merge!(v)
-        elsif h[k].is_a?(Array)
-          h[k] << v
-        else
-          h[k] = v
-        end
-      end
+    # Properties/attributes passed to the "root" element of the component. You normally override this method to
+    # return a hash of attributes that should be applied to the root element of your component.
+    def root_element_attributes
+      {}
     end
 
     def root_component_attributes(**attributes)
@@ -218,14 +185,6 @@ module Vident
 
     def produce_style_classes(class_names)
       dedupe_view_component_classes(class_names)
-    end
-
-    def template_path
-      self.class.template_path
-    end
-
-    def random_id
-      @random_id ||= "#{component_class_name}-#{StableId.next_id_in_sequence}"
     end
 
     CLASSNAME_SEPARATOR = " "
