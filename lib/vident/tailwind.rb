@@ -1,23 +1,23 @@
-require "vident/tailwind/version"
-require "vident/tailwind/railtie" if defined?(Rails)
-
-require "tailwind_merge"
+# frozen_string_literal: true
 
 module Vident
-  # Adds a utility class merge specifically for Tailwind, allowing you to more easily specify class overrides
-  # without having to worry about the specificity of the classes.
+  # Adds Tailwind CSS class merging functionality to components
+  # This module provides methods to create and manage TailwindMerge::Merger instances
   module Tailwind
-    def produce_style_classes(class_names)
-      to_merge = dedupe_view_component_classes(class_names)
-      tailwind_class_merger.merge(to_merge) if to_merge.present?
+    # Get or create a thread-safe Tailwind merger instance
+    def tailwind_merger
+      return unless tailwind_merge_available?
+
+      return @tailwind_merger if defined?(@tailwind_merger)
+
+      @tailwind_merger = Thread.current[:vident_tailwind_merger] ||= ::TailwindMerge::Merger.new
     end
 
-    private
-
-    # If needed this can be overridden in your component to provide options for the merger.
-    def tailwind_class_merger
-      return @tailwind_class_merger if defined? @tailwind_class_merger
-      @tailwind_class_merger = (Thread.current[:tailwind_class_merger] ||= ::TailwindMerge::Merger.new)
+    # Check if TailwindMerge gem is available
+    def tailwind_merge_available?
+      defined?(::TailwindMerge::Merger) && ::TailwindMerge::Merger.respond_to?(:new)
+    rescue NameError
+      false
     end
   end
 end
