@@ -114,14 +114,7 @@ module Vident
     def stimulus_options_for_root_component = stimulus_options_for_component(root_element_attributes)
 
     # Generates the full list of HTML classes for the component
-    def render_classes(erb_defined_classes = nil)
-      base_classes = [component_class_name]
-      base_classes.concat(Array.wrap(element_classes))
-      base_classes.concat(Array.wrap(erb_defined_classes)) if erb_defined_classes
-      classes_on_component = attribute(:html_options)&.fetch(:class, nil)
-      base_classes.concat(Array.wrap(classes_on_component)) if classes_on_component
-      produce_style_classes(base_classes)
-    end
+    def render_classes(extra_classes = nil)  = class_list_builder.build(extra_classes)
 
     # Prepare the stimulus attributes for a StimulusComponent
     def stimulus_options_for_component(options)
@@ -198,6 +191,16 @@ module Vident
         .flatten!
       html_classes.uniq!
       html_classes.present? ? html_classes.join(CLASSNAME_SEPARATOR) : nil
+    # Get or create a class list builder instance
+    # Automatically detects if Tailwind module is included and TailwindMerge gem is available
+    def class_list_builder
+      @class_list_builder ||= ClassListBuilder.new(
+        tailwind_merger:,
+        component_class_name:,
+        element_classes:,
+        html_class: attribute(:html_options)&.fetch(:class, nil)
+      )
+    end
     end
   end
 end
