@@ -1,7 +1,7 @@
 require "test_helper"
 
 module Vident
-  class StimulusAttributeTest < Minitest::Test
+  class StimulusAttributeBaseTest < Minitest::Test
     def setup
       @implied_controller_path = "foo/my_controller"
       @implied_controller = StimulusController.new(implied_controller: @implied_controller_path)

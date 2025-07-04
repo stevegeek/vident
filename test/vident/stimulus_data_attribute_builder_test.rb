@@ -508,5 +508,124 @@ module Vident
 
       assert_equal expected, result
     end
+
+    # Additional edge cases for collection handling
+    def test_build_with_mixed_collection_types
+      controllers = StimulusControllerCollection.new(["test-controller"])
+      targets = StimulusTargetCollection.new([StimulusTarget.new(:button, implied_controller: StimulusController.new("test"))])
+
+      builder = StimulusDataAttributeBuilder.new(
+        controllers: controllers,
+        targets: targets
+      )
+
+      result = builder.build
+      assert_instance_of Hash, result
+      refute result.empty?
+      assert result.key?("controller")
+    end
+
+    def test_build_with_complex_stimulus_values_collection
+      # Test values collection with actual StimulusValue instances
+      value1 = StimulusValue.new(:url, "https://example.com", implied_controller: StimulusController.new("test"))
+      value2 = StimulusValue.new(:count, 42, implied_controller: StimulusController.new("test"))
+
+      values_collection = StimulusValueCollection.new([value1, value2])
+
+      builder = StimulusDataAttributeBuilder.new(
+        values: values_collection
+      )
+
+      result = builder.build
+      assert_instance_of Hash, result
+      refute result.empty?
+      assert result.key?("test-url-value")
+      assert result.key?("test-count-value")
+    end
+
+    def test_build_with_complex_stimulus_classes_collection
+      # Test classes collection with actual StimulusClass instances
+      class1 = StimulusClass.new(:loading, "spinner active", implied_controller: StimulusController.new("test"))
+      class2 = StimulusClass.new(:error, "text-red-500", implied_controller: StimulusController.new("test"))
+
+      classes_collection = StimulusClassCollection.new([class1, class2])
+
+      builder = StimulusDataAttributeBuilder.new(
+        classes: classes_collection
+      )
+
+      result = builder.build
+      assert_instance_of Hash, result
+      refute result.empty?
+      assert result.key?("test-loading-class")
+      assert result.key?("test-error-class")
+    end
+
+    def test_builder_keys_are_always_strings
+      controller = StimulusController.new("test")
+
+      builder = StimulusDataAttributeBuilder.new(
+        controllers: [controller]
+      )
+
+      result = builder.build
+      assert_instance_of Hash, result
+
+      # All keys should be strings, not symbols
+      result.keys.each do |key|
+        assert_instance_of String, key
+      end
+    end
+
+    def test_builder_compact_removes_nil_values
+      # Test that the builder doesn't include nil values in the result
+      builder = StimulusDataAttributeBuilder.new(
+        controllers: [],
+        actions: [],
+        targets: [],
+        outlets: [],
+        values: [],
+        classes: []
+      )
+
+      result = builder.build
+      assert_instance_of Hash, result
+
+      # Should not contain nil values after compact
+      result.values.each do |value|
+        refute_nil value
+      end
+    end
+
+    def test_merged_collections_with_controller_collections
+      controller1 = StimulusController.new("controller1")
+      controller2 = StimulusController.new("controller2")
+      collection1 = StimulusControllerCollection.new([controller1])
+      collection2 = StimulusControllerCollection.new([controller2])
+
+      builder = StimulusDataAttributeBuilder.new(
+        controllers: [collection1, collection2]
+      )
+
+      result = builder.build
+      assert_instance_of Hash, result
+      assert_equal "controller1 controller2", result["controller"]
+    end
+
+    def test_merged_collections_with_action_collections
+      implied_controller = StimulusController.new("test")
+      action1 = StimulusAction.new(:click, implied_controller: implied_controller)
+      action2 = StimulusAction.new(:submit, implied_controller: implied_controller)
+      collection1 = StimulusActionCollection.new([action1])
+      collection2 = StimulusActionCollection.new([action2])
+
+      builder = StimulusDataAttributeBuilder.new(
+        actions: [collection1, collection2]
+      )
+
+      result = builder.build
+      assert_instance_of Hash, result
+      assert_equal "test#click test#submit", result["action"]
+    end
   end
 end
