@@ -7,6 +7,8 @@ module Vident
 
     # FIXME: in a view_component the parsing of html_options might have to be in `before_render`
     def prepare_component_attributes
+      prepare_stimulus_collections
+
       # Merge root element attributes into all options
       extra = root_element_attributes
 

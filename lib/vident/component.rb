@@ -49,7 +49,6 @@ module Vident
     # Called by Literal::Properties after the component is initialized.
     def after_initialize
       prepare_component_attributes
-      prepare_stimulus_collections
       after_component_initialize if respond_to?(:after_component_initialize)
     end
 
