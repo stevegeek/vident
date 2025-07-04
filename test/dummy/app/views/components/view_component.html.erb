@@ -32,8 +32,8 @@
         <% greeter.with_trigger(
              before_clicked_message: "I'm a button component!",
              after_clicked_message: "Greeted! Click me again to reset.",
-             actions: [
-               greeter.action(:click, :greet),
+             stimulus_actions: [
+               greeter.stimulus_action(:click, :greet),
              ],
              html_options: {
                class: "bg-red-500 hover:bg-red-700"

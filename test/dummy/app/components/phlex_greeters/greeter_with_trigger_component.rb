@@ -11,7 +11,7 @@ module PhlexGreeters
     def trigger_or_default(greeter)
       return render(@trigger) if @trigger
 
-      trigger(cta: "Greet", actions: [greeter.action(:click, :greet)])
+      trigger(cta: "Greet", stimulus_actions: [greeter.stimulus_action(:click, :greet)])
     end
 
     def root_element_attributes
@@ -23,9 +23,9 @@ module PhlexGreeters
     def view_template(&)
       vanish(&)
       render root do |greeter|
-        input(type: "text", data: greeter.target_data_attribute(:name), class: %(shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline))
+        input(type: "text", data: {**greeter.stimulus_target(:name)}, class: %(shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline))
         trigger_or_default(greeter)
-        greeter.target_tag(:span, :output, class: "ml-4 #{greeter.named_classes(:pre_click)}") do
+        greeter.tag(:span, stimulus_target: :output, class: "ml-4 #{greeter.class_list_for_stimulus_classes(:pre_click)}") do
           plain %( ... )
         end
       end

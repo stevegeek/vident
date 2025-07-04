@@ -2,308 +2,296 @@
 
 module Vident
   module RootComponent
+    include Tailwind
+
     def initialize(
-      controllers: nil,
-      actions: nil,
-      targets: nil,
-      outlets: nil,
-      outlet_host: nil,
-      named_classes: nil, # https://stimulus.hotwired.dev/reference/css-classes
-      values: nil,
+      stimulus_controllers: nil,
+      stimulus_actions: nil,
+      stimulus_targets: nil,
+      stimulus_outlets: nil,
+      stimulus_outlet_host: nil, # A component that will host this component as an outlet
+      stimulus_classes: nil, # https://stimulus.hotwired.dev/reference/css-classes
+      stimulus_values: nil,
       element_tag: nil,
       id: nil,
+      # class: nil, # TODO: Shortcut for `html_options[:class]` ??
       html_options: nil
     )
       @element_tag = element_tag
       @html_options = html_options
       @id = id
-      @controllers = Array.wrap(controllers)
-      @actions = actions
-      @targets = targets
-      @outlets = outlets
-      @named_classes = named_classes
-      @values = values
 
-      outlet_host.connect_outlet(self) if outlet_host.respond_to?(:connect_outlet)
-    end
+      @implied_controller_path = Array.wrap(stimulus_controllers)&.first
+      
+      # Convert raw attributes to stimulus attribute collections
+      @stimulus_controllers_collection = wrap_stimulus_controllers(stimulus_controllers)
+      @stimulus_actions_collection = wrap_stimulus_actions(stimulus_actions)
+      @stimulus_targets_collection = wrap_stimulus_targets(stimulus_targets)
+      @stimulus_outlets_collection = wrap_stimulus_outlets(stimulus_outlets)
+      @stimulus_values_collection = wrap_stimulus_values(stimulus_values)
+      @stimulus_classes_collection = wrap_stimulus_classes(stimulus_classes)
 
-    def connect_outlet(outlet)
-      @outlets ||= []
-      @outlets << outlet
+      stimulus_outlet_host.connect_stimulus_outlet(self) if stimulus_outlet_host.respond_to?(:connect_outlet)
     end
 
     # The view component's helpers for setting stimulus data-* attributes on this component.
 
-    # TODO: rename
-    # Create a Stimulus action string, and returns it
-    #   examples:
-    #   action(:my_thing) => "current_controller#myThing"
-    #   action(:click, :my_thing) => "click->current_controller#myThing"
-    #   action("click->current_controller#myThing") => "click->current_controller#myThing"
-    #   action("path/to/current", :my_thing) => "path--to--current_controller#myThing"
-    #   action(:click, "path/to/current", :my_thing) => "click->path--to--current_controller#myThing"
-    def action(*args)
-      part1, part2, part3 = args
-      (args.size == 1) ? parse_action_arg(part1) : parse_multiple_action_args(part1, part2, part3)
-    end
-
-    def action_data_attribute(*actions)
-      {action: parse_actions(actions).join(" ")}
-    end
-
-    # TODO: rename & make stimulus Target class instance and returns it, which can convert to String
-    # Create a Stimulus Target and returns it
-    #   examples:
-    #   target(:my_target) => {controller: 'current_controller' name: 'myTarget'}
-    #   target("path/to/current", :my_target) => {controller: 'path--to--current_controller', name: 'myTarget'}
-    def target(name, part2 = nil)
-      if part2.nil?
-        {controller: implied_controller_name, name: js_name(name)}
+    # Hook in component as outlet
+    def connect_stimulus_outlet(component)
+      outlets = wrap_stimulus_outlets(component)
+      @stimulus_outlets_collection = if @stimulus_outlets_collection
+        @stimulus_outlets_collection.merge(outlets)
       else
-        {controller: stimulize_path(name), name: js_name(part2)}
+        outlets
       end
     end
 
-    def target_data_attribute(name)
-      build_target_data_attributes([target(name)])
+    # Create a Stimulus Controller and returns a StimulusController instance
+    #   examples:
+    #   stimulus_controller("my_controller") => StimulusController that converts to {"controller" => "my-controller"}
+    #   stimulus_controller("path/to/controller") => StimulusController that converts to {"controller" => "path--to--controller"}
+    #   stimulus_controller() => StimulusController that uses implied controller name
+    def stimulus_controller(*args)
+      StimulusController.new(*args, implied_controller: implied_controller_path)
     end
 
-    def build_outlet_selector(outlet_selector)
-      prefix = @id ? "##{@id} " : ""
-      "#{prefix}[data-controller~=#{outlet_selector}]"
+    # Create a Stimulus Controller Collection and returns a StimulusControllerCollection instance
+    #   examples:
+    #   stimulus_controllers(:my_controller) => StimulusControllerCollection with one controller that converts to {"controller" => "my-controller"}
+    #   stimulus_controllers(:my_controller, "path/to/another") => StimulusControllerCollection with two controllers that converts to {"controller" => "my-controller path--to--another"}
+    def stimulus_controllers(*controllers)
+      StimulusControllerCollection.new(controllers.map { |c| stimulus_controller(c) })
     end
 
-    def outlet(css_selector: nil)
-      controller = implied_controller_name
-      if css_selector.nil?
-        [controller, build_outlet_selector(controller)]
-      else
-        [controller, css_selector]
-      end
+    # Create a Stimulus action and returns a StimulusAction instance
+    #   examples:
+    #   stimulus_action(:my_thing) => StimulusAction that converts to "current_controller#myThing"
+    #   stimulus_action(:click, :my_thing) => StimulusAction that converts to "click->current_controller#myThing"
+    #   stimulus_action("click->current_controller#myThing") => StimulusAction that converts to "click->current_controller#myThing"
+    #   stimulus_action("path/to/current", :my_thing) => StimulusAction that converts to "path--to--current_controller#myThing"
+    #   stimulus_action(:click, "path/to/current", :my_thing) => StimulusAction that converts to "click->path--to--current_controller#myThing"
+    def stimulus_action(*args)
+      StimulusAction.new(*args, implied_controller:)
     end
 
-    # Getter for a named classes list so can be used in view to set initial state on SSR
+    # Create a Stimulus Action Collection and returns a StimulusActionCollection instance
+    def stimulus_actions(*actions)
+      StimulusActionCollection.new(actions.map { |a| stimulus_action(a) })
+    end
+
+    # Create a Stimulus Target and returns a StimulusTarget instance
+    #   examples:
+    #   stimulus_target(:my_target) => StimulusTarget that converts to {"current_controller-target" => "myTarget"}
+    #   stimulus_target("path/to/current", :my_target) => StimulusTarget that converts to {"path--to--current-target" => "myTarget"}
+    def stimulus_target(*args)
+      StimulusTarget.new(*args, implied_controller:)
+    end
+
+    # Create a Stimulus Target Collection and returns a StimulusTargetCollection instance
+    def stimulus_targets(*targets)
+      StimulusTargetCollection.new(targets.map { |t| stimulus_target(t) })
+    end
+
+    # Create a Stimulus Outlet and returns a StimulusOutlet instance
+    #   examples:
+    #   stimulus_outlet(:user_status, ".online-user") => StimulusOutlet that converts to {"current_controller-user-status-outlet" => ".online-user"}
+    #   stimulus_outlet("path/to/current", :user_status, ".online-user") => StimulusOutlet that converts to {"path--to--current-user-status-outlet" => ".online-user"}
+    #   stimulus_outlet(:user_status) => StimulusOutlet with auto-generated selector
+    #   stimulus_outlet(component_instance) => StimulusOutlet from component
+    def stimulus_outlet(*args)
+      StimulusOutlet.new(*args, implied_controller:, component_id: @id)
+    end
+
+    # Create a Stimulus Outlet Collection and returns a StimulusOutletCollection instance
+    def stimulus_outlets(*outlets)
+      StimulusOutletCollection.new(outlets.map { |o| stimulus_outlet(o) })
+    end
+
+    # Create a Stimulus Value and returns a StimulusValue instance
+    #   examples:
+    #   stimulus_value(:url, "https://example.com") => StimulusValue that converts to {"current_controller-url-value" => "https://example.com"}
+    #   stimulus_value("path/to/current", :url, "https://example.com") => StimulusValue that converts to {"path--to--current-url-value" => "https://example.com"}
+    def stimulus_value(*args)
+      StimulusValue.new(*args, implied_controller:)
+    end
+
+    # Create a Stimulus Value Collection and returns a StimulusValueCollection instance
+    def stimulus_values(*values)
+      StimulusValueCollection.new(values.map { |v| stimulus_value(v) })
+    end
+
+    # Create a Stimulus Class and returns a StimulusClass instanceLefty
+    #   examples:
+    #   stimulus_class(:loading, "spinner active") => StimulusClass that converts to {"current_controller-loading-class" => "spinner active"}
+    #   stimulus_class("path/to/current", :loading, ["spinner", "active"]) => StimulusClass that converts to {"path--to--current-loading-class" => "spinner active"}
+    def stimulus_class(*args)
+      StimulusClass.new(*args, implied_controller:)
+    end
+
+    # Create a Stimulus Class Collection and returns a StimulusClassCollection instance
+    def stimulus_classes(*classes)
+      StimulusClassCollection.new(classes.map { |c| stimulus_class(c) })
+    end
+
+    # Getter for a stimulus classes list so can be used in view to set initial state on SSR
     # Returns a String of classes that can be used in a `class` attribute.
-    def named_classes(*names)
-      names.map { |name| convert_classes_list_to_string(@named_classes[name]) }.join(" ")
+    def class_list_for_stimulus_classes(*names)
+      class_list_builder.build(@stimulus_classes_collection, stimulus_class_names: names) || ""
     end
 
-    # Helpers for generating the Stimulus data-* attributes directly
-
-    # Return the HTML `data-controller` attribute for the given controllers
-    def with_controllers(*controllers_to_set)
-      "data-controller=\"#{controller_list(controllers_to_set)}\"".html_safe
+    # Build stimulus data attributes using collection splat
+    def stimulus_data_attributes
+      StimulusDataAttributeBuilder.new(
+        controllers: @stimulus_controllers_collection,
+        actions: @stimulus_actions_collection,
+        targets: @stimulus_targets_collection,
+        outlets: @stimulus_outlets_collection,
+        values: @stimulus_values_collection,
+        classes: @stimulus_classes_collection
+      ).build
     end
 
-    # Return the HTML `data-target` attribute for the given targets
-    def as_targets(*targets)
-      attrs = build_target_data_attributes(parse_targets(targets))
-      attrs.map { |dt, n| "data-#{dt}=\"#{n}\"" }.join(" ").html_safe
-    end
-    alias_method :as_target, :as_targets
+    # Generate a tag with the given name and options, including stimulus data attributes
+    def tag(
+      tag_name,
+      stimulus_controllers: nil,
+      stimulus_targets: nil,
+      stimulus_actions: nil,
+      stimulus_outlets: nil,
+      stimulus_values: nil,
+      stimulus_classes: nil,
+      stimulus_controller: nil,
+      stimulus_target: nil,
+      stimulus_action: nil,
+      stimulus_outlet: nil,
+      stimulus_value: nil,
+      stimulus_class: nil,
+      **options,
+      &block
+    )
+      stimulus_controllers_collection = wrap_stimulus_controllers(stimulus_controllers || stimulus_controller)
+      stimulus_targets_collection = wrap_stimulus_targets(stimulus_targets || [stimulus_target])
+      stimulus_actions_collection = wrap_stimulus_actions(stimulus_actions || [stimulus_action])
+      stimulus_outlets_collection = wrap_stimulus_outlets(stimulus_outlets || [stimulus_outlet])
+      stimulus_values_collection = wrap_stimulus_values(stimulus_values || [stimulus_value])
+      stimulus_classes_collection = wrap_stimulus_classes(stimulus_classes || stimulus_class)
 
-    # Return the HTML `data-action` attribute for the given actions
-    def with_actions(*actions_to_set)
-      "data-action='#{parse_actions(actions_to_set).join(" ")}'".html_safe
+      stimulus_data_attributes = StimulusDataAttributeBuilder.new(
+        controllers: stimulus_controllers_collection,
+        actions: stimulus_actions_collection,
+        targets: stimulus_targets_collection,
+        outlets: stimulus_outlets_collection,
+        values: stimulus_values_collection,
+        classes: stimulus_classes_collection
+      ).build
+      generate_tag(tag_name, stimulus_data_attributes, options, &block)
     end
-    alias_method :with_action, :with_actions
-
-    # Return the HTML `data-` attribute for the given outlets
-    def with_outlets(*outlets)
-      attrs = build_outlet_data_attributes(outlets)
-      attrs.map { |dt, n| "data-#{dt}=\"#{n}\"" }.join(" ").html_safe
-    end
-    alias_method :with_outlet, :with_outlets
 
     private
 
-    # An implicit Stimulus controller name is built from the implicit controller path
-    def implied_controller_name
-      stimulize_path(implied_controller_path)
+    def implied_controller
+      StimulusController.new(implied_controller: implied_controller_path)
+    end
+
+    # Get or create a class list builder instance
+    # Automatically detects if Tailwind module is included and TailwindMerge gem is available
+    def class_list_builder
+      @class_list_builder ||= ClassListBuilder.new(tailwind_merger:)
     end
 
     # When using the DSL if you dont specify, the first controller is implied
     def implied_controller_path
-      @controllers&.first || raise(StandardError, "No controllers have been specified")
+      raise(StandardError, "No controllers have been specified") unless @implied_controller_path
+      @implied_controller_path
     end
 
-    # A complete list of Stimulus controllers for this component
-    def controller_list(controllers_to_set)
-      controllers_to_set&.map { |c| stimulize_path(c) }&.join(" ")
+    # Wrapper methods to transform raw attributes into stimulus attribute collections
+    def wrap_stimulus_controllers(controllers)
+      return StimulusControllerCollection.new unless controllers.present?
+      stimulus_controllers(*Array.wrap(controllers))
     end
 
-    # Complete list of actions ready to be use in the data-action attribute
-    def action_list(actions_to_parse)
-      return nil unless actions_to_parse&.size&.positive?
-      parse_actions(actions_to_parse).join(" ")
-    end
-
-    # Complete list of targets ready to be use in the data attributes
-    def target_list
-      return {} unless @targets&.size&.positive?
-      build_target_data_attributes(parse_targets(@targets))
-    end
-
-    def named_classes_list
-      return {} unless @named_classes&.size&.positive?
-      build_named_classes_data_attributes(@named_classes)
-    end
-
-    def values_list
-      return {} unless @values&.size&.positive?
-      build_values_attributes
-    end
-
-    # stimulus "data-*" attributes map for this component
-    def tag_data_attributes
-      {controller: controller_list(@controllers), action: action_list(@actions)}
-        .merge!(target_list)
-        .merge!(outlet_list)
-        .merge!(named_classes_list)
-        .merge!(values_list)
-        .compact_blank!
-    end
-
-    def outlet_list
-      return {} unless @outlets&.size&.positive?
-      build_outlet_data_attributes(@outlets)
-    end
-
-    def parse_outlet(outlet_config)
-      if outlet_config.is_a?(String)
-        [outlet_config, build_outlet_selector(outlet_config)]
-      elsif outlet_config.is_a?(Symbol)
-        outlet_config = outlet_config.to_s.tr("_", "-")
-        [outlet_config, build_outlet_selector(outlet_config)]
-      elsif outlet_config.is_a?(Array)
-        outlet_config[..1]
-      elsif outlet_config.respond_to?(:stimulus_identifier) # Is a Component
-        [outlet_config.stimulus_identifier, build_outlet_selector(outlet_config.stimulus_identifier)]
-      elsif outlet_config.send(:implied_controller_name) # Is a RootComponent ?
-        [outlet_config.send(:implied_controller_name), build_outlet_selector(outlet_config.send(:implied_controller_name))]
-      else
-        raise ArgumentError, "Invalid outlet config: #{outlet_config}"
-      end
-    end
-
-    def build_outlet_data_attributes(outlets)
-      outlets.each_with_object({}) do |outlet_config, obj|
-        identifier, css_selector = parse_outlet(outlet_config)
-        obj[:"#{implied_controller_name}-#{identifier}-outlet"] = css_selector
-      end
-    end
-
-    # Actions can be specified as a symbol, in which case they imply an action on the primary
-    # controller, or as a string in which case it implies an action that is already fully qualified
-    # stimulus action.
-    # 1 Symbol: :my_action => "my_controller#myAction"
-    # 1 String: "my_controller#myAction"
-    # 2 Symbols: [:click, :my_action] => "click->my_controller#myAction"
-    # 1 String, 1 Symbol: ["path/to/controller", :my_action] => "path--to--controller#myAction"
-    # 1 Symbol, 1 String, 1 Symbol: [:hover, "path/to/controller", :my_action] => "hover->path--to--controller#myAction"
-
-    def parse_action_arg(part1)
-      if part1.is_a?(Symbol)
-        # 1 symbol arg, name of method on this controller
-        "#{implied_controller_name}##{js_name(part1)}"
-      elsif part1.is_a?(String)
-        # 1 string arg, fully qualified action
-        part1
-      end
-    end
-
-    def parse_multiple_action_args(part1, part2, part3)
-      if part3.nil? && part1.is_a?(Symbol)
-        # 2 symbol args = event + action
-        "#{part1}->#{implied_controller_name}##{js_name(part2)}"
-      elsif part3.nil?
-        # 1 string arg, 1 symbol = controller + action
-        "#{stimulize_path(part1)}##{js_name(part2)}"
-      else
-        # 1 symbol, 1 string, 1 symbol = as above but with event
-        "#{part1}->#{stimulize_path(part2)}##{js_name(part3)}"
-      end
-    end
-
-    # Parse actions, targets and attributes that are passed in as symbols or strings
-
-    def parse_targets(targets)
-      targets.map { |n| parse_target(n) }
-    end
-
-    def parse_target(raw_target)
-      return raw_target if raw_target.is_a?(String)
-      if raw_target.is_a?(Hash)
-        raw_target[:name] = js_name(raw_target[:name]) if raw_target[:name].is_a?(Symbol)
-        return raw_target
-      end
-      return target(*raw_target) if raw_target.is_a?(Array)
-      target(raw_target)
-    end
-
-    def build_target_data_attributes(targets)
-      targets.map { |t| [:"#{t[:controller]}-target", t[:name]] }.to_h
-    end
-
-    def parse_actions(actions)
-      actions.map! { |a| a.is_a?(String) ? a : action(*a) }
-    end
-
-    def parse_value_attributes(attrs, controller: nil)
-      attrs.transform_keys do |value_name|
-        :"#{controller || implied_controller_name}-#{value_name.to_s.dasherize}-value"
-      end
-    end
-
-    def build_values_attributes
-      @values.each_with_object({}) do |m, obj|
-        if m.is_a?(Hash)
-          obj.merge!(parse_value_attributes(m))
-        elsif m.is_a?(Array)
-          controller_path = m.first
-          data = m.last
-          obj.merge!(parse_value_attributes(data, controller: stimulize_path(controller_path)))
-        end
-      end
-    end
-
-    def build_values_data_attributes(values)
-      values.map { |name, value| [:"#{name}-value", value] }.to_h
-    end
-
-    def parse_named_classes_hash(named_classes)
-      named_classes.map do |name, classes|
-        logical_name = name.to_s.dasherize
-        classes_str = convert_classes_list_to_string(classes)
-        if classes.is_a?(Hash)
-          {controller: stimulize_path(classes[:controller_path]), name: logical_name, classes: classes_str}
+    def wrap_stimulus_actions(actions)
+      return StimulusActionCollection.new unless actions.present?
+      converted_actions = Array.wrap(actions).map do |action|
+        if action.is_a?(Array)
+          stimulus_action(*action)
         else
-          {controller: implied_controller_name, name: logical_name, classes: classes_str}
+          stimulus_action(action)
         end
       end
+      StimulusActionCollection.new(converted_actions)
     end
 
-    def build_named_classes_data_attributes(named_classes)
-      parse_named_classes_hash(named_classes)
-        .map { |c| [:"#{c[:controller]}-#{c[:name]}-class", c[:classes]] }
-        .to_h
+    def wrap_stimulus_targets(targets)
+      return StimulusTargetCollection.new unless targets.present?
+      converted_targets = Array.wrap(targets).map do |target|
+        if target.is_a?(Array)
+          stimulus_target(*target)
+        else
+          stimulus_target(target)
+        end
+      end
+      StimulusTargetCollection.new(converted_targets)
     end
 
-    def convert_classes_list_to_string(classes)
-      return "" if classes.nil?
-      return classes if classes.is_a?(String)
-      return classes.join(" ") if classes.is_a?(Array)
-      classes[:classes].is_a?(Array) ? classes[:classes].join(" ") : classes[:classes]
+    def wrap_stimulus_outlets(outlets)
+      return StimulusOutletCollection.new unless outlets.present?
+      converted_outlets = Array.wrap(outlets).map do |outlet|
+        if outlet.is_a?(Array)
+          stimulus_outlet(*outlet)
+        else
+          stimulus_outlet(outlet)
+        end
+      end
+      StimulusOutletCollection.new(converted_outlets)
     end
 
-    # Convert a file path to a stimulus controller name
-    def stimulize_path(path)
-      path.split("/").map { |p| p.to_s.dasherize }.join("--")
+    def wrap_stimulus_values(values)
+      return StimulusValueCollection.new unless values.present?
+      converted_values = Array.wrap(values).flat_map do |value|
+        if value.is_a?(Hash)
+          # Hash format: {name: value, other_name: other_value}
+          value.map { |name, val| stimulus_value(name, val) }
+        elsif value.is_a?(Array) && value.size == 3
+          # Array format: [controller, name, value]
+          [stimulus_value(*value)]
+        elsif value.is_a?(Array) && value.size == 2
+          # Array format: [name, value]
+          [stimulus_value(*value)]
+        else
+          []
+        end
+      end
+      StimulusValueCollection.new(converted_values)
     end
 
-    # Convert a Ruby 'snake case' string to a JavaScript camel case strings
-    def js_name(name)
-      name.to_s.camelize(:lower)
+    def wrap_stimulus_classes(named_classes)
+      return StimulusClassCollection.new unless named_classes.present?
+      converted_classes = if named_classes.is_a?(Hash)
+        named_classes.flat_map do |name, classes|
+          if classes.is_a?(Hash) && classes[:controller_path]
+            # Hash with controller path: {loading: {controller_path: "path", classes: ["spinner"]}}
+            [stimulus_class(classes[:controller_path], name, classes[:classes])]
+          else
+            # Simple hash: {loading: "spinner active"}
+            [stimulus_class(name, classes)]
+          end
+        end
+      else
+        Array.wrap(named_classes).map do |named_class|
+          if named_class.is_a?(Array)
+            stimulus_class(*named_class)
+          else
+            stimulus_class(named_class)
+          end
+        end
+      end
+      StimulusClassCollection.new(converted_classes)
+    end
+
+    def generate_tag(tag_name, stimulus_data_attributes, options, &block)
+      raise NoMethodError, "Not implemented"
     end
   end
 end

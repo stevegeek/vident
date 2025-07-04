@@ -1,22 +1,14 @@
-<%
-  root_component_attributes(
-    named_classes: {
-      pre_click: "text-md text-gray-500",
-      post_click: "text-xl text-blue-700"
-    }
-  )
-%>
 <%= render root do |greeter| %>
   <input type="text"
-         <%= greeter.as_target(:name) %>
+         <%= greeter.with_stimulus_target(:name) %>
          class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
   <% if trigger? %>
     <%= trigger %>
   <% else %>
-    <%= trigger(cta: "Greet", actions: greeter.action(:click, :greet)) %>
+    <%= trigger(cta: "Greet", stimulus_actions: greeter.stimulus_action(:click, :greet)) %>
   <% end %>
-  <!-- you can also use the `target_tag` helper to render targets -->
-  <%= greeter.target_tag(:span, :output, class: "ml-4 #{greeter.named_classes(:pre_click)}") do %>
+  <!-- you can also use the `tag` helper to render targets -->
+  <%= greeter.tag(:span, stimulus_targets: :output, class: "ml-4 #{greeter.class_list_for_stimulus_classes(:pre_click)}") do %>
     ...
   <% end %>
 <% end %>
