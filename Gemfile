@@ -24,6 +24,7 @@ end
 # Development and testing gems
 gem "appraisal"
 gem "standard"
+gem "simplecov", require: false
 
 gem "rake", "~> 13.0"
 gem "minitest", "~> 5.0"
