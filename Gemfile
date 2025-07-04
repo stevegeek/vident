@@ -33,6 +33,7 @@ gem "puma"
 gem "rails", "~> #{ENV["RAILS_VERSION"] || "8"}"
 gem "foreman"
 gem "sqlite3"
+gem "capybara"
 
 # Asset things for the dummy app
 gem "sprockets-rails"

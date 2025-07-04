@@ -23,6 +23,7 @@ gem "turbo-rails"
 gem "importmap-rails"
 gem "stimulus-rails"
 gem "tailwindcss-rails", "~> 3.3.1"
+gem "capybara"
 
 gemspec name: "vident", path: "../"
 gemspec name: "vident-phlex", path: "../"
