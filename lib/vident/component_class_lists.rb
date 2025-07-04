@@ -8,7 +8,7 @@ module Vident
     # Getter for a stimulus classes list so can be used in view to set initial state on SSR
     # Returns a String of classes that can be used in a `class` attribute.
     def class_list_for_stimulus_classes(*names)
-      class_list_builder.build(@stimulus_classes_collection, stimulus_class_names: names) || ""
+      class_list_builder.build(@stimulus_classes_collection&.to_a, stimulus_class_names: names) || ""
     end
 
     private
