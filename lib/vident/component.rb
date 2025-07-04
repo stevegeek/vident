@@ -6,9 +6,14 @@ module Vident
 
     # Base class for all Vident components, which provides common functionality and properties.
     included do
-      prop :id, _Nilable(String)
-      prop :html_options, Hash, default: -> { {} }
+      # The HTML tag to use for the root element of the component, defaults to `:div`.
       prop :element_tag, Symbol, default: :div
+      # ID of the component. If not set, a random ID is generated.
+      prop :id, _Nilable(String)
+      # Classes to apply to the root element (they add to the `class` attribute)
+      prop :classes, _Union(String, _Array(String)), default: -> { [] }
+      # HTML options to apply to the root element (will merge into and potentially override html_options of the element)
+      prop :html_options, Hash, default: -> { {} }
     end
 
     include StimulusComponent
