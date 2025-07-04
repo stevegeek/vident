@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.0.0.alpha1] - 2025-07-04
+
+This release is a major overhaul of the Vident library, and introduces a new API for defining components and Stimulus attributes. The new API is designed to be more consistent and easier to use.
+
+### Breaking
+
+Basically, everything.
+
+- The `Vident::RootComponent` class has been removed, and the `Vident::Component` class is now the base class for all components.
+- `Vident::Component` now uses `Literal::Properties` to define attributes, and the vident typed attributes modules have been removed.
+- Parameters for stimulus attributes now are named with `stimulus_` prefix, eg `stimulus_controllers`
+- Components now render their root element using the `root_element` method which does not need to be `render`ed.
+  `render root_element do` -> `root_element do`
+- The data attribute string creation methods `with_` now only exist on ViewComponent components and have been renamed to
+  prefix with `as_` to avoid confusion with the ViewComponents slots API.
+- The methods used to define Stimulus attributes have been changed, and now provides a more consistent API for defining Stimulus attributes across all components. They also return instances of classes such as `StimulusAction` or `StimulusActionCollection`, 
+  which can be used to generate the Stimulus data attributes. eg `data: {**stimulus_controllers('foo')}`
+
+Also:
+
+- Vident `view_component` components now required **version 4.0** or later.
+- Vident `phlex` components now required **version 2.0** or later.
+- The gems `vident-better_html` and `vident-typed-*` gems have been removed
+- The gem `vident-tailwind` has been removed, and the `Vident::Tailwind` module is now part of the core `vident` gem.
 
 ## [0.13.0] - 2024-04-07
 

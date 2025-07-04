@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Vident
-  VERSION = "0.13.1"
+  VERSION = "1.0.0.alpha1"
 
   # Shared version for all vident gems
   def self.version

@@ -4,8 +4,8 @@ source "https://rubygems.org"
 gemspec name: "vident"
 
 # External dependencies with specific versions for development
-gem "view_component", ">= 2.74.1", "< 5"
-gem "phlex", ">= 1.5.0", "< 3"
+gem "view_component", "4.0.0.rc2" # ">= 4.0.0", "< 5"
+gem "phlex", ">= 2.0", "< 3"
 gem "phlex-rails", ">= 0.8.1", "< 3"
 gem "better_html", ">= 2.0.0", "< 3"
 gem "tailwind_merge", ">= 0.5.2", "< 2"

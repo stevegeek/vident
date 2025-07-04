@@ -31,6 +31,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency "railties", ">= 7.2", "< 9"
   spec.add_dependency "activesupport", ">= 7.2", "< 9"
   spec.add_dependency "vident", "~> #{Vident::VERSION}"
-  spec.add_dependency "phlex", ">= 1.5.0", "< 3"
+  spec.add_dependency "phlex", ">= 2.0", "< 3"
   spec.add_dependency "phlex-rails", ">= 0.8.1", "< 3"
 end
