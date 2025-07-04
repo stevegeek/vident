@@ -5,11 +5,6 @@ require_relative "test/dummy/config/application"
 
 Rails.application.load_tasks
 
-desc "Run tests"
-task :test do
-  sh "bin/test"
-end
-
 task default: :test
 
 desc "Build all gems"
