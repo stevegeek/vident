@@ -23,6 +23,8 @@ module Vident
       {data_attribute_name => data_attribute_value}
     end
 
+    alias_method :to_hash, :to_h
+
     def data_attribute_name
       raise NoMethodError, "Subclasses must implement data_attribute_name"
     end

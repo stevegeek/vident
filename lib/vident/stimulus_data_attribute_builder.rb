@@ -16,51 +16,40 @@ module Vident
 
     # Build the final data attributes hash
     def build
-      data_attributes = {}
+      {
+        **merged_controllers,
+        **merged_actions,
+        **merged_targets,
+        **merged_outlets,
+        **merged_values,
+        **merged_classes
+      }.transform_keys(&:to_s).compact
+    end
 
-      # Add controllers
-      if @controllers.any?
-        controller_values = @controllers.map(&:to_s).reject(&:empty?)
-        if controller_values.any?
-          data_attributes[:controller] = controller_values.join(" ")
-        end
-      end
+    private
 
-      # Add actions (space-separated in data-action)
-      if @actions.any?
-        data_attributes[:action] = @actions.map(&:to_s).join(" ")
-      end
+    def merged_controllers
+      StimulusControllerCollection.merge(*@controllers).to_h
+    end
 
-      # Add targets (merge targets with same attribute name)
-      @targets.each do |target|
-        target_hash = target.to_h
-        target_hash.each do |key, value|
-          if data_attributes.key?(key)
-            # Merge space-separated values for same target attribute
-            data_attributes[key] = "#{data_attributes[key]} #{value}"
-          else
-            data_attributes[key] = value
-          end
-        end
-      end
+    def merged_actions
+      StimulusActionCollection.merge(*@actions).to_h
+    end
 
-      # Add outlets (each outlet gets its own data attribute)
-      @outlets.each do |outlet|
-        data_attributes.merge!(outlet.to_h)
-      end
+    def merged_targets
+      StimulusTargetCollection.merge(*@targets).to_h
+    end
 
-      # Add values (each value gets its own data attribute)
-      @values.each do |value|
-        data_attributes.merge!(value.to_h)
-      end
+    def merged_outlets
+      StimulusOutletCollection.merge(*@outlets).to_h
+    end
 
-      # Add classes (each class gets its own data attribute)
-      @classes.each do |css_class|
-        data_attributes.merge!(css_class.to_h)
-      end
+    def merged_values
+      StimulusValueCollection.merge(*@values).to_h
+    end
 
-      # Convert symbol keys to strings for final output
-      data_attributes.transform_keys(&:to_s).compact
+    def merged_classes
+      StimulusClassCollection.merge(*@classes).to_h
     end
   end
 end
