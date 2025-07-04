@@ -42,52 +42,53 @@ module Vident
         end
       end
 
+
       def as_stimulus_targets(...)
-        # TODO:
+        to_data_attribute_string(**stimulus_targets(...))
       end
 
       def as_stimulus_target(...)
-        # TODO:
+        to_data_attribute_string(**stimulus_target(...))
       end
 
       def as_stimulus_actions(...)
-        # TODO:
+        to_data_attribute_string(**stimulus_actions(...))
       end
 
       def as_stimulus_action(...)
-        # TODO:
+        to_data_attribute_string(**stimulus_action(...))
       end
 
       def as_stimulus_controllers(...)
-        # TODO:
+        to_data_attribute_string(**stimulus_controllers(...))
       end
 
       def as_stimulus_controller(...)
-        # TODO:
+        to_data_attribute_string(**stimulus_controller(...))
       end
 
       def as_stimulus_outlets(...)
-        # TODO:
+        to_data_attribute_string(**stimulus_outlets(...))
       end
 
       def as_stimulus_outlet(...)
-        # TODO:
+        to_data_attribute_string(**stimulus_outlet(...))
       end
 
       def as_stimulus_values(...)
-        # TODO:
+        to_data_attribute_string(**stimulus_values(...))
       end
 
       def as_stimulus_value(...)
-        # TODO:
+        to_data_attribute_string(**stimulus_value(...))
       end
 
       def as_stimulus_classes(...)
-        # TODO:
+        to_data_attribute_string(**stimulus_classes(...))
       end
 
       def as_stimulus_class(...)
-        # TODO:
+        to_data_attribute_string(**stimulus_class(...))
       end
 
       private
