@@ -1,12 +1,12 @@
-<%= render root do |greeter| %>
+<%= root_element do |greeter| %>
   <input type="text"
-         <%= greeter.with_stimulus_targets(:name) %>
+         <%= greeter.as_stimulus_targets(:name) %>
          class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-  <button <%= greeter.with_stimulus_actions([:click, :greet]) %>
+  <button <%= greeter.as_stimulus_actions([:click, :greet]) %>
           class="ml-4 whitespace-no-wrap bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
     <%= @cta %>
   </button>
-  <span <%= greeter.with_stimulus_targets(:output) %> class="ml-4 text-xl text-gray-700"></span>
+  <span <%= greeter.as_stimulus_targets(:output) %> class="ml-4 text-xl text-gray-700"></span>
 
   <%# or (the following options are "safer" as the previous is outputting directly into open HTML tags, eg better_html does not allow this)%>
 

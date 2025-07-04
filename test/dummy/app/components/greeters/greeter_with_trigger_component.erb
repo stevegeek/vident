@@ -1,6 +1,6 @@
-<%= render root do |greeter| %>
+<%= root_element do |greeter| %>
   <input type="text"
-         <%= greeter.with_stimulus_target(:name) %>
+         <%= greeter.as_stimulus_target(:name) %>
          class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
   <% if trigger? %>
     <%= trigger %>
@@ -8,7 +8,7 @@
     <%= trigger(cta: "Greet", stimulus_actions: greeter.stimulus_action(:click, :greet)) %>
   <% end %>
   <!-- you can also use the `tag` helper to render targets -->
-  <%= greeter.tag(:span, stimulus_targets: :output, class: "ml-4 #{greeter.class_list_for_stimulus_classes(:pre_click)}") do %>
+  <%= greeter.tag(:span, stimulus_target: :output, class: "ml-4 #{greeter.class_list_for_stimulus_classes(:pre_click)}") do %>
     ...
   <% end %>
 <% end %>

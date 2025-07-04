@@ -16,7 +16,7 @@ module PhlexGreeters
 
     def root_element_attributes
       {
-        named_classes: {pre_click: "text-md text-gray-500", post_click: "text-xl text-blue-700"}
+        stimulus_classes: {pre_click: "text-md text-gray-500", post_click: "text-xl text-blue-700"}
       }
     end
 
