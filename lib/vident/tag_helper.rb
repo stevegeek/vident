@@ -28,10 +28,10 @@ module Vident
       tag_attribute_must_be_collection!(stimulus_values, "stimulus_values")
       tag_attribute_must_be_collection!(stimulus_classes, "stimulus_classes")
 
-      stimulus_controllers_collection = wrap_stimulus_controllers(stimulus_controllers || stimulus_controller)
-      stimulus_targets_collection = wrap_stimulus_targets(tag_wrap_single_stimulus_attribute(stimulus_targets, stimulus_target))
-      stimulus_actions_collection = wrap_stimulus_actions(tag_wrap_single_stimulus_attribute(stimulus_actions, stimulus_action))
-      stimulus_outlets_collection = wrap_stimulus_outlets(tag_wrap_single_stimulus_attribute(stimulus_outlets, stimulus_outlet))
+      stimulus_controllers_collection = send(:stimulus_controllers, *tag_wrap_single_stimulus_attribute(stimulus_controllers, stimulus_controller))
+      stimulus_targets_collection = send(:stimulus_targets, *tag_wrap_single_stimulus_attribute(stimulus_targets, stimulus_target))
+      stimulus_actions_collection = send(:stimulus_actions, *tag_wrap_single_stimulus_attribute(stimulus_actions, stimulus_action))
+      stimulus_outlets_collection = send(:stimulus_outlets, *tag_wrap_single_stimulus_attribute(stimulus_outlets, stimulus_outlet))
       stimulus_values_collection = wrap_stimulus_values(tag_wrap_single_stimulus_attribute(stimulus_values, stimulus_value))
       stimulus_classes_collection = wrap_stimulus_classes(stimulus_classes || stimulus_class)
 

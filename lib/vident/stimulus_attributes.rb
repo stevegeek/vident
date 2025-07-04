@@ -8,6 +8,7 @@ module Vident
     #   stimulus_controller("path/to/controller") => StimulusController that converts to {"controller" => "path--to--controller"}
     #   stimulus_controller() => StimulusController that uses implied controller name
     def stimulus_controller(*args)
+      return args.first if args.length == 1 && args.first.is_a?(StimulusController)
       StimulusController.new(*args, implied_controller: implied_controller_path)
     end
 
@@ -16,8 +17,10 @@ module Vident
     #   stimulus_controllers(:my_controller) => StimulusControllerCollection with one controller that converts to {"controller" => "my-controller"}
     #   stimulus_controllers(:my_controller, "path/to/another") => StimulusControllerCollection with two controllers that converts to {"controller" => "my-controller path--to--another"}
     def stimulus_controllers(*controllers)
-      converted_controllers = controllers.map do |c|
-        c.is_a?(StimulusController) ? c : stimulus_controller(c)
+      return StimulusControllerCollection.new if controllers.empty? || controllers.all?(&:blank?)
+      
+      converted_controllers = controllers.map do |controller|
+        controller.is_a?(Array) ? stimulus_controller(*controller) : stimulus_controller(controller)
       end
       StimulusControllerCollection.new(converted_controllers)
     end
@@ -30,13 +33,16 @@ module Vident
     #   stimulus_action("path/to/current", :my_thing) => StimulusAction that converts to "path--to--current_controller#myThing"
     #   stimulus_action(:click, "path/to/current", :my_thing) => StimulusAction that converts to "click->path--to--current_controller#myThing"
     def stimulus_action(*args)
+      return args.first if args.length == 1 && args.first.is_a?(StimulusAction)
       StimulusAction.new(*args, implied_controller:)
     end
 
     # Create a Stimulus Action Collection and returns a StimulusActionCollection instance
     def stimulus_actions(*actions)
-      converted_actions = actions.map do |a|
-        a.is_a?(StimulusAction) ? a : stimulus_action(a)
+      return StimulusActionCollection.new if actions.empty? || actions.all?(&:blank?)
+      
+      converted_actions = actions.map do |action|
+        action.is_a?(Array) ? stimulus_action(*action) : stimulus_action(action)
       end
       StimulusActionCollection.new(converted_actions)
     end
@@ -46,13 +52,16 @@ module Vident
     #   stimulus_target(:my_target) => StimulusTarget that converts to {"current_controller-target" => "myTarget"}
     #   stimulus_target("path/to/current", :my_target) => StimulusTarget that converts to {"path--to--current-target" => "myTarget"}
     def stimulus_target(*args)
+      return args.first if args.length == 1 && args.first.is_a?(StimulusTarget)
       StimulusTarget.new(*args, implied_controller:)
     end
 
     # Create a Stimulus Target Collection and returns a StimulusTargetCollection instance
     def stimulus_targets(*targets)
-      converted_targets = targets.map do |t|
-        t.is_a?(StimulusTarget) ? t : stimulus_target(t)
+      return StimulusTargetCollection.new if targets.empty? || targets.all?(&:blank?)
+      
+      converted_targets = targets.map do |target|
+        target.is_a?(Array) ? stimulus_target(*target) : stimulus_target(target)
       end
       StimulusTargetCollection.new(converted_targets)
     end
@@ -64,13 +73,16 @@ module Vident
     #   stimulus_outlet(:user_status) => StimulusOutlet with auto-generated selector
     #   stimulus_outlet(component_instance) => StimulusOutlet from component
     def stimulus_outlet(*args)
+      return args.first if args.length == 1 && args.first.is_a?(StimulusOutlet)
       StimulusOutlet.new(*args, implied_controller:, component_id: @id)
     end
 
     # Create a Stimulus Outlet Collection and returns a StimulusOutletCollection instance
     def stimulus_outlets(*outlets)
-      converted_outlets = outlets.map do |o|
-        o.is_a?(StimulusOutlet) ? o : stimulus_outlet(o)
+      return StimulusOutletCollection.new if outlets.empty? || outlets.all?(&:blank?)
+      
+      converted_outlets = outlets.map do |outlet|
+        outlet.is_a?(Array) ? stimulus_outlet(*outlet) : stimulus_outlet(outlet)
       end
       StimulusOutletCollection.new(converted_outlets)
     end
@@ -142,10 +154,10 @@ module Vident
       @implied_controller_path = Array.wrap(@stimulus_controllers).first
 
       # Convert raw attributes to stimulus attribute collections
-      @stimulus_controllers_collection = wrap_stimulus_controllers(@stimulus_controllers)
-      @stimulus_actions_collection = wrap_stimulus_actions(@stimulus_actions)
-      @stimulus_targets_collection = wrap_stimulus_targets(@stimulus_targets)
-      @stimulus_outlets_collection = wrap_stimulus_outlets(@stimulus_outlets)
+      @stimulus_controllers_collection = stimulus_controllers(*Array.wrap(@stimulus_controllers))
+      @stimulus_actions_collection = stimulus_actions(*Array.wrap(@stimulus_actions))
+      @stimulus_targets_collection = stimulus_targets(*Array.wrap(@stimulus_targets))
+      @stimulus_outlets_collection = stimulus_outlets(*Array.wrap(@stimulus_outlets))
       @stimulus_values_collection = wrap_stimulus_values(@stimulus_values)
       @stimulus_classes_collection = wrap_stimulus_classes(@stimulus_classes)
 
@@ -168,54 +180,9 @@ module Vident
       @implied_controller_path
     end
 
-    # Wrapper methods to transform raw attributes into stimulus attribute collections
-    def wrap_stimulus_controllers(controllers)
-      return StimulusControllerCollection.new unless controllers.present?
-      stimulus_controllers(*Array.wrap(controllers))
-    end
 
-    def wrap_stimulus_actions(actions)
-      return StimulusActionCollection.new unless actions.present?
-      converted_actions = Array.wrap(actions).map do |action|
-        if action.is_a?(StimulusAction)
-          action
-        elsif action.is_a?(Array)
-          stimulus_action(*action)
-        else
-          stimulus_action(action)
-        end
-      end
-      StimulusActionCollection.new(converted_actions)
-    end
 
-    def wrap_stimulus_targets(targets)
-      return StimulusTargetCollection.new unless targets.present?
-      converted_targets = Array.wrap(targets).map do |target|
-        if target.is_a?(StimulusTarget)
-          target
-        elsif target.is_a?(Array)
-          stimulus_target(*target)
-        else
-          stimulus_target(target)
-        end
-      end
-      StimulusTargetCollection.new(converted_targets)
-    end
-
-    def wrap_stimulus_outlets(outlets)
-      return StimulusOutletCollection.new unless outlets.present?
-      converted_outlets = Array.wrap(outlets).map do |outlet|
-        if outlet.is_a?(StimulusOutlet)
-          outlet
-        elsif outlet.is_a?(Array)
-          stimulus_outlet(*outlet)
-        else
-          stimulus_outlet(outlet)
-        end
-      end
-      StimulusOutletCollection.new(converted_outlets)
-    end
-
+    # Wrapper methods to transform raw attributes into stimulus attribute collections (for values and classes only)
     def wrap_stimulus_values(values)
       return StimulusValueCollection.new unless values.present?
       converted_values = Array.wrap(values).flat_map do |value|

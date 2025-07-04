@@ -50,7 +50,13 @@ module Vident
 
       # StimulusJS support
       # # TODO: revisit inputs and how many ways of specifying the same thing...
-      prop :stimulus_controllers, _Array(_Union(String, Symbol, StimulusController, StimulusControllerCollection)), default: -> { [default_controller_path] }
+      prop :stimulus_controllers, _Array(_Union(String, Symbol, StimulusController, StimulusControllerCollection)), default: -> do
+        if self.class.stimulus_controller?
+          [default_controller_path]
+        else
+          []
+        end
+      end
       prop :stimulus_actions, _Array(_Union(String, Symbol, Array, Hash, StimulusAction, StimulusActionCollection)), default: -> { [] }
       prop :stimulus_targets, _Array(_Union(String, Symbol, Hash, StimulusTarget, StimulusTargetCollection)), default: -> { [] }
       prop :stimulus_outlets, _Array(_Union(String, Symbol, StimulusOutlet, StimulusOutletCollection)), default: -> { [] }

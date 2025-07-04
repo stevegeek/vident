@@ -33,7 +33,7 @@ module Vident
 
       def root_element(&block)
         tag_type = root_element_tag_type
-        child_content = view_context.capture(self, &block) if block # Evaluate before generating the outer tag options to ensure DSL methods are executed
+        child_content = view_context.capture(self, &block) if block_given? # Evaluate before generating the outer tag options to ensure DSL methods are executed
         options = root_element_tag_options
         if SELF_CLOSING_TAGS.include?(tag_type)
           view_context.tag(tag_type, options)
@@ -41,7 +41,6 @@ module Vident
           view_context.content_tag(tag_type, child_content, options)
         end
       end
-
 
       def as_stimulus_targets(...)
         to_data_attribute_string(**stimulus_targets(...))
@@ -99,6 +98,20 @@ module Vident
         # options[:data].merge!(build_target_data_attributes(parsed))
         # content = view_context.capture(&block) if block
         # view_context.content_tag(tag_name, content, options)
+      end
+
+      def escape_attribute_name_for_html(name)
+        name.to_s.gsub(/[^a-zA-Z0-9\-_]/, '').tr('_', '-')
+      end
+
+      def escape_attribute_value_for_html(value)
+        value.to_s.gsub('"', '&quot;').gsub("'", '&#39;')
+      end
+
+      def to_data_attribute_string(**attributes)
+        attributes.map { |key, value| "data-#{escape_attribute_name_for_html(key)}=\"#{escape_attribute_value_for_html(value)}\"" }
+                  .join(" ")
+                  .html_safe
       end
 
       def root_element_tag_options
