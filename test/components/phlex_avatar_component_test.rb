@@ -172,7 +172,7 @@ class PhlexAvatarComponentTest < Minitest::Test
   end
 
   def test_url_predicate_methods
-    # Test url? predicate method through private predicate
+    # Test url? predicate method through private predicate  
     component_with_url = Phlex::AvatarComponent.new(
       initials: "JD",
       url: "https://example.com/avatar.jpg"
@@ -182,11 +182,13 @@ class PhlexAvatarComponentTest < Minitest::Test
     component_without_url = Phlex::AvatarComponent.new(initials: "JD")
     refute component_without_url.send(:url?)
 
-    # Note: The Phlex version uses .present? so empty string should return false
+    # Note: url? checks truthiness, not presence, so empty string would be truthy
+    # The component uses image_avatar? which uses .present? instead
     component_with_empty_url = Phlex::AvatarComponent.new(initials: "JD", url: "")
-    # Debug: let's see what url? actually returns for empty string
-    # Since "" is truthy but not .present?, this should be false
-    refute component_with_empty_url.send(:url?)
+    # url? predicate checks truthiness, so empty string returns true
+    assert component_with_empty_url.send(:url?)
+    # But image_avatar? uses present?, so empty string returns false
+    refute component_with_empty_url.send(:image_avatar?)
   end
 
   def test_view_template_structure

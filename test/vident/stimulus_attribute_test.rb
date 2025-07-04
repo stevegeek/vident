@@ -10,12 +10,12 @@ module Vident
     def test_cannot_call_abstract_methods_on_base_class
       # Base class cannot be instantiated because parse_arguments is abstract
       assert_raises(NotImplementedError) do
-        StimulusAttribute.new(implied_controller: @implied_controller)
+        StimulusAttributeBase.new(implied_controller: @implied_controller)
       end
     end
 
     def test_shared_methods_available_to_subclasses
-      # Test through StimulusAction which inherits from StimulusAttribute
+      # Test through StimulusAction which inherits from StimulusAttributeBase
       action = StimulusAction.new(:my_action, implied_controller: @implied_controller)
 
       # These methods should be available from the base class
