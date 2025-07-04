@@ -4,8 +4,9 @@ module Vident
   module Component
     extend ActiveSupport::Concern
 
-    include Tailwind
     include StimulusAttributes
+    include TagHelper
+    include Tailwind
 
     # Module utilities for working with Stimulus identifiers
 

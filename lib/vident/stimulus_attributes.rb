@@ -135,56 +135,7 @@ module Vident
       ).build
     end
 
-    # Generate a tag with the given name and options, including stimulus data attributes
-    def tag(
-      tag_name,
-      stimulus_controllers: nil,
-      stimulus_targets: nil,
-      stimulus_actions: nil,
-      stimulus_outlets: nil,
-      stimulus_values: nil,
-      stimulus_classes: nil,
-      stimulus_controller: nil,
-      stimulus_target: nil,
-      stimulus_action: nil,
-      stimulus_outlet: nil,
-      stimulus_value: nil,
-      stimulus_class: nil,
-      **options,
-      &block
-    )
-      # Ensure the plural attributes are actually enumerables
-      attribute_must_be_collection!(stimulus_controllers, "stimulus_controllers")
-      attribute_must_be_collection!(stimulus_targets, "stimulus_targets")
-      attribute_must_be_collection!(stimulus_actions, "stimulus_actions")
-      attribute_must_be_collection!(stimulus_outlets, "stimulus_outlets")
-      attribute_must_be_collection!(stimulus_values, "stimulus_values")
-      attribute_must_be_collection!(stimulus_classes, "stimulus_classes")
-
-      stimulus_controllers_collection = wrap_stimulus_controllers(stimulus_controllers || stimulus_controller)
-      stimulus_targets_collection = wrap_stimulus_targets(wrap_single_stimulus_attribute(stimulus_targets ,stimulus_target))
-      stimulus_actions_collection = wrap_stimulus_actions(wrap_single_stimulus_attribute(stimulus_actions, stimulus_action))
-      stimulus_outlets_collection = wrap_stimulus_outlets(wrap_single_stimulus_attribute(stimulus_outlets, stimulus_outlet))
-      stimulus_values_collection = wrap_stimulus_values(wrap_single_stimulus_attribute(stimulus_values, stimulus_value))
-      stimulus_classes_collection = wrap_stimulus_classes(stimulus_classes || stimulus_class)
-
-      stimulus_data_attributes = StimulusDataAttributeBuilder.new(
-        controllers: stimulus_controllers_collection,
-        actions: stimulus_actions_collection,
-        targets: stimulus_targets_collection,
-        outlets: stimulus_outlets_collection,
-        values: stimulus_values_collection,
-        classes: stimulus_classes_collection
-      ).build
-      generate_tag(tag_name, stimulus_data_attributes, options, &block)
-    end
-
     private
-
-    def attribute_must_be_collection!(collection, name)
-      return unless collection
-      raise ArgumentError, "'#{name}:' must be an enumerable. Did you mean '#{name.to_s.singularize}:'?" unless collection.is_a?(Enumerable)
-    end
 
     # Prepare stimulus collections and implied controller path from the given attributes, called after initialization
     def prepare_stimulus_collections
@@ -215,10 +166,6 @@ module Vident
     def implied_controller_path
       raise(StandardError, "No controllers have been specified") unless @implied_controller_path
       @implied_controller_path
-    end
-
-    def wrap_single_stimulus_attribute(plural, singular)
-      plural || (singular ? Array.wrap(singular) : nil)
     end
 
     # Wrapper methods to transform raw attributes into stimulus attribute collections
@@ -314,10 +261,6 @@ module Vident
         end
       end
       StimulusClassCollection.new(converted_classes)
-    end
-
-    def generate_tag(tag_name, stimulus_data_attributes, options, &block)
-      raise NoMethodError, "Not implemented"
     end
   end
 end
