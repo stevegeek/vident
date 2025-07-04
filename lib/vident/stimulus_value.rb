@@ -27,7 +27,7 @@ module Vident
       when 3
         parse_three_arguments(args[0], args[1], args[2])
       else
-        raise ArgumentError, "Invalid number of arguments: #{args.size}"
+        raise ArgumentError, "Invalid number of arguments: #{args.size} (#{args.inspect}). Did you pass an array of hashes?"
       end
     end
 

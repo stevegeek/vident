@@ -32,8 +32,8 @@ module Vident
       stimulus_targets_collection = send(:stimulus_targets, *tag_wrap_single_stimulus_attribute(stimulus_targets, stimulus_target))
       stimulus_actions_collection = send(:stimulus_actions, *tag_wrap_single_stimulus_attribute(stimulus_actions, stimulus_action))
       stimulus_outlets_collection = send(:stimulus_outlets, *tag_wrap_single_stimulus_attribute(stimulus_outlets, stimulus_outlet))
-      stimulus_values_collection = wrap_stimulus_values(tag_wrap_single_stimulus_attribute(stimulus_values, stimulus_value))
-      stimulus_classes_collection = wrap_stimulus_classes(stimulus_classes || stimulus_class)
+      stimulus_values_collection = send(:stimulus_values, stimulus_values || stimulus_value)
+      stimulus_classes_collection = send(:stimulus_classes, stimulus_classes || stimulus_class)
 
       stimulus_data_attributes = StimulusDataAttributeBuilder.new(
         controllers: stimulus_controllers_collection,

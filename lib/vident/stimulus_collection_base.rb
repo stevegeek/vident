@@ -15,6 +15,10 @@ module Vident
       raise NoMethodError, "Subclasses must implement to_h"
     end
 
+    def to_a
+      @items.dup
+    end
+
     def to_hash
       to_h
     end
