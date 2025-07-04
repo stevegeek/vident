@@ -25,7 +25,7 @@ module ViewComponent
 
     def default_html_options
       if image_avatar?
-        {class: "inline-block object-contain", src: @url, alt: t(".image")}
+        {class: "inline-block object-contain", src: @url, alt: I18n.t("avatar.image")}
       else
         {class: "inline-flex items-center justify-center bg-gray-500"}
       end
