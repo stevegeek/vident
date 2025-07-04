@@ -93,11 +93,9 @@ module Vident
       private
 
       def generate_tag(tag_name, stimulus_data_attributes, options, &block)
-        # parsed = parse_targets(Array.wrap(targets))
-        # options[:data] ||= {}
-        # options[:data].merge!(build_target_data_attributes(parsed))
-        # content = view_context.capture(&block) if block
-        # view_context.content_tag(tag_name, content, options)
+        options[:data] ||= {}
+        options[:data].merge!(stimulus_data_attributes)
+        view_context.content_tag(tag_name, options, &block)
       end
 
       def escape_attribute_name_for_html(name)
