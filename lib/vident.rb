@@ -29,7 +29,6 @@ require "vident/stimulus_value_collection"
 require "vident/stimulus_class_collection"
 
 require "vident/stimulus_data_attribute_builder"
-require "vident/stimulus_options_builder"
 
 require "vident/engine" if defined?(Rails)
 

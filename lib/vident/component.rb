@@ -145,36 +145,5 @@ module Vident
         html_class: @html_options&.fetch(:class, nil)
       )
     end
-    #
-    # def stimulus_options_for_root_component = stimulus_options_for_component(root_element_attributes)
-    #
-    # # Prepare the stimulus attributes for a StimulusComponent
-    # def stimulus_options_for_component(options)
-    #   stimulus_options_builder.build(
-    #     options,
-    #     pending_actions: @pending_actions || [],
-    #     pending_targets: @pending_targets || [],
-    #     pending_named_classes: @pending_named_classes || {}
-    #   )
-    # end
-    #
-    # # Get or create a stimulus options builder instance
-    # def stimulus_options_builder
-    #   @stimulus_options_builder ||= StimulusOptionsBuilder.new(
-    #     id: respond_to?(:id) ? id : attribute(:id),
-    #     element_tag: @element_tag,
-    #     html_options: @html_options,
-    #     stimulus_controllers: @stimulus_controllers,
-    #     stimulus_actions: @stimulus_actions,
-    #     stimulus_targets: @stimulus_targets,
-    #     stimulus_outlets: @stimulus_outlets,
-    #     stimulus_outlet_host: @stimulus_outlet_host,
-    #     stimulus_classes: @stimulus_classes,
-    #     stimulus_values: @stimulus_values,
-    #     default_controller_path: default_controller_path,
-    #     stimulus_controller_enabled: self.class.stimulus_controller?,
-    #     class_list_builder: class_list_builder
-    #   )
-    # end
   end
 end
