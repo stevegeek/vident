@@ -161,13 +161,13 @@ module Vident
       controller = StimulusController.new("single_controller", implied_controller: @implied_controller)
       action = StimulusAction.new(:my_action, implied_controller: @implied_controller)
       target = StimulusTarget.new(:my_target, implied_controller: @implied_controller)
-      
+
       builder = StimulusDataAttributeBuilder.new(
         controllers: controller,
         actions: action,
         targets: target
       )
-      
+
       result = builder.build
       expected = {
         "controller" => "single-controller",
@@ -187,7 +187,7 @@ module Vident
     def test_multiple_stimulus_controller_objects
       controller1 = StimulusController.new("my_controller", implied_controller: @implied_controller)
       controller2 = StimulusController.new("other_controller", implied_controller: @implied_controller)
-      
+
       builder = StimulusDataAttributeBuilder.new(controllers: [controller1, controller2])
       result = builder.build
       assert_equal({"controller" => "my-controller other-controller"}, result)
@@ -205,27 +205,27 @@ module Vident
       main_controller = StimulusController.new("form_controller", implied_controller: @implied_controller)
       modal_controller = StimulusController.new("modals/popup_controller", implied_controller: @implied_controller)
       validation_controller = StimulusController.new(implied_controller: @implied_controller_path) # Uses implied controller
-      
+
       # Create actions with different controller contexts
       form_actions = [
         StimulusAction.new(:submit, implied_controller: @implied_controller),
         StimulusAction.new(:click, :reset, implied_controller: @implied_controller),
         StimulusAction.new("modals/popup_controller", :open, implied_controller: @implied_controller)
       ]
-      
+
       # Create targets for different controllers
       targets = [
         StimulusTarget.new(:form, implied_controller: @implied_controller),
         StimulusTarget.new("modals/popup_controller", :dialog, implied_controller: @implied_controller),
         StimulusTarget.new(:error_message, implied_controller: @implied_controller)
       ]
-      
+
       # Create outlets with component references
       outlets = [
         StimulusOutlet.new(:notification, ".notification-area", implied_controller: @implied_controller),
         StimulusOutlet.new(:user_profile, "#user-profile", implied_controller: @implied_controller)
       ]
-      
+
       # Create values with different data types
       values = [
         StimulusValue.new(:endpoint, "/api/forms", implied_controller: @implied_controller),
@@ -233,14 +233,14 @@ module Vident
         StimulusValue.new(:enabled, true, implied_controller: @implied_controller),
         StimulusValue.new("modals/popup_controller", :animation_duration, 300, implied_controller: @implied_controller)
       ]
-      
+
       # Create CSS classes for different states
       classes = [
         StimulusClass.new(:loading, "spinner animate-spin", implied_controller: @implied_controller),
         StimulusClass.new(:error, "border-red-500 bg-red-50", implied_controller: @implied_controller),
         StimulusClass.new("modals/popup_controller", :open, "opacity-100 scale-100", implied_controller: @implied_controller)
       ]
-      
+
       builder = StimulusDataAttributeBuilder.new(
         controllers: [main_controller, modal_controller, validation_controller],
         actions: form_actions,
@@ -249,9 +249,9 @@ module Vident
         values: values,
         classes: classes
       )
-      
+
       result = builder.build
-      
+
       expected = {
         "controller" => "form-controller modals--popup-controller foo--my-controller",
         "action" => "foo--my-controller#submit click->foo--my-controller#reset modals--popup-controller#open",
@@ -267,7 +267,7 @@ module Vident
         "foo--my-controller-error-class" => "border-red-500 bg-red-50",
         "modals--popup-controller-open-class" => "opacity-100 scale-100"
       }
-      
+
       assert_equal expected, result
     end
 
@@ -275,35 +275,35 @@ module Vident
       # Test scenario where components reference each other across different namespaces
       admin_controller = StimulusController.new("admin/dashboard_controller", implied_controller: @implied_controller)
       ui_controller = StimulusController.new("ui/dropdown_controller", implied_controller: @implied_controller)
-      
+
       # Actions that cross-reference different controllers
       cross_actions = [
         StimulusAction.new("admin/dashboard_controller", :refresh, implied_controller: @implied_controller),
         StimulusAction.new(:mouseenter, "ui/dropdown_controller", :show, implied_controller: @implied_controller),
         StimulusAction.new(:mouseleave, "ui/dropdown_controller", :hide, implied_controller: @implied_controller)
       ]
-      
+
       # Outlets that reference external components
       cross_outlets = [
         StimulusOutlet.new("admin/dashboard_controller", :sidebar, ".sidebar-component", implied_controller: @implied_controller),
         StimulusOutlet.new("ui/dropdown_controller", :menu_items, "[data-menu-item]", implied_controller: @implied_controller)
       ]
-      
+
       # Values for cross-controller communication
       cross_values = [
         StimulusValue.new("admin/dashboard_controller", :refresh_interval, 30000, implied_controller: @implied_controller),
         StimulusValue.new("ui/dropdown_controller", :position, "bottom-left", implied_controller: @implied_controller)
       ]
-      
+
       builder = StimulusDataAttributeBuilder.new(
         controllers: [admin_controller, ui_controller],
         actions: cross_actions,
         outlets: cross_outlets,
         values: cross_values
       )
-      
+
       result = builder.build
-      
+
       expected = {
         "controller" => "admin--dashboard-controller ui--dropdown-controller",
         "action" => "admin--dashboard-controller#refresh mouseenter->ui--dropdown-controller#show mouseleave->ui--dropdown-controller#hide",
@@ -312,36 +312,36 @@ module Vident
         "admin--dashboard-controller-refresh-interval-value" => "30000",
         "ui--dropdown-controller-position-value" => "bottom-left"
       }
-      
+
       assert_equal expected, result
     end
 
     def test_edge_cases_with_special_characters_and_naming
       # Test with snake_case to kebab-case conversion and special naming scenarios
       special_controller = StimulusController.new("special_chars/multi_word_controller", implied_controller: @implied_controller)
-      
+
       # Test snake_case to camelCase conversion for actions and targets
       special_actions = [
         StimulusAction.new(:handle_form_submission, implied_controller: @implied_controller),
         StimulusAction.new(:keydown, :handle_escape_key, implied_controller: @implied_controller)
       ]
-      
+
       special_targets = [
         StimulusTarget.new(:error_message_container, implied_controller: @implied_controller),
         StimulusTarget.new(:submit_button_element, implied_controller: @implied_controller)
       ]
-      
+
       special_values = [
         StimulusValue.new(:api_endpoint_url, "https://api.example.com/v1/users", implied_controller: @implied_controller),
         StimulusValue.new(:max_retry_attempts, 3, implied_controller: @implied_controller),
         StimulusValue.new(:user_preferences, {theme: "dark", lang: "en"}, implied_controller: @implied_controller)
       ]
-      
+
       special_classes = [
         StimulusClass.new(:loading_state, "opacity-50 pointer-events-none", implied_controller: @implied_controller),
         StimulusClass.new(:validation_error, "border-2 border-red-500", implied_controller: @implied_controller)
       ]
-      
+
       builder = StimulusDataAttributeBuilder.new(
         controllers: [special_controller],
         actions: special_actions,
@@ -349,9 +349,9 @@ module Vident
         values: special_values,
         classes: special_classes
       )
-      
+
       result = builder.build
-      
+
       expected = {
         "controller" => "special-chars--multi-word-controller",
         "action" => "foo--my-controller#handleFormSubmission keydown->foo--my-controller#handleEscapeKey",
@@ -362,39 +362,39 @@ module Vident
         "foo--my-controller-loading-state-class" => "opacity-50 pointer-events-none",
         "foo--my-controller-validation-error-class" => "border-2 border-red-500"
       }
-      
+
       assert_equal expected, result
     end
 
     def test_duplicate_handling_and_merging
       # Test how the builder handles duplicate attribute names and merging
-      
+
       # Multiple targets with same controller should merge
       duplicate_targets = [
         StimulusTarget.new(:field, implied_controller: @implied_controller),
         StimulusTarget.new(:input, implied_controller: @implied_controller),
         StimulusTarget.new(:field, implied_controller: @implied_controller) # Duplicate
       ]
-      
+
       # Multiple actions should concatenate
       duplicate_actions = [
         StimulusAction.new(:submit, implied_controller: @implied_controller),
         StimulusAction.new(:click, :validate, implied_controller: @implied_controller),
         StimulusAction.new(:submit, implied_controller: @implied_controller) # Duplicate
       ]
-      
+
       builder = StimulusDataAttributeBuilder.new(
         actions: duplicate_actions,
         targets: duplicate_targets
       )
-      
+
       result = builder.build
-      
+
       expected = {
         "action" => "foo--my-controller#submit click->foo--my-controller#validate foo--my-controller#submit",
         "foo--my-controller-target" => "field input field"
       }
-      
+
       assert_equal expected, result
     end
 
@@ -408,13 +408,13 @@ module Vident
         values: nil,
         classes: []
       )
-      
+
       result = builder.build
-      
+
       expected = {
         "foo--my-controller-target" => "validTarget"
       }
-      
+
       assert_equal expected, result
     end
 
@@ -425,13 +425,13 @@ module Vident
 
       # Main form controller
       form_controller = StimulusController.new("forms/advanced_form_controller", implied_controller: @implied_controller)
-      
+
       # Validation controller for real-time validation
       validation_controller = StimulusController.new("validation/field_validator_controller", implied_controller: @implied_controller)
-      
+
       # UI feedback controller for loading states and notifications
       ui_controller = StimulusController.new("ui/feedback_controller", implied_controller: @implied_controller)
-      
+
       # Form interaction actions
       form_actions = [
         StimulusAction.new("forms/advanced_form_controller", :submit, implied_controller: @implied_controller),
@@ -440,7 +440,7 @@ module Vident
         StimulusAction.new(:ajax_success, "ui/feedback_controller", :show_success, implied_controller: @implied_controller),
         StimulusAction.new(:ajax_error, "ui/feedback_controller", :show_error, implied_controller: @implied_controller)
       ]
-      
+
       # Form elements as targets
       form_targets = [
         StimulusTarget.new("forms/advanced_form_controller", :form, implied_controller: @implied_controller),
@@ -448,13 +448,13 @@ module Vident
         StimulusTarget.new("validation/field_validator_controller", :error_container, implied_controller: @implied_controller),
         StimulusTarget.new("ui/feedback_controller", :notification_area, implied_controller: @implied_controller)
       ]
-      
+
       # External component outlets
       form_outlets = [
         StimulusOutlet.new("forms/advanced_form_controller", :progress_indicator, ".form-progress", implied_controller: @implied_controller),
         StimulusOutlet.new("ui/feedback_controller", :toast_notifications, "#toast-container", implied_controller: @implied_controller)
       ]
-      
+
       # Configuration values
       form_values = [
         StimulusValue.new("forms/advanced_form_controller", :submit_url, "/api/forms/submit", implied_controller: @implied_controller),
@@ -464,7 +464,7 @@ module Vident
         StimulusValue.new(:auto_hide_delay, 5000, implied_controller: @implied_controller),
         StimulusValue.new("ui/feedback_controller", :show_progress, true, implied_controller: @implied_controller)
       ]
-      
+
       # CSS classes for different states
       form_classes = [
         StimulusClass.new("forms/advanced_form_controller", :submitting, "opacity-75 pointer-events-none", implied_controller: @implied_controller),
@@ -473,7 +473,7 @@ module Vident
         StimulusClass.new("validation/field_validator_controller", :valid, "border-green-500 text-green-600", implied_controller: @implied_controller),
         StimulusClass.new("ui/feedback_controller", :notification, "transform transition-all duration-300", implied_controller: @implied_controller)
       ]
-      
+
       builder = StimulusDataAttributeBuilder.new(
         controllers: [only_implied_controller, form_controller, validation_controller, ui_controller],
         actions: form_actions,
@@ -482,9 +482,9 @@ module Vident
         values: form_values,
         classes: form_classes
       )
-      
+
       result = builder.build
-      
+
       expected = {
         "controller" => "foo--my-controller forms--advanced-form-controller validation--field-validator-controller ui--feedback-controller",
         "action" => "forms--advanced-form-controller#submit input->validation--field-validator-controller#validateField focus->ui--feedback-controller#clearErrors ajax_success->ui--feedback-controller#showSuccess ajax_error->ui--feedback-controller#showError",
@@ -505,9 +505,8 @@ module Vident
         "validation--field-validator-controller-valid-class" => "border-green-500 text-green-600",
         "ui--feedback-controller-notification-class" => "transform transition-all duration-300"
       }
-      
+
       assert_equal expected, result
     end
-
   end
 end

@@ -19,7 +19,7 @@ module Vident
     def test_initialization_with_single_class
       collection = StimulusClassCollection.new(@class1)
       refute collection.empty?
-      assert_equal({ "foo--my-controller-loading-class" => "spinner active" }, collection.to_h)
+      assert_equal({"foo--my-controller-loading-class" => "spinner active"}, collection.to_h)
     end
 
     def test_initialization_with_array_of_classes
@@ -34,7 +34,7 @@ module Vident
 
     def test_initialization_with_nested_arrays
       collection = StimulusClassCollection.new([[@class1, @class2], @class3])
-      expected = { 
+      expected = {
         "foo--my-controller-loading-class" => "spinner active",
         "foo--my-controller-error-class" => "alert danger",
         "custom-controller-success-class" => "badge green"
@@ -55,7 +55,7 @@ module Vident
       collection = StimulusClassCollection.new
       collection << @class1
       collection << @class2
-      
+
       refute collection.empty?
       assert collection.any?
       expected = {
@@ -81,9 +81,9 @@ module Vident
       button_class = StimulusClass.new(:button, "btn btn-primary", implied_controller: @implied_controller)
       input_class = StimulusClass.new(:input, "form-control", implied_controller: @implied_controller)
       modal_class = StimulusClass.new("modal_controller", :backdrop, "modal-backdrop fade", implied_controller: @implied_controller)
-      
+
       collection = StimulusClassCollection.new([button_class, input_class, modal_class])
-      
+
       expected = {
         "foo--my-controller-button-class" => "btn btn-primary",
         "foo--my-controller-input-class" => "form-control",
@@ -100,19 +100,19 @@ module Vident
     def test_merge_with_empty_collection
       collection1 = StimulusClassCollection.new(@class1)
       collection2 = StimulusClassCollection.new
-      
+
       merged = collection1.merge(collection2)
-      
+
       refute_same collection1, merged
-      assert_equal({ "foo--my-controller-loading-class" => "spinner active" }, merged.to_h)
+      assert_equal({"foo--my-controller-loading-class" => "spinner active"}, merged.to_h)
     end
 
     def test_merge_with_non_empty_collection
       collection1 = StimulusClassCollection.new(@class1)
       collection2 = StimulusClassCollection.new(@class2)
-      
+
       merged = collection1.merge(collection2)
-      
+
       refute_same collection1, merged
       expected = {
         "foo--my-controller-loading-class" => "spinner active",
@@ -125,11 +125,11 @@ module Vident
       collection1 = StimulusClassCollection.new(@class1)
       collection2 = StimulusClassCollection.new(@class2)
       collection3 = StimulusClassCollection.new(@class3)
-      
+
       merged = collection1.merge(collection2, collection3)
-      
+
       refute_same collection1, merged
-      expected = { 
+      expected = {
         "foo--my-controller-loading-class" => "spinner active",
         "foo--my-controller-error-class" => "alert danger",
         "custom-controller-success-class" => "badge green"
@@ -140,12 +140,12 @@ module Vident
     def test_merge_preserves_original_collections
       collection1 = StimulusClassCollection.new(@class1)
       collection2 = StimulusClassCollection.new(@class2)
-      
+
       merged = collection1.merge(collection2)
-      
+
       # Originals should be unchanged
-      assert_equal({ "foo--my-controller-loading-class" => "spinner active" }, collection1.to_h)
-      assert_equal({ "foo--my-controller-error-class" => "alert danger" }, collection2.to_h)
+      assert_equal({"foo--my-controller-loading-class" => "spinner active"}, collection1.to_h)
+      assert_equal({"foo--my-controller-error-class" => "alert danger"}, collection2.to_h)
       # Merged should have both
       expected = {
         "foo--my-controller-loading-class" => "spinner active",
@@ -158,14 +158,14 @@ module Vident
       # If two classes have the same key, the later one should overwrite
       class1 = StimulusClass.new(:state, "state-v1", implied_controller: @implied_controller)
       class2 = StimulusClass.new(:state, "state-v2", implied_controller: @implied_controller)
-      
+
       collection1 = StimulusClassCollection.new(class1)
       collection2 = StimulusClassCollection.new(class2)
-      
+
       merged = collection1.merge(collection2)
-      
+
       # Second class should overwrite the first
-      assert_equal({ "foo--my-controller-state-class" => "state-v2" }, merged.to_h)
+      assert_equal({"foo--my-controller-state-class" => "state-v2"}, merged.to_h)
     end
 
     def test_class_merge_with_no_collections
@@ -177,7 +177,7 @@ module Vident
     def test_class_merge_with_single_collection
       collection = StimulusClassCollection.new(@class1)
       merged = StimulusClassCollection.merge(collection)
-      
+
       assert_same collection, merged
     end
 
@@ -185,11 +185,11 @@ module Vident
       collection1 = StimulusClassCollection.new(@class1)
       collection2 = StimulusClassCollection.new(@class2)
       collection3 = StimulusClassCollection.new(@class3)
-      
+
       merged = StimulusClassCollection.merge(collection1, collection2, collection3)
-      
+
       refute_same collection1, merged
-      expected = { 
+      expected = {
         "foo--my-controller-loading-class" => "spinner active",
         "foo--my-controller-error-class" => "alert danger",
         "custom-controller-success-class" => "badge green"
@@ -204,7 +204,7 @@ module Vident
       modal_open = StimulusClass.new("ui/modal_controller", :open, "opacity-100 scale-100 z-50", implied_controller: @implied_controller)
       button_primary = StimulusClass.new("ui/button_controller", :primary, "bg-blue-600 hover:bg-blue-700 text-white", implied_controller: @implied_controller)
       notification_show = StimulusClass.new("notifications/toast_controller", :show, "transform translate-y-0 opacity-100", implied_controller: @implied_controller)
-      
+
       collection = StimulusClassCollection.new([
         form_loading,
         form_error,
@@ -212,8 +212,8 @@ module Vident
         button_primary,
         notification_show
       ])
-      
-      expected = { 
+
+      expected = {
         "forms--signup-controller-loading-class" => "opacity-50 pointer-events-none",
         "forms--signup-controller-error-class" => "border-red-500 bg-red-50",
         "ui--modal-controller-open-class" => "opacity-100 scale-100 z-50",
@@ -229,14 +229,14 @@ module Vident
         StimulusClass.new("admin/dashboard_controller", :sidebar_open, "w-64 translate-x-0", implied_controller: @implied_controller),
         StimulusClass.new("admin/dashboard_controller", :sidebar_closed, "w-0 -translate-x-full", implied_controller: @implied_controller)
       ])
-      
+
       collection2 = StimulusClassCollection.new([
         StimulusClass.new("ui/dropdown_controller", :menu_open, "opacity-100 scale-100", implied_controller: @implied_controller),
         StimulusClass.new("admin/dashboard_controller", :content_shifted, "ml-64", implied_controller: @implied_controller)
       ])
-      
+
       merged = collection1.merge(collection2)
-      
+
       expected = {
         "admin--dashboard-controller-sidebar-open-class" => "w-64 translate-x-0",
         "admin--dashboard-controller-sidebar-closed-class" => "w-0 -translate-x-full",
@@ -257,14 +257,14 @@ module Vident
       nested_class = StimulusClass.new("admin/users_controller", :table_row_selected, "bg-gray-100 border-blue-500", implied_controller: @implied_controller)
       responsive_class = StimulusClass.new(:mobile_navigation, "block md:hidden lg:flex", implied_controller: @implied_controller)
       animation_class = StimulusClass.new("animations/fade_controller", :transition_in, "transition-all duration-300 ease-in-out", implied_controller: @implied_controller)
-      
+
       collection = StimulusClassCollection.new([
         utility_class,
         nested_class,
         responsive_class,
         animation_class
       ])
-      
+
       expected = {
         "foo--my-controller-button-hover-state-class" => "bg-blue-500 hover:bg-blue-600",
         "admin--users-controller-table-row-selected-class" => "bg-gray-100 border-blue-500",
@@ -277,14 +277,14 @@ module Vident
     def test_large_collection_performance
       # Test with a larger number of CSS classes
       classes = 50.times.map do |i|
-        StimulusClass.new("class_#{i}".to_sym, "style-#{i} color-#{i}", implied_controller: @implied_controller)
+        StimulusClass.new(:"class_#{i}", "style-#{i} color-#{i}", implied_controller: @implied_controller)
       end
-      
+
       collection = StimulusClassCollection.new(classes)
-      
+
       result = collection.to_h
       assert_equal 50, result.size
-      
+
       result.each do |key, value|
         assert key.match?(/^foo--my-controller-class-\d+-class$/)
         assert value.match?(/^style-\d+ color-\d+$/)
@@ -296,11 +296,11 @@ module Vident
       class1 = StimulusClass.new(:theme, "theme-light", implied_controller: @implied_controller)
       class2 = StimulusClass.new(:theme, "theme-dark", implied_controller: @implied_controller)
       class3 = StimulusClass.new(:theme, "theme-auto", implied_controller: @implied_controller)
-      
+
       collection = StimulusClassCollection.new([class1, class2, class3])
-      
+
       # Last class should win
-      assert_equal({ "foo--my-controller-theme-class" => "theme-auto" }, collection.to_h)
+      assert_equal({"foo--my-controller-theme-class" => "theme-auto"}, collection.to_h)
     end
 
     def test_merge_with_key_conflicts_across_collections
@@ -308,15 +308,15 @@ module Vident
       class1 = StimulusClass.new(:shared_state, "collection1-style", implied_controller: @implied_controller)
       class2 = StimulusClass.new(:shared_state, "collection2-style", implied_controller: @implied_controller)
       class3 = StimulusClass.new(:shared_state, "collection3-style", implied_controller: @implied_controller)
-      
+
       collection1 = StimulusClassCollection.new(class1)
       collection2 = StimulusClassCollection.new(class2)
       collection3 = StimulusClassCollection.new(class3)
-      
+
       merged = StimulusClassCollection.merge(collection1, collection2, collection3)
-      
+
       # Last collection's class should win
-      assert_equal({ "foo--my-controller-shared-state-class" => "collection3-style" }, merged.to_h)
+      assert_equal({"foo--my-controller-shared-state-class" => "collection3-style"}, merged.to_h)
     end
 
     def test_classes_with_various_css_patterns
@@ -326,7 +326,7 @@ module Vident
       custom_class = StimulusClass.new(:custom_component, "my-custom-component--active my-custom-component--highlighted", implied_controller: @implied_controller)
       utility_class = StimulusClass.new(:utility_mix, "d-flex justify-content-center align-items-center", implied_controller: @implied_controller)
       responsive_class = StimulusClass.new(:responsive_grid, "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4", implied_controller: @implied_controller)
-      
+
       collection = StimulusClassCollection.new([
         tailwind_class,
         bootstrap_class,
@@ -334,7 +334,7 @@ module Vident
         utility_class,
         responsive_class
       ])
-      
+
       expected = {
         "foo--my-controller-tailwind-button-class" => "px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600",
         "foo--my-controller-bootstrap-alert-class" => "alert alert-warning alert-dismissible fade show",
@@ -349,9 +349,9 @@ module Vident
       # Test StimulusClass that accepts array of class names
       array_class = StimulusClass.new(:multi_classes, ["btn", "btn-primary", "btn-lg"], implied_controller: @implied_controller)
       string_class = StimulusClass.new(:single_class, "simple-class", implied_controller: @implied_controller)
-      
+
       collection = StimulusClassCollection.new([array_class, string_class])
-      
+
       expected = {
         "foo--my-controller-multi-classes-class" => "btn btn-primary btn-lg",
         "foo--my-controller-single-class-class" => "simple-class"
@@ -364,11 +364,11 @@ module Vident
       empty_class = StimulusClass.new(:empty_state, "", implied_controller: @implied_controller)
       whitespace_class = StimulusClass.new(:whitespace_state, "   ", implied_controller: @implied_controller)
       normal_class = StimulusClass.new(:normal_state, "normal-class", implied_controller: @implied_controller)
-      
+
       collection = StimulusClassCollection.new([empty_class, whitespace_class, normal_class])
-      
+
       result = collection.to_h
-      
+
       # All classes should be preserved as-is (StimulusClass handles normalization)
       assert result.key?("foo--my-controller-empty-state-class")
       assert result.key?("foo--my-controller-whitespace-state-class")
@@ -379,11 +379,11 @@ module Vident
       # Test class names with unicode and special characters
       unicode_class = StimulusClass.new(:unicode_state, "class-with-🎨-emoji", implied_controller: @implied_controller)
       special_chars = StimulusClass.new(:special_state, "class_with-special.chars:hover", implied_controller: @implied_controller)
-      
+
       collection = StimulusClassCollection.new([unicode_class, special_chars])
-      
+
       result = collection.to_h
-      
+
       assert_equal "class-with-🎨-emoji", result["foo--my-controller-unicode-state-class"]
       assert_equal "class_with-special.chars:hover", result["foo--my-controller-special-state-class"]
     end

@@ -66,7 +66,7 @@ module Vident
       def mock_component.stimulus_identifier
         "chat--component"
       end
-      
+
       outlet = StimulusOutlet.new(mock_component, implied_controller: @implied_controller)
       assert_equal "[data-controller~=chat--component]", outlet.to_s
       assert_equal "foo--my-controller", outlet.controller
@@ -79,7 +79,7 @@ module Vident
       def mock_component.stimulus_identifier
         "chat--widget"
       end
-      
+
       outlet = StimulusOutlet.new(mock_component, implied_controller: @implied_controller)
       assert_equal "[data-controller~=chat--widget]", outlet.to_s
       assert_equal "foo--my-controller", outlet.controller

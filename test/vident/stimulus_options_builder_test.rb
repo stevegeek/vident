@@ -9,7 +9,7 @@ module Vident
 
     def test_build_with_empty_options
       result = @builder.build
-      
+
       assert_equal "test-component-123", result[:id]
       assert_equal :div, result[:element_tag]
       assert_equal ["test/component"], result[:controllers]
@@ -32,9 +32,9 @@ module Vident
         classes: {loading: "spinner"},
         values: [{url: "https://example.com"}]
       }
-      
+
       result = @builder.build(options)
-      
+
       # The component's id method takes precedence over the options[:id]
       assert_equal "test-component-123", result[:id]
       assert_equal :span, result[:element_tag]
@@ -48,19 +48,19 @@ module Vident
 
     def test_build_with_pending_actions
       result = @builder.build({}, pending_actions: ["pending-action"])
-      
+
       assert_equal ["pending-action"], result[:actions]
     end
 
     def test_build_with_pending_targets
       result = @builder.build({}, pending_targets: ["pending-target"])
-      
+
       assert_equal ["pending-target"], result[:targets]
     end
 
     def test_build_with_pending_named_classes
       result = @builder.build({}, pending_named_classes: {error: "alert"})
-      
+
       assert_equal({error: "alert"}, result[:named_classes])
     end
 
@@ -71,9 +71,9 @@ module Vident
           data: {test: "value"}
         }
       }
-      
+
       result = @builder.build(options)
-      
+
       # The component's render_classes method combines component classes with erb classes
       assert_equal "test-component custom-class", result[:html_options][:class]
       assert_equal({test: "value"}, result[:html_options][:data])
@@ -81,9 +81,9 @@ module Vident
 
     def test_build_without_stimulus_controller
       @component.class.instance_variable_set(:@no_stimulus_controller, true)
-      
+
       result = @builder.build
-      
+
       assert_equal [], result[:controllers]
     end
 
@@ -107,8 +107,6 @@ module Vident
           when :id then nil
           when :html_options then {}
           when :stimulus_controllers then []
-          else
-            nil
           end
         end
 

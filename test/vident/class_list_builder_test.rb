@@ -68,7 +68,7 @@ module Vident
         create_mock_stimulus_class("loading", "spinner active"),
         create_mock_stimulus_class("error", "alert danger")
       ]
-      
+
       result = @builder.build(mock_stimulus_classes, stimulus_class_names: [:loading])
       assert_equal "spinner active", result
     end
@@ -79,7 +79,7 @@ module Vident
         create_mock_stimulus_class("error", "alert danger"),
         create_mock_stimulus_class("success", "notification green")
       ]
-      
+
       result = @builder.build(mock_stimulus_classes, stimulus_class_names: [:loading, :error])
       assert_equal "spinner active alert danger", result
     end
@@ -89,7 +89,7 @@ module Vident
         create_mock_stimulus_class("loading-spinner", "spinner active"),
         create_mock_stimulus_class("error-message", "alert danger")
       ]
-      
+
       # Test that underscore names are converted to dashes for matching
       result = @builder.build(mock_stimulus_classes, stimulus_class_names: [:loading_spinner, :error_message])
       assert_equal "spinner active alert danger", result
@@ -100,7 +100,7 @@ module Vident
         create_mock_stimulus_class("loading", "spinner active"),
         create_mock_stimulus_class("error", "spinner alert") # duplicate "spinner"
       ]
-      
+
       result = @builder.build(mock_stimulus_classes, stimulus_class_names: [:loading, :error])
       assert_equal "spinner active alert", result
     end
@@ -109,10 +109,10 @@ module Vident
       mock_stimulus_classes = [
         create_mock_stimulus_class("loading", "spinner active")
       ]
-      
+
       result = @builder.build(mock_stimulus_classes, stimulus_class_names: [:nonexistent])
       assert_nil result
-      
+
       # Mixed existing and non-existent
       result = @builder.build(mock_stimulus_classes, stimulus_class_names: [:loading, :nonexistent])
       assert_equal "spinner active", result
@@ -123,7 +123,7 @@ module Vident
         create_mock_stimulus_class("loading", "spinner active"),
         create_mock_stimulus_class("error", "alert danger")
       ]
-      
+
       # Mix regular strings with stimulus classes
       result = @builder.build(["btn primary", mock_stimulus_classes, ["large"]], stimulus_class_names: [:loading])
       assert_equal "btn primary spinner active large", result
@@ -134,7 +134,7 @@ module Vident
         create_mock_stimulus_class("loading", "spinner active"),
         create_mock_stimulus_class("error", "alert danger")
       ]
-      
+
       # No matching names provided - stimulus classes should be excluded
       result = @builder.build(["btn primary", mock_stimulus_classes, "large"])
       assert_equal "btn primary large", result
@@ -143,26 +143,26 @@ module Vident
     def test_tailwind_integration_with_tailwind_gem
       # Since TailwindMerge is available in this test environment, test actual usage
       tailwind_builder = ClassListBuilder.new(tailwind_merger: TailwindMerge::Merger.new)
-      
+
       # Test conflicting background classes - TailwindMerge should keep the last one
       result = tailwind_builder.build(["bg-red-500 text-white", "bg-blue-500 text-lg"])
-      
+
       # Should have bg-blue-500 (last wins) but not bg-red-500
-      assert_includes result, 'bg-blue-500'
-      assert_includes result, 'text-white'
-      assert_includes result, 'text-lg'
-      refute_includes result, 'bg-red-500'
+      assert_includes result, "bg-blue-500"
+      assert_includes result, "text-white"
+      assert_includes result, "text-lg"
+      refute_includes result, "bg-red-500"
     end
 
     def test_tailwind_integration_without_tailwind_gem
       # Test that passing a non-TailwindMerge object when TailwindMerge is not available
       # should raise a LoadError
       fake_merger = Object.new
-      
+
       # Mock the absence of TailwindMerge by temporarily removing it
       original_tailwind_merge = Object.const_get(:TailwindMerge) if Object.const_defined?(:TailwindMerge)
       Object.send(:remove_const, :TailwindMerge) if Object.const_defined?(:TailwindMerge)
-      
+
       # Now it should raise an error when passing a merger without TailwindMerge available
       assert_raises(LoadError) do
         ClassListBuilder.new(tailwind_merger: fake_merger)
@@ -177,7 +177,7 @@ module Vident
       def object_with_to_s.to_s
         "custom-class"
       end
-      
+
       result = @builder.build(["btn", [object_with_to_s], "primary"])
       assert_equal "btn custom-class primary", result
     end
@@ -191,20 +191,20 @@ module Vident
 
     def create_mock_stimulus_class(class_name, class_value)
       mock_class = Object.new
-      
+
       def mock_class.class_name
         @class_name
       end
-      
+
       def mock_class.to_s
         @class_value
       end
-      
+
       def mock_class.set_values(class_name, class_value)
         @class_name = class_name
         @class_value = class_value
       end
-      
+
       mock_class.set_values(class_name, class_value)
       mock_class
     end

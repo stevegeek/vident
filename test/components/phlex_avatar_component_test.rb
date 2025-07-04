@@ -3,7 +3,7 @@ require "test_helper"
 class PhlexAvatarComponentTest < Minitest::Test
   def test_can_be_instantiated_with_minimal_required_props
     component = Phlex::AvatarComponent.new(initials: "JD")
-    
+
     assert_equal "JD", component.initials
     assert_nil component.url
     assert_equal :circle, component.shape
@@ -19,7 +19,7 @@ class PhlexAvatarComponentTest < Minitest::Test
       border: true,
       size: :large
     )
-    
+
     assert_equal "AB", component.initials
     assert_equal "https://example.com/avatar.jpg", component.url
     assert_equal :square, component.shape
@@ -30,7 +30,7 @@ class PhlexAvatarComponentTest < Minitest::Test
   def test_image_avatar_predicate_method
     # Should return true when URL is present
     component_with_url = Phlex::AvatarComponent.new(
-      initials: "JD", 
+      initials: "JD",
       url: "https://example.com/avatar.jpg"
     )
     assert component_with_url.send(:image_avatar?)
@@ -54,14 +54,14 @@ class PhlexAvatarComponentTest < Minitest::Test
 
   def test_size_classes_method
     test_cases = {
-      :tiny => "w-6 h-6",
-      :small => "w-8 h-8",
-      :medium => "w-12 h-12",
-      :large => "w-14 h-14",
-      :x_large => "sm:w-24 sm:h-24 w-16 h-16",
-      :xx_large => "sm:w-32 sm:h-32 w-24 h-24",
-      :normal => "w-10 h-10",
-      :unknown => "w-10 h-10"  # default case
+      tiny: "w-6 h-6",
+      small: "w-8 h-8",
+      medium: "w-12 h-12",
+      large: "w-14 h-14",
+      x_large: "sm:w-24 sm:h-24 w-16 h-16",
+      xx_large: "sm:w-32 sm:h-32 w-24 h-24",
+      normal: "w-10 h-10",
+      unknown: "w-10 h-10"  # default case
     }
 
     test_cases.each do |size, expected_classes|
@@ -72,13 +72,13 @@ class PhlexAvatarComponentTest < Minitest::Test
 
   def test_text_size_class_method
     test_cases = {
-      :tiny => "text-xs",
-      :small => "text-xs", 
-      :medium => "text-lg",
-      :large => "sm:text-xl text-lg",
-      :extra_large => "sm:text-2xl text-xl",
-      :normal => "text-medium",
-      :unknown => "text-medium"  # default case
+      tiny: "text-xs",
+      small: "text-xs",
+      medium: "text-lg",
+      large: "sm:text-xl text-lg",
+      extra_large: "sm:text-2xl text-xl",
+      normal: "text-medium",
+      unknown: "text-medium"  # default case
     }
 
     test_cases.each do |size, expected_class|
@@ -90,9 +90,9 @@ class PhlexAvatarComponentTest < Minitest::Test
   def test_element_classes_method
     # Test without border
     component = Phlex::AvatarComponent.new(
-      initials: "JD", 
-      size: :medium, 
-      shape: :circle, 
+      initials: "JD",
+      size: :medium,
+      shape: :circle,
       border: false
     )
     expected_classes = ["w-12 h-12", "rounded-full", ""]
@@ -100,9 +100,9 @@ class PhlexAvatarComponentTest < Minitest::Test
 
     # Test with border
     component_with_border = Phlex::AvatarComponent.new(
-      initials: "JD", 
-      size: :large, 
-      shape: :square, 
+      initials: "JD",
+      size: :large,
+      shape: :square,
       border: true
     )
     expected_classes_with_border = ["w-14 h-14", "rounded-md", "border"]
@@ -114,9 +114,9 @@ class PhlexAvatarComponentTest < Minitest::Test
       initials: "JD",
       url: "https://example.com/avatar.jpg"
     )
-    
+
     options = component.send(:default_html_options)
-    
+
     assert_equal "inline-block object-contain", options[:class]
     assert_equal "https://example.com/avatar.jpg", options[:src]
     assert_equal "Profile image", options[:alt]
@@ -124,9 +124,9 @@ class PhlexAvatarComponentTest < Minitest::Test
 
   def test_default_html_options_for_text_avatar
     component = Phlex::AvatarComponent.new(initials: "JD")
-    
+
     options = component.send(:default_html_options)
-    
+
     assert_equal "inline-flex items-center justify-center bg-gray-500", options[:class]
     refute options.key?(:src)
     refute options.key?(:alt)
@@ -137,9 +137,9 @@ class PhlexAvatarComponentTest < Minitest::Test
       initials: "JD",
       url: "https://example.com/avatar.jpg"
     )
-    
+
     attributes = component.send(:root_element_attributes)
-    
+
     assert_equal :img, attributes[:element_tag]
     assert_kind_of Hash, attributes[:html_options]
     assert_equal "https://example.com/avatar.jpg", attributes[:html_options][:src]
@@ -148,9 +148,9 @@ class PhlexAvatarComponentTest < Minitest::Test
 
   def test_root_element_attributes_for_text_avatar
     component = Phlex::AvatarComponent.new(initials: "JD")
-    
+
     attributes = component.send(:root_element_attributes)
-    
+
     assert_equal :div, attributes[:element_tag]
     assert_kind_of Hash, attributes[:html_options]
     refute attributes[:html_options].key?(:src)
@@ -174,7 +174,7 @@ class PhlexAvatarComponentTest < Minitest::Test
   def test_url_predicate_methods
     # Test url? predicate method through private predicate
     component_with_url = Phlex::AvatarComponent.new(
-      initials: "JD", 
+      initials: "JD",
       url: "https://example.com/avatar.jpg"
     )
     assert component_with_url.send(:url?)
@@ -192,7 +192,7 @@ class PhlexAvatarComponentTest < Minitest::Test
   def test_view_template_structure
     # Test that view_template method exists (it's private)
     component = Phlex::AvatarComponent.new(initials: "JD")
-    
+
     # We can't easily test the full rendering without a view context,
     # but we can verify the method exists
     assert component.private_methods.include?(:view_template)
