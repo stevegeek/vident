@@ -1,18 +1,3 @@
-# Configure SimpleCov for test coverage
-require 'simplecov'
-SimpleCov.start do
-  add_filter '/test/'
-  add_filter '/vendor/'
-  add_filter '/tmp/'
-  add_filter 'version.rb'
-  
-  add_group 'Core', 'lib/vident'
-  add_group 'ViewComponent', 'lib/vident/view_component'
-  add_group 'Phlex', 'lib/vident/phlex'
-  add_group 'Stimulus', 'lib/vident/stimulus'
-end
-
-# Configure Rails Environment
 ENV["RAILS_ENV"] = "test"
 
 require_relative "../test/dummy/config/environment"

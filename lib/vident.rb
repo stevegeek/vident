@@ -1,5 +1,18 @@
 # frozen_string_literal: true
 
+if ENV["COVERAGE"]
+  require "simplecov"
+  SimpleCov.command_name "Vident"
+  SimpleCov.root File.expand_path("..", __dir__)
+  SimpleCov.start do
+    add_filter "/test/"
+    add_filter "/tmp/"
+    add_filter "/bin/"
+    add_filter "/lib/vident/engine.rb"
+  end
+end
+
+
 require "active_support"
 require "active_support/concern"
 require "literal"
