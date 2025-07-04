@@ -172,7 +172,7 @@ class PhlexAvatarComponentTest < Minitest::Test
   end
 
   def test_url_predicate_methods
-    # Test url? predicate method through private predicate  
+    # Test url? predicate method through private predicate
     component_with_url = Phlex::AvatarComponent.new(
       initials: "JD",
       url: "https://example.com/avatar.jpg"

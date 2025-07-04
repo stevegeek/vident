@@ -18,7 +18,7 @@ module Vident
     #   stimulus_controllers(:my_controller, "path/to/another") => StimulusControllerCollection with two controllers that converts to {"controller" => "my-controller path--to--another"}
     def stimulus_controllers(*controllers)
       return StimulusControllerCollection.new if controllers.empty? || controllers.all?(&:blank?)
-      
+
       converted_controllers = controllers.map do |controller|
         controller.is_a?(Array) ? stimulus_controller(*controller) : stimulus_controller(controller)
       end
@@ -40,7 +40,7 @@ module Vident
     # Parse inputs to create a StimulusActionCollection instance representing multiple Stimulus actions
     def stimulus_actions(*actions)
       return StimulusActionCollection.new if actions.empty? || actions.all?(&:blank?)
-      
+
       converted_actions = actions.map do |action|
         action.is_a?(Array) ? stimulus_action(*action) : stimulus_action(action)
       end
@@ -59,7 +59,7 @@ module Vident
     # Parse inputs to create a StimulusTargetCollection instance representing multiple Stimulus targets
     def stimulus_targets(*targets)
       return StimulusTargetCollection.new if targets.empty? || targets.all?(&:blank?)
-      
+
       converted_targets = targets.map do |target|
         target.is_a?(Array) ? stimulus_target(*target) : stimulus_target(target)
       end
@@ -80,7 +80,7 @@ module Vident
     # Parse inputs to create a StimulusOutletCollection instance representing multiple Stimulus outlets
     def stimulus_outlets(*outlets)
       return StimulusOutletCollection.new if outlets.empty? || outlets.all?(&:blank?)
-      
+
       converted_outlets = outlets.map do |outlet|
         outlet.is_a?(Array) ? stimulus_outlet(*outlet) : stimulus_outlet(outlet)
       end
@@ -99,9 +99,9 @@ module Vident
     # Parse inputs to create a StimulusValueCollection instance representing multiple Stimulus values
     def stimulus_values(*values)
       return StimulusValueCollection.new if values.empty? || values.all?(&:blank?)
-      
+
       converted_values = []
-      
+
       values.each do |value|
         if value.is_a?(Hash)
           # Hash format: {name: value, other_name: other_value} - expands to multiple values
@@ -113,7 +113,7 @@ module Vident
           converted_values << stimulus_value(value)
         end
       end
-      
+
       StimulusValueCollection.new(converted_values)
     end
 
@@ -129,9 +129,9 @@ module Vident
     # Parse inputs to create a StimulusClassCollection instance representing multiple Stimulus classes
     def stimulus_classes(*classes)
       return StimulusClassCollection.new if classes.empty? || classes.all?(&:blank?)
-      
+
       converted_classes = []
-      
+
       classes.each do |cls|
         if cls.is_a?(Hash)
           # Hash format: {loading: "spinner active", error: "text-red-500"} - expands to multiple classes
@@ -143,7 +143,7 @@ module Vident
           converted_classes << stimulus_class(cls)
         end
       end
-      
+
       StimulusClassCollection.new(converted_classes)
     end
 

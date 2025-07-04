@@ -12,7 +12,6 @@ if ENV["COVERAGE"]
   end
 end
 
-
 require "active_support"
 require "active_support/concern"
 require "literal"
@@ -35,7 +34,6 @@ require "vident/stimulus_target_collection"
 require "vident/stimulus_outlet_collection"
 require "vident/stimulus_value_collection"
 require "vident/stimulus_class_collection"
-
 
 require "vident/stimulus_attributes"
 require "vident/stimulus_data_attribute_builder"

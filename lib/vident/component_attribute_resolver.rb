@@ -2,7 +2,6 @@
 
 module Vident
   module ComponentAttributeResolver
-
     private
 
     # FIXME: in a view_component the parsing of html_options might have to be in `before_render`
@@ -49,5 +48,4 @@ module Vident
       ).build
     end
   end
-
 end

@@ -99,17 +99,17 @@ module Vident
       end
 
       def escape_attribute_name_for_html(name)
-        name.to_s.gsub(/[^a-zA-Z0-9\-_]/, '').tr('_', '-')
+        name.to_s.gsub(/[^a-zA-Z0-9\-_]/, "").tr("_", "-")
       end
 
       def escape_attribute_value_for_html(value)
-        value.to_s.gsub('"', '&quot;').gsub("'", '&#39;')
+        value.to_s.gsub('"', "&quot;").gsub("'", "&#39;")
       end
 
       def to_data_attribute_string(**attributes)
         attributes.map { |key, value| "data-#{escape_attribute_name_for_html(key)}=\"#{escape_attribute_value_for_html(value)}\"" }
-                  .join(" ")
-                  .html_safe
+          .join(" ")
+          .html_safe
       end
 
       def root_element_tag_options
