@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Vident
-  class StimulusOutlet < StimulusAttribute
+  class StimulusOutlet < StimulusAttributeBase
     attr_reader :controller, :outlet_name, :selector
 
     def initialize(*args, implied_controller:, component_id: nil)

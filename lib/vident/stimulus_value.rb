@@ -3,7 +3,7 @@
 require "json"
 
 module Vident
-  class StimulusValue < StimulusAttribute
+  class StimulusValue < StimulusAttributeBase
     attr_reader :controller, :value_name, :value
 
     def to_s

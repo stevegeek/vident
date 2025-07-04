@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'set'
+require "set"
 
 module Vident
   class ClassListBuilder
@@ -12,7 +12,7 @@ module Vident
       @class_list.concat(Array.wrap(html_class)) if html_class
       @class_list.compact!
       @tailwind_merger = tailwind_merger
-      
+
       if @tailwind_merger && !defined?(::TailwindMerge::Merger)
         raise LoadError, "TailwindMerge gem is required when using tailwind_merger:. Add 'gem \"tailwind_merge\"' to your Gemfile."
       end
@@ -31,7 +31,7 @@ module Vident
       return nil if deduplicated_classes.blank?
 
       class_string = deduplicated_classes.join(CLASSNAME_SEPARATOR)
-      
+
       if @tailwind_merger
         dedupe_with_tailwind(class_string)
       else
@@ -44,7 +44,7 @@ module Vident
     # Flatten and normalize all input class sources
     def flatten_and_normalize_classes(class_lists, stimulus_class_names)
       stimulus_class_names_set = stimulus_class_names.map { |name| name.to_s.dasherize }.to_set
-      
+
       class_lists.compact.flat_map do |class_source|
         case class_source
         when String
@@ -60,15 +60,15 @@ module Vident
     # Normalize a single class item (could be string, StimulusClass, object with to_s, etc.)
     def normalize_single_class_item(item, stimulus_class_names_set)
       return [] if item.blank?
-      
+
       # Handle StimulusClass instances
       if stimulus_class_instance?(item)
         # Only include if the class name matches one of the requested names
         # If stimulus_class_names_set is empty, exclude all stimulus classes
         if stimulus_class_names_set.present? && stimulus_class_names_set.include?(item.class_name)
           class_value = item.to_s
-          class_value.include?(CLASSNAME_SEPARATOR) ? 
-            class_value.split(CLASSNAME_SEPARATOR).reject(&:empty?) : 
+          class_value.include?(CLASSNAME_SEPARATOR) ?
+            class_value.split(CLASSNAME_SEPARATOR).reject(&:empty?) :
             [class_value]
         else
           []
@@ -76,8 +76,8 @@ module Vident
       else
         # Handle regular strings and other objects
         item_string = item.to_s
-        item_string.include?(CLASSNAME_SEPARATOR) ? 
-          item_string.split(CLASSNAME_SEPARATOR).reject(&:empty?) : 
+        item_string.include?(CLASSNAME_SEPARATOR) ?
+          item_string.split(CLASSNAME_SEPARATOR).reject(&:empty?) :
           [item_string]
       end
     end

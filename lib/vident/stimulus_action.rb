@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Vident
-  class StimulusAction < StimulusAttribute
+  class StimulusAction < StimulusAttributeBase
     attr_reader :event, :controller, :action
 
     def to_s
@@ -33,7 +33,7 @@ module Vident
       when 3
         parse_three_arguments(part1, part2, part3)
       else
-        raise ArgumentError, "Invalid number of arguments: #{args.size}"
+        raise ArgumentError, "Invalid number of 'action' arguments: #{args.size}"
       end
     end
 
@@ -47,7 +47,7 @@ module Vident
         # 1 string arg, fully qualified action - parse it
         parse_qualified_action_string(arg)
       else
-        raise ArgumentError, "Invalid argument type: #{arg.class}"
+        raise ArgumentError, "Invalid 'action' argument types (1): #{arg.class}"
       end
     end
 
@@ -63,7 +63,7 @@ module Vident
         @controller = stimulize_path(part1)
         @action = js_name(part2)
       else
-        raise ArgumentError, "Invalid argument types: #{part1.class}, #{part2.class}"
+        raise ArgumentError, "Invalid 'action' argument types (2): #{part1.class}, #{part2.class}"
       end
     end
 
@@ -74,7 +74,7 @@ module Vident
         @controller = stimulize_path(part2)
         @action = js_name(part3)
       else
-        raise ArgumentError, "Invalid argument types: #{part1.class}, #{part2.class}, #{part3.class}"
+        raise ArgumentError, "Invalid 'action' argument types (3): #{part1.class}, #{part2.class}, #{part3.class}"
       end
     end
 

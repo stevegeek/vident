@@ -5,6 +5,7 @@ module Vident
     extend ActiveSupport::Concern
 
     include Tailwind
+    include StimulusAttributes
 
     # Module utilities for working with Stimulus identifiers
 
@@ -47,21 +48,18 @@ module Vident
       prop :element_tag, Symbol, default: :div
 
       # StimulusJS support
-      prop :stimulus_controllers, _Array(_Union(String, Symbol)), default: -> { [] } # TODO: revisit how we define controllers
-      prop :stimulus_actions, _Array(_Union(String, Symbol, Array, Hash)), default: -> { [] } # TODO: revisit how we define actions
-      prop :stimulus_targets, _Array(_Union(String, Symbol, Hash)), default: -> { [] } # TODO: revisit how we define targets
-      prop :stimulus_outlets, _Array(_Union(String, Symbol)), default: -> { [] }
-      prop :stimulus_outlet_host, _Nilable(Vident::Component)
-      prop :stimulus_values, _Array(_Hash(Symbol, _Any)), default: -> { [] } # TODO: instead of _Any, is it _Interface(:to_s)?
-      prop :stimulus_classes, _Hash(Symbol, String), default: -> { {} }
-    end
-
-    # Override this method to perform any initialisation before attributes are set
-    def before_initialize(_attrs)
+      # # TODO: revisit inputs and how many ways of specifying the same thing...
+      prop :stimulus_controllers, _Array(_Union(String, Symbol, StimulusController, StimulusControllerCollection)), default: -> { [default_controller_path] }
+      prop :stimulus_actions, _Array(_Union(String, Symbol, Array, Hash, StimulusAction, StimulusActionCollection)), default: -> { [] }
+      prop :stimulus_targets, _Array(_Union(String, Symbol, Hash, StimulusTarget, StimulusTargetCollection)), default: -> { [] }
+      prop :stimulus_outlets, _Array(_Union(String, Symbol, StimulusOutlet, StimulusOutletCollection)), default: -> { [] }
+      prop :stimulus_outlet_host, _Nilable(Vident::Component) # A component that will host this component as an outlet
+      prop :stimulus_values, _Array(_Union(_Hash(Symbol, _Any), StimulusValue, StimulusValueCollection)), default: -> { [] } # TODO: instead of _Any, is it _Interface(:to_s)?
+      prop :stimulus_classes, _Union(_Hash(Symbol, String), StimulusClass, StimulusClassCollection), default: -> { {} }
     end
 
     # Override this method to perform any initialisation after attributes are set
-    def after_initialize
+    def after_component_initialize
     end
 
     # This can be overridden to return an array of extra class names, or a string of class names.
@@ -106,25 +104,29 @@ module Vident
 
     private
 
+    def root_element(&block)
+      raise NoMethodError, "You must implement the `root_element` method in your component"
+    end
+
+    def root(...)
+      root_element(...)
+    end
+
+    alias_method :parent_element, :root
+
+    # Called by Literal::Properties after the component is initialized.
+    def after_initialize
+      prepare_stimulus_collections
+      after_component_initialize if respond_to?(:after_component_initialize)
+    end
+
     # Generate a random ID for the component, which is used to ensure uniqueness in the DOM.
     def random_id
       @random_id ||= "#{component_class_name}-#{StableId.next_id_in_sequence}"
     end
 
-    def stimulus_options_for_root_component = stimulus_options_for_component(root_element_attributes)
-
     # Generates the full list of HTML classes for the component
     def render_classes(extra_classes = nil) = class_list_builder.build(extra_classes)
-
-    # Prepare the stimulus attributes for a StimulusComponent
-    def stimulus_options_for_component(options)
-      stimulus_options_builder.build(
-        options,
-        pending_actions: @pending_actions || [],
-        pending_targets: @pending_targets || [],
-        pending_named_classes: @pending_named_classes || {}
-      )
-    end
 
     # Get or create a class list builder instance
     # Automatically detects if Tailwind module is included and TailwindMerge gem is available
@@ -136,24 +138,36 @@ module Vident
         html_class: @html_options&.fetch(:class, nil)
       )
     end
-
-    # Get or create a stimulus options builder instance
-    def stimulus_options_builder
-      @stimulus_options_builder ||= StimulusOptionsBuilder.new(
-        id: respond_to?(:id) ? id : attribute(:id),
-        element_tag: @element_tag,
-        html_options: @html_options,
-        stimulus_controllers: @stimulus_controllers,
-        stimulus_actions: @stimulus_actions,
-        stimulus_targets: @stimulus_targets,
-        stimulus_outlets: @stimulus_outlets,
-        stimulus_outlet_host: @stimulus_outlet_host,
-        stimulus_classes: @stimulus_classes,
-        stimulus_values: @stimulus_values,
-        default_controller_path: default_controller_path,
-        stimulus_controller_enabled: self.class.stimulus_controller?,
-        class_list_builder: class_list_builder
-      )
-    end
+    #
+    # def stimulus_options_for_root_component = stimulus_options_for_component(root_element_attributes)
+    #
+    # # Prepare the stimulus attributes for a StimulusComponent
+    # def stimulus_options_for_component(options)
+    #   stimulus_options_builder.build(
+    #     options,
+    #     pending_actions: @pending_actions || [],
+    #     pending_targets: @pending_targets || [],
+    #     pending_named_classes: @pending_named_classes || {}
+    #   )
+    # end
+    #
+    # # Get or create a stimulus options builder instance
+    # def stimulus_options_builder
+    #   @stimulus_options_builder ||= StimulusOptionsBuilder.new(
+    #     id: respond_to?(:id) ? id : attribute(:id),
+    #     element_tag: @element_tag,
+    #     html_options: @html_options,
+    #     stimulus_controllers: @stimulus_controllers,
+    #     stimulus_actions: @stimulus_actions,
+    #     stimulus_targets: @stimulus_targets,
+    #     stimulus_outlets: @stimulus_outlets,
+    #     stimulus_outlet_host: @stimulus_outlet_host,
+    #     stimulus_classes: @stimulus_classes,
+    #     stimulus_values: @stimulus_values,
+    #     default_controller_path: default_controller_path,
+    #     stimulus_controller_enabled: self.class.stimulus_controller?,
+    #     class_list_builder: class_list_builder
+    #   )
+    # end
   end
 end

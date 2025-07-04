@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Vident
-  class StimulusClass < StimulusAttribute
+  class StimulusClass < StimulusAttributeBase
     attr_reader :controller, :class_name, :css_classes
 
     def to_s

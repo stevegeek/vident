@@ -3,7 +3,7 @@
 require "active_support/core_ext/string/inflections"
 
 module Vident
-  class StimulusAttribute
+  class StimulusAttributeBase
     attr_reader :implied_controller
 
     def initialize(*args, implied_controller: nil)

@@ -29,27 +29,63 @@ module Vident
     private
 
     def merged_controllers
-      StimulusControllerCollection.merge(*@controllers).to_h
+      return {} if @controllers.empty?
+      
+      if @controllers.first.is_a?(StimulusControllerCollection)
+        StimulusControllerCollection.merge(*@controllers).to_h
+      else
+        StimulusControllerCollection.new(@controllers).to_h
+      end
     end
 
     def merged_actions
-      StimulusActionCollection.merge(*@actions).to_h
+      return {} if @actions.empty?
+      
+      if @actions.first.is_a?(StimulusActionCollection)
+        StimulusActionCollection.merge(*@actions).to_h
+      else
+        StimulusActionCollection.new(@actions).to_h
+      end
     end
 
     def merged_targets
-      StimulusTargetCollection.merge(*@targets).to_h
+      return {} if @targets.empty?
+      
+      if @targets.first.is_a?(StimulusTargetCollection)
+        StimulusTargetCollection.merge(*@targets).to_h
+      else
+        StimulusTargetCollection.new(@targets).to_h
+      end
     end
 
     def merged_outlets
-      StimulusOutletCollection.merge(*@outlets).to_h
+      return {} if @outlets.empty?
+      
+      if @outlets.first.is_a?(StimulusOutletCollection)
+        StimulusOutletCollection.merge(*@outlets).to_h
+      else
+        StimulusOutletCollection.new(@outlets).to_h
+      end
     end
 
     def merged_values
-      StimulusValueCollection.merge(*@values).to_h
+      return {} if @values.empty?
+      
+      if @values.first.is_a?(StimulusValueCollection)
+        StimulusValueCollection.merge(*@values).to_h
+      else
+        StimulusValueCollection.new(@values).to_h
+      end
     end
 
     def merged_classes
-      StimulusClassCollection.merge(*@classes).to_h
+      return {} if @classes.empty?
+      
+      if @classes.first.is_a?(StimulusClassCollection)
+        StimulusClassCollection.merge(*@classes).to_h
+      else
+        StimulusClassCollection.new(@classes).to_h
+      end
     end
   end
 end

@@ -4,7 +4,7 @@ module Vident
   class StimulusOutletCollection < StimulusCollectionBase
     def to_h
       return {} if items.empty?
-      
+
       merged = {}
       items.each do |outlet|
         merged.merge!(outlet.to_h)
