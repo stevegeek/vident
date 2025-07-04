@@ -1,4 +1,5 @@
 <%= root_element do |greeter| %>
+  <%# HTML embellishment approach, most compatable with working with HTML in ERB %>
   <input type="text"
          <%= greeter.as_stimulus_targets(:name) %>
          class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
@@ -8,14 +9,20 @@
   </button>
   <span <%= greeter.as_stimulus_targets(:output) %> class="ml-4 text-xl text-gray-700"></span>
 
-  <%# or (the following options are "safer" as the previous is outputting directly into open HTML tags, eg better_html does not allow this)%>
+  <%# Alternative implementation: %>
+  <%# The following options are "safer" as the previous is outputting directly into open HTML tags, eg better_html does not allow the above approach %>
 
-  <%#= content_tag(:input, type: "Text", class: "...", data: {**greeter.stimulus_targets(:name)} %>
+  <%#= content_tag(:input, type: "text", class: "...", data: {**greeter.stimulus_target(:name)} %>
+  <%#= content_tag(:button, @cta, class: "...", data: {**greeter.stimulus_action([:click, :greet])}) do %>
+    <%#= @cta %>
+  <%# end %>
+  <%#= content_tag(:span, class: "...", data: {**greeter.stimulus_target(:output)}) %>
 
+  <%# OR use the vident tag helper  %>
 
-  <%#= greeter.tag(:input, stimulus_targets: :name, type: "text", class: "...") %>
-  <%#= greeter.tag(:button, stimulus_actions: [:click, :greet], class: "...") do %>
-  <%#=   @cta %>
-  <%#= end %>
-  <%#= greeter.tag(:span, stimulus_targets: :output, class: "ml-4 text-xl text-gray-700") %>
+  <%#= greeter.tag(:input, stimulus_target: :name, type: "text", class: "...") %>
+  <%#= greeter.tag(:button, stimulus_action: [:click, :greet], class: "...") do %>
+    <%#= @cta %>
+  <%# end %>
+  <%#= greeter.tag(:span, stimulus_target: :output, class: "...") %>
 <% end %>
