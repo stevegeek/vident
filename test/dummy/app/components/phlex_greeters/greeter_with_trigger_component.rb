@@ -11,7 +11,7 @@ module PhlexGreeters
     def trigger_or_default(greeter)
       return render(@trigger) if @trigger
 
-      trigger(before_clicked_message: "Greet", stimulus_actions: [greeter.stimulus_action(:click, :greet)])
+      render(trigger(before_clicked_message: "Greet", stimulus_actions: [greeter.stimulus_action(:click, :greet)]))
     end
 
     def root_element_attributes

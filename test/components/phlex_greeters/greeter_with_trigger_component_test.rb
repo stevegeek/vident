@@ -2,10 +2,103 @@
 
 require "test_helper"
 
-class PhlexGreeters::GreeterWithTriggerComponentTest < Minitest::Test
+class PhlexGreeters::GreeterWithTriggerComponentTest < ActionView::TestCase
+  def render(...)
+    view_context.render(...)
+  end
+
+  def view_context
+    controller.view_context
+  end
+
+  def controller
+    @controller ||= ActionView::TestCase::TestController.new
+  end
+
+  # Parse HTML for assertions
+  def parse_html(html)
+    Nokogiri::HTML5.fragment(html)
+  end
   def test_can_be_instantiated
     component = PhlexGreeters::GreeterWithTriggerComponent.new
     assert_instance_of PhlexGreeters::GreeterWithTriggerComponent, component
+  end
+
+  def test_renders_basic_structure
+    component = PhlexGreeters::GreeterWithTriggerComponent.new
+    html = render(component)
+    doc = parse_html(html)
+
+    # Should render a root div element
+    assert_equal 1, doc.css("div").count
+
+    # Should contain an input field
+    assert_equal 1, doc.css("input[type='text']").count
+
+    # Should contain a button (default trigger)
+    assert_equal 1, doc.css("button").count
+
+    # Should contain a span for output
+    assert_equal 1, doc.css("span").count
+  end
+
+  def test_renders_stimulus_controller_attributes
+    component = PhlexGreeters::GreeterWithTriggerComponent.new
+    html = render(component)
+    doc = parse_html(html)
+
+    root_div = doc.css("div").first
+
+    # Should have stimulus controller data attribute
+    assert root_div["data-controller"]&.include?("phlex-greeters--greeter-with-trigger-component")
+
+    # Should have stimulus class data attributes
+    assert root_div["data-phlex-greeters--greeter-with-trigger-component-pre-click-class"]
+    assert root_div["data-phlex-greeters--greeter-with-trigger-component-post-click-class"]
+  end
+
+  def test_renders_input_with_stimulus_target
+    component = PhlexGreeters::GreeterWithTriggerComponent.new
+    html = render(component)
+    doc = parse_html(html)
+
+    input = doc.css("input").first
+    assert input["data-phlex-greeters--greeter-with-trigger-component-target"] == "name"
+  end
+
+  def test_renders_output_span_with_stimulus_target_and_classes
+    component = PhlexGreeters::GreeterWithTriggerComponent.new
+    html = render(component)
+    doc = parse_html(html)
+
+    span = doc.css("span").first
+    assert span["data-phlex-greeters--greeter-with-trigger-component-target"] == "output"
+    assert span["class"]&.include?("text-md")
+    assert span["class"]&.include?("text-gray-500")
+    assert_equal " ... ", span.text
+  end
+
+  def test_renders_default_button_with_styling
+    component = PhlexGreeters::GreeterWithTriggerComponent.new
+    html = render(component)
+    doc = parse_html(html)
+
+    button = doc.css("button").first
+    assert button["class"]&.include?("bg-blue-500")
+    assert button["class"]&.include?("text-white")
+    assert button["class"]&.include?("font-bold")
+    assert_equal "Greet", button.text
+  end
+
+  def test_renders_with_custom_trigger
+    component = PhlexGreeters::GreeterWithTriggerComponent.new
+    component.trigger(before_clicked_message: "Custom Button Text")
+    
+    html = render(component)
+    doc = parse_html(html)
+
+    button = doc.css("button").first
+    assert_equal "Custom Button Text", button.text
   end
 
   def test_trigger_method_creates_greeter_button_component
@@ -95,9 +188,11 @@ class PhlexGreeters::GreeterWithTriggerComponentTest < Minitest::Test
       "click->test##{action}"
     end
     
-    # Should create a default trigger when no custom trigger is set
-    result = component.send(:trigger_or_default, greeter)
-    assert_instance_of PhlexGreeters::GreeterButtonComponent, result
+    # The method will fail when called outside of a rendering context
+    # because it tries to call render() which needs a view context
+    assert_raises(NoMethodError) do
+      component.send(:trigger_or_default, greeter)
+    end
   end
 
   def test_trigger_or_default_with_custom_trigger
