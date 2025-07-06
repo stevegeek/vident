@@ -22,6 +22,7 @@ module Vident
 
     include TagHelper
     include Tailwind
+    include StimulusDSL
 
     # Override this method to perform any initialisation after attributes are set
     def after_component_initialize

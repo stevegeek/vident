@@ -8,7 +8,10 @@ module Vident
     def prepare_component_attributes
       prepare_stimulus_collections
 
-      # Root element attributes take lowest precedence
+      # Add stimulus attributes from DSL first (lower precedence)
+      add_stimulus_attributes_from_dsl
+
+      # Process root_element_attributes (higher precedence) 
       extra = root_element_attributes
       @html_options = (extra[:html_options] || {}).merge(@html_options) if extra.key?(:html_options)
       @html_options[:class] = render_classes(extra[:classes])
@@ -21,6 +24,42 @@ module Vident
       add_stimulus_outlets(extra[:stimulus_outlets]) if extra.key?(:stimulus_outlets)
       add_stimulus_values(extra[:stimulus_values]) if extra.key?(:stimulus_values)
       add_stimulus_classes(extra[:stimulus_classes]) if extra.key?(:stimulus_classes)
+    end
+
+    # Add stimulus attributes from DSL declarations using existing add_* methods
+    def add_stimulus_attributes_from_dsl
+      dsl_attrs = self.class.stimulus_dsl_attributes
+      return if dsl_attrs.empty?
+
+      # Use existing add_* methods to integrate DSL attributes
+      add_stimulus_controllers(dsl_attrs[:stimulus_controllers]) if dsl_attrs[:stimulus_controllers]
+      add_stimulus_actions(dsl_attrs[:stimulus_actions]) if dsl_attrs[:stimulus_actions]
+      add_stimulus_targets(dsl_attrs[:stimulus_targets]) if dsl_attrs[:stimulus_targets]
+      add_stimulus_outlets(dsl_attrs[:stimulus_outlets]) if dsl_attrs[:stimulus_outlets]
+      
+      # Resolve auto-mapped values from props
+      if dsl_attrs[:stimulus_values]
+        resolved_values = resolve_stimulus_dsl_values(dsl_attrs[:stimulus_values])
+        add_stimulus_values(resolved_values) unless resolved_values.empty?
+      end
+      
+      add_stimulus_classes(dsl_attrs[:stimulus_classes]) if dsl_attrs[:stimulus_classes]
+    end
+
+    # Resolve auto-mapped values from DSL declarations to instance variables
+    def resolve_stimulus_dsl_values(dsl_values)
+      return {} unless dsl_values.is_a?(Hash)
+
+      resolved = {}
+      dsl_values.each do |name, value|
+        if value == :auto_map_from_prop
+          # Auto-map from instance variable if it exists
+          resolved[name] = instance_variable_get("@#{name}") if instance_variable_defined?("@#{name}")
+        else
+          resolved[name] = value
+        end
+      end
+      resolved
     end
 
     # Prepare stimulus collections and implied controller path from the given attributes, called after initialization
