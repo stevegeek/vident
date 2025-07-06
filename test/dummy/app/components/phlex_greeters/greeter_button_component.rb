@@ -17,8 +17,8 @@ module PhlexGreeters
     end
 
     def view_template
-      render root do
-        @before_clicked_message
+      root_element do
+        plain @before_clicked_message
       end
     end
   end

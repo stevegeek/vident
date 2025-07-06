@@ -66,6 +66,18 @@ module Vident
     end
     alias_method :parent_element, :root
 
+    def root_element_tag_options
+      options = @html_options&.dup || {}
+      data_attrs = stimulus_data_attributes
+      options[:data] = options[:data].present? ? data_attrs.merge(options[:data]) : data_attrs
+      return options unless @id
+      options.merge(id: @id)
+    end
+
+    def root_element_tag_type
+      @element_tag.presence&.to_sym || :div
+    end
+
     # Generate a random ID for the component, which is used to ensure uniqueness in the DOM.
     def random_id
       @random_id ||= "#{component_class_name}-#{StableId.next_id_in_sequence}"

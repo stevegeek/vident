@@ -29,10 +29,11 @@ class ExamplesView < ApplicationView
      before_clicked_message: "I'm a button component!",
      after_clicked_message: "Greeted! Click me again to reset.",
      actions: [
-       greeter.action(:click, :greet),
+       greeter.stimulus_action(:click, :greet),
      ],
+     classes: "bg-red-500 hover:bg-red-700",
      html_options: {
-       class: "bg-red-500 hover:bg-red-700"
+       role: "button"
      }
    ) %>
 <% end %>
@@ -40,11 +41,12 @@ class ExamplesView < ApplicationView
           end
           render PhlexGreeters::GreeterWithTriggerComponent.new do |greeter|
             greeter.trigger(
-              before_clicked_message: "I'm a button component!",
+              before_clicked_message: "I'm a button, click me!",
               after_clicked_message: "Greeted! Click me again to reset.",
-              actions: [greeter.action(:click, :greet)],
+              stimulus_actions: [greeter.stimulus_action(:click, :greet)],
+              classes: "bg-red-500 hover:bg-red-700",
               html_options: {
-                class: "bg-red-500 hover:bg-red-700"
+                role: "button"
               }
             )
           end
@@ -101,15 +103,15 @@ class ExamplesView < ApplicationView
               "with image and alt and class set at render site (ring)"
             end
             code(class: "block bg-gray-100") do
-              %(render AvatarComponent.new(url: "https://i.pravatar.cc/300", initials: "AB", html_options: {alt: "My alt text", class: "ring-2 ring-red-900"}))
+              %(render AvatarComponent.new(url: "https://i.pravatar.cc/300", initials: "AB", html_options: {alt: "My alt text", classes: "ring-2 ring-red-900"}))
             end
             div(class: "block") do
               render Phlex::AvatarComponent.new(
                 url: "https://i.pravatar.cc/300",
                 initials: "AB",
+                classes: "ring-2 ring-red-900",
                 html_options: {
-                  alt: "My alt text",
-                  class: "ring-2 ring-red-900"
+                  alt: "My alt text"
                 }
               )
             end
@@ -134,15 +136,13 @@ class ExamplesView < ApplicationView
               "with initials and square shape and custom border color (note if using Tailwind you will want to use `vident-tailwind` too to correctly override classes like this)"
             end
             code(class: "block bg-gray-100") do
-              %(render AvatarComponent.new(initials: "SG", shape: :square, html_options: {class: "border-2 border-red-600"}))
+              %(render AvatarComponent.new(initials: "SG", shape: :square, classes: "border-2 border-red-600"))
             end
             div(class: "block") do
               render Phlex::AvatarComponent.new(
                 initials: "SG",
                 shape: :square,
-                html_options: {
-                  class: "border-2 border-red-600"
-                }
+                classes: "border-2 border-red-600"
               )
             end
           end
@@ -150,7 +150,7 @@ class ExamplesView < ApplicationView
           p { "Render an avatar" }
           render Phlex::AvatarComponent.new(initials: "V C")
           br
-          component = Phlex::AvatarComponent.new(initials: "V C", html_options: {class: "bg-red-500"})
+          component = Phlex::AvatarComponent.new(initials: "V C",  classes: "bg-red-900")
           p {
             "The following example sets a background color override using a tailwind utility class (note that sometimes you will find overrides don't work due to CSS specificity. To solve this use the `vident-tailwind` module in your component!)"
           }

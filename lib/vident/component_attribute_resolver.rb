@@ -8,10 +8,9 @@ module Vident
     def prepare_component_attributes
       prepare_stimulus_collections
 
-      # Merge root element attributes into all options
+      # Root element attributes take lowest precedence
       extra = root_element_attributes
-
-      @html_options.merge!(extra[:html_options] || {}) if extra.key?(:html_options)
+      @html_options = (extra[:html_options] || {}).merge(@html_options) if extra.key?(:html_options)
       @html_options[:class] = render_classes(extra[:classes])
       @html_options[:id] = (extra[:id] || id) unless @html_options.key?(:id)
       @element_tag = extra[:element_tag] if extra.key?(:element_tag)

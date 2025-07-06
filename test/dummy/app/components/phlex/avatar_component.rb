@@ -15,7 +15,7 @@ module Phlex
     private
 
     def view_template
-      render root do
+      root_element do
         unless image_avatar?
           span(class: "#{text_size_class} font-medium leading-none text-white") { @initials }
         end
