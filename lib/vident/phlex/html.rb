@@ -39,7 +39,7 @@ module Vident
 
       def check_valid_html_tag!(tag_name)
         unless VALID_TAGS.include?(tag_name)
-          raise ArgumentError, "Unsupported HTML tag name #{tag_name}. Valid tags are: #{VALID_TAGS.to_a.join(', ')}"
+          raise ArgumentError, "Unsupported HTML tag name #{tag_name}. Valid tags are: #{VALID_TAGS.to_a.join(", ")}"
         end
       end
 

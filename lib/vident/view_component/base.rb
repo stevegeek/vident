@@ -18,14 +18,14 @@ module Vident
 
         def template_path
           # Check for common ViewComponent template extensions in order of preference
-          extensions = ['.html.erb', '.erb', '.html.haml', '.haml', '.html.slim', '.slim']
+          extensions = [".html.erb", ".erb", ".html.haml", ".haml", ".html.slim", ".slim"]
           base_path = Rails.root.join(components_base_path, virtual_path)
-          
+
           extensions.each do |ext|
             potential_path = "#{base_path}#{ext}"
             return potential_path if File.exist?(potential_path)
           end
-          
+
           # Return the default .html.erb path if no template is found
           Rails.root.join(components_base_path, "#{virtual_path}.html.erb").to_s
         end

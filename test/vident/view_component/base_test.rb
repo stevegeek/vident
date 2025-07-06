@@ -281,10 +281,10 @@ module Vident
       def test_as_methods_return_html_safe_strings
         result = @component.as_stimulus_target(:button)
         assert result.html_safe?
-        
+
         result = @component.as_stimulus_action(:click)
         assert result.html_safe?
-        
+
         result = @component.as_stimulus_value(:url, "https://example.com")
         assert result.html_safe?
       end

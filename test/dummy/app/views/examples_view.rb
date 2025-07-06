@@ -150,7 +150,7 @@ class ExamplesView < ApplicationView
           p { "Render an avatar" }
           render Phlex::AvatarComponent.new(initials: "V C")
           br
-          component = Phlex::AvatarComponent.new(initials: "V C",  classes: "bg-red-900")
+          component = Phlex::AvatarComponent.new(initials: "V C", classes: "bg-red-900")
           p {
             "The following example sets a background color override using a tailwind utility class (note that sometimes you will find overrides don't work due to CSS specificity. To solve this use the `vident-tailwind` module in your component!)"
           }
