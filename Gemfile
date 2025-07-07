@@ -13,13 +13,8 @@ gem "dry-struct", ">= 1.5.0", "< 2"
 
 require "pathname"
 
-# All vident plugin gemspecs
-# Create absolute path based on fact that gemspecs is next to this file
-gemspecs = Pathname(__FILE__).dirname.join("vident-*.gemspec").expand_path
-Dir[gemspecs].each do |gemspec|
-  plugin = gemspec.scan(/vident-(.*)\.gemspec/).flatten.first
-  gemspec(name: "vident-#{plugin}")
-end
+gemspec name: "vident-phlex"
+gemspec name: "vident-view_component"
 
 # Development and testing gems
 gem "appraisal"
