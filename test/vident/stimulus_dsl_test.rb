@@ -3,27 +3,27 @@
 require "test_helper"
 
 class StimulusDSLTest < ActiveSupport::TestCase
-  # Test component class that includes StimulusDSL
-  class TestComponent
-    include Vident::StimulusDSL
-    
-    def initialize
-      @test_prop = "test_value"
-      @another_prop = 42
-    end
-    
-    def instance_variable_get(name)
-      super(name)
-    end
-    
-    def instance_variable_defined?(name)
-      super(name)
-    end
-  end
 
   def setup
-    @component_class = TestComponent
-    @component = TestComponent.new
+    # Create a fresh component class for each test to avoid state sharing
+    @component_class = Class.new do
+      include Vident::StimulusDSL
+      
+      def initialize(**props)
+        props.each { |key, value| instance_variable_set("@#{key}", value) }
+        @test_prop = "test_value"
+        @another_prop = 42
+      end
+      
+      def instance_variable_get(name)
+        super(name)
+      end
+      
+      def instance_variable_defined?(name)
+        super(name)
+      end
+    end
+    @component = @component_class.new
   end
 
   def test_stimulus_dsl_module_included
@@ -93,7 +93,7 @@ class StimulusDSLTest < ActiveSupport::TestCase
     end
     
     dsl_attrs = @component_class.stimulus_dsl_attributes
-    expected = [{ modal: ".modal", tooltip: ".tooltip" }]
+    expected = { modal: ".modal", tooltip: ".tooltip" }
     assert_equal expected, dsl_attrs[:stimulus_outlets]
   end
 
@@ -112,7 +112,7 @@ class StimulusDSLTest < ActiveSupport::TestCase
     assert_equal [:button, :form], dsl_attrs[:stimulus_targets]
     assert_equal({ name: :auto_map_from_prop, count: :auto_map_from_prop }, dsl_attrs[:stimulus_values])
     assert_equal({ loading: "opacity-50", active: "bg-blue-500" }, dsl_attrs[:stimulus_classes])
-    assert_equal([{ modal: ".modal" }], dsl_attrs[:stimulus_outlets])
+    assert_equal({ modal: ".modal" }, dsl_attrs[:stimulus_outlets])
   end
 
   def test_multiple_stimulus_blocks_merge
@@ -241,7 +241,7 @@ class StimulusDSLTest < ActiveSupport::TestCase
     end
     
     dsl_attrs = @component_class.stimulus_dsl_attributes
-    expected = [{ modal: ".modal" }, { tooltip: ".tooltip", dropdown: ".dropdown" }]
+    expected = { modal: ".modal", tooltip: ".tooltip", dropdown: ".dropdown" }
     assert_equal expected, dsl_attrs[:stimulus_outlets]
   end
 end

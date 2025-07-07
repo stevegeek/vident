@@ -23,7 +23,7 @@ module Vident
       def stimulus_controller? = !@no_stimulus_controller
 
       # The "path" of the Stimulus controller, which is used to generate the controller name.
-      def stimulus_identifier_path = name.underscore
+      def stimulus_identifier_path = name&.underscore || "anonymous_component"
 
       # Stimulus controller identifier
       def stimulus_identifier = ::Vident::StimulusComponent.stimulus_identifier_from_path(stimulus_identifier_path)

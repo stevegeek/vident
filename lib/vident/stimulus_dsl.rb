@@ -10,44 +10,58 @@ module Vident
         @targets = []
         @values = {}
         @classes = {}
-        @outlets = []
+        @outlets = {}
       end
 
       def actions(*action_names)
         @actions.concat(action_names)
+        self
       end
 
       def targets(*target_names)
         @targets.concat(target_names)
+        self
       end
 
-      def values(*value_names)
+      def values(*value_names, **value_hash)
+        # Handle hash as first argument: values({ name: "test", count: 42 })
         if value_names.length == 1 && value_names.first.is_a?(Hash)
-          # Hash format: values name: "default_value", other: "other_default"
           @values.merge!(value_names.first)
         else
-          # Symbol format: values :name, :other (will be mapped from props with same names)
+          # Handle symbol arguments: values :name, :other (will be mapped from props with same names)
           value_names.each { |name| @values[name] = :auto_map_from_prop }
         end
+        
+        # Handle hash arguments: values name: "default_value", other: "other_default"
+        @values.merge!(value_hash) unless value_hash.empty?
+        
+        self
       end
 
       def classes(**class_mappings)
         @classes.merge!(class_mappings)
+        self
       end
 
       def outlets(**outlet_mappings)
-        @outlets << outlet_mappings unless outlet_mappings.empty?
+        @outlets.merge!(outlet_mappings) unless outlet_mappings.empty?
+        self
       end
 
       def to_attributes
         attrs = {}
-        attrs[:stimulus_actions] = @actions unless @actions.empty?
-        attrs[:stimulus_targets] = @targets unless @targets.empty?
-        attrs[:stimulus_values] = resolve_values unless @values.empty?
-        attrs[:stimulus_classes] = @classes unless @classes.empty?
-        attrs[:stimulus_outlets] = @outlets unless @outlets.empty?
+        attrs[:stimulus_actions] = @actions.dup unless @actions.empty?
+        attrs[:stimulus_targets] = @targets.dup unless @targets.empty?
+        attrs[:stimulus_values] = resolve_values.dup unless @values.empty?
+        attrs[:stimulus_classes] = @classes.dup unless @classes.empty?
+        attrs[:stimulus_outlets] = @outlets.dup unless @outlets.empty?
         attrs
       end
+
+      def to_hash
+        to_attributes
+      end
+      alias_method :to_h, :to_hash
 
       private
 
@@ -74,7 +88,7 @@ module Vident
             @stimulus_builder.instance_variable_get(:@targets).concat(parent_attrs[:stimulus_targets] || [])
             @stimulus_builder.instance_variable_get(:@values).merge!(parent_attrs[:stimulus_values] || {})
             @stimulus_builder.instance_variable_get(:@classes).merge!(parent_attrs[:stimulus_classes] || {})
-            @stimulus_builder.instance_variable_get(:@outlets).concat(parent_attrs[:stimulus_outlets] || [])
+            @stimulus_builder.instance_variable_get(:@outlets).merge!(parent_attrs[:stimulus_outlets] || {})
           end
           @inheritance_merged = true
         end
@@ -101,7 +115,9 @@ module Vident
       dsl_values.each do |name, value|
         if value == :auto_map_from_prop
           # Auto-map from instance variable if it exists
-          resolved[name] = instance_variable_get("@#{name}") if instance_variable_defined?("@#{name}")
+          if instance_variable_defined?("@#{name}")
+            resolved[name] = instance_variable_get("@#{name}")
+          end
         else
           resolved[name] = value
         end

@@ -10,7 +10,7 @@ module Vident
     def test_single_symbol_argument
       action = StimulusAction.new(:my_action, implied_controller: @implied_controller)
       assert_equal "foo--my-controller#myAction", action.to_s
-      assert_equal nil, action.event
+      assert_nil action.event
       assert_equal "foo--my-controller", action.controller
       assert_equal "myAction", action.action
     end
@@ -18,7 +18,7 @@ module Vident
     def test_single_string_argument_without_event
       action = StimulusAction.new("other--controller#someAction", implied_controller: @implied_controller)
       assert_equal "other--controller#someAction", action.to_s
-      assert_equal nil, action.event
+      assert_nil action.event
       assert_equal "other--controller", action.controller
       assert_equal "someAction", action.action
     end
@@ -42,7 +42,7 @@ module Vident
     def test_string_and_symbol_arguments
       action = StimulusAction.new("path/to/controller", :my_action, implied_controller: @implied_controller)
       assert_equal "path--to--controller#myAction", action.to_s
-      assert_equal nil, action.event
+      assert_nil action.event
       assert_equal "path--to--controller", action.controller
       assert_equal "myAction", action.action
     end

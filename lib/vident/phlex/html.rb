@@ -28,11 +28,19 @@ module Vident
       # Helper to create the main element
       def root_element(&block)
         tag_type = root_element_tag_type
-        content = capture(self, &block) if block_given? # Evaluate before generating the outer tag options to ensure DSL methods are executed
-        options = root_element_tag_options
         check_valid_html_tag!(tag_type)
-        block = proc { raw content } if content
-        send(tag_type, **options, &block)
+        # Evaluate before generating the outer tag options to ensure DSL methods are executed
+        if block_given?
+          content = capture(self, &block).html_safe
+          options = root_element_tag_options
+          if content
+            send(tag_type, **options) { content }
+          else
+            send(tag_type, **options)
+          end
+        else
+          send(tag_type, **root_element_tag_options)
+        end
       end
 
       private

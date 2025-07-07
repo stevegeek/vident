@@ -226,7 +226,7 @@ class Greeters::GreeterWithTriggerComponentTest < ViewComponent::TestCase
 
   def test_component_class_name
     expected_class_name = "greeters--greeter-with-trigger-component"
-    assert_equal expected_class_name, Greeters::GreeterWithTriggerComponent.component_class_name
+    assert_equal expected_class_name, Greeters::GreeterWithTriggerComponent.component_name
   end
 
   def test_component_inheritance_chain
@@ -307,8 +307,8 @@ class Greeters::GreeterWithTriggerComponentTest < ViewComponent::TestCase
     assert_equal expected_path, Greeters::GreeterWithTriggerComponent.components_base_path
   end
 
-  def test_current_component_modified_time_class_method
-    modified_time = Greeters::GreeterWithTriggerComponent.current_component_modified_time
+  def test_cache_component_modified_time_class_method
+    modified_time = Greeters::GreeterWithTriggerComponent.cache_component_modified_time
     assert_instance_of String, modified_time
 
     refute_empty modified_time, "Modified time should not be empty when both component and template files exist"
@@ -317,16 +317,16 @@ class Greeters::GreeterWithTriggerComponentTest < ViewComponent::TestCase
     assert modified_time.length > 10, "Should be concatenated timestamps from both files"
   end
 
-  def test_sidecar_view_modified_time_class_method
-    modified_time = Greeters::GreeterWithTriggerComponent.sidecar_view_modified_time
+  def test_cache_sidecar_view_modified_time_class_method
+    modified_time = Greeters::GreeterWithTriggerComponent.cache_sidecar_view_modified_time
     assert_instance_of String, modified_time
 
     refute_empty modified_time, "Should return modified time for existing .erb template"
     assert_match(/\A\d+\z/, modified_time)
   end
 
-  def test_rb_component_modified_time_class_method
-    modified_time = Greeters::GreeterWithTriggerComponent.rb_component_modified_time
+  def test_cache_rb_component_modified_time_class_method
+    modified_time = Greeters::GreeterWithTriggerComponent.cache_rb_component_modified_time
     assert_instance_of String, modified_time
 
     refute_empty modified_time, "Should return modified time for existing component"

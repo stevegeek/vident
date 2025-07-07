@@ -81,8 +81,17 @@ module Vident
     def stimulus_outlets(*outlets)
       return StimulusOutletCollection.new if outlets.empty? || outlets.all?(&:blank?)
 
-      converted_outlets = outlets.map do |outlet|
-        outlet.is_a?(Array) ? stimulus_outlet(*outlet) : stimulus_outlet(outlet)
+      converted_outlets = []
+      outlets.each do |outlet|
+        if outlet.is_a?(Hash)
+          # Hash format: {name: selector, other_name: other_selector} - expands to multiple outlets
+          outlet.each { |name, selector| converted_outlets << stimulus_outlet(name, selector) }
+        elsif outlet.is_a?(Array)
+          # Array format: [name, selector] - splat into stimulus_outlet
+          converted_outlets << stimulus_outlet(*outlet)
+        else
+          converted_outlets << stimulus_outlet(outlet)
+        end
       end
       StimulusOutletCollection.new(converted_outlets)
     end

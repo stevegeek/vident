@@ -3,16 +3,18 @@
 require "test_helper"
 
 class StimulusDSLPhlexIntegrationTest < ActionView::TestCase
-  include Phlex::Testing::ViewHelper
+  # Helper method to render Phlex components
+  def render(component)
+    component.call
+  end
 
   # Test Phlex component that uses the stimulus DSL
-  class TestCardComponent < Phlex::HTML
-    include Vident::Component
+  class TestCardComponent < Vident::Phlex::HTML
     
     prop :title, String, default: "Card"
     prop :collapsed, _Boolean, default: false
     prop :loading, _Boolean, default: false
-    prop :url, String
+    prop :url, _Nilable(String)
     prop :variant, String, default: "default"
     
     stimulus do
@@ -26,18 +28,18 @@ class StimulusDSLPhlexIntegrationTest < ActionView::TestCase
         error: "border-red-500 bg-red-50",
         success: "border-green-500 bg-green-50"
       )
-      outlets notification: "[data-controller='notification']"
+      outlets(notification: "[data-controller='notification']")
     end
     
     def view_template
-      div(**root_element_attributes[:html_options]) do
-        div(class: "card-header", **as_stimulus_target(:header)) do
+      root_element do |component|
+        div(class: "card-header", data: component.stimulus_target(:header).to_h) do
           h3 { @title }
-          button(**as_stimulus_target(:toggle_button)) { "Toggle" }
+          button(data: component.stimulus_target(:toggle_button).to_h) { "Toggle" }
         end
-        div(class: "card-body", **as_stimulus_target(:body)) do
+        div(class: "card-body", data: component.stimulus_target(:body).to_h) do
           if @loading
-            div(**as_stimulus_target(:spinner)) { "Loading..." }
+            div(data: component.stimulus_target(:spinner).to_h) { "Loading..." }
           else
             p { "Card content here" }
           end
@@ -47,8 +49,7 @@ class StimulusDSLPhlexIntegrationTest < ActionView::TestCase
   end
 
   # Test Phlex component with multiple stimulus blocks
-  class TestFormComponent < Phlex::HTML
-    include Vident::Component
+  class TestFormComponent < Vident::Phlex::HTML
     
     prop :action, String, default: "/submit"
     prop :method, String, default: "POST"
@@ -67,18 +68,21 @@ class StimulusDSLPhlexIntegrationTest < ActionView::TestCase
       classes invalid: "border-red-500", valid: "border-green-500"
     end
     
+    def root_element_attributes
+      {element_tag: :form}
+    end
+    
     def view_template
-      form(**root_element_attributes[:html_options]) do
-        input(type: "text", **as_stimulus_target(:input))
-        div(**as_stimulus_target(:error))
-        button(type: "submit", **as_stimulus_target(:submit_button)) { "Submit" }
+      root_element do |component|
+        input(type: "text", data: component.stimulus_target(:input).to_h)
+        div(data: component.stimulus_target(:error).to_h) # error container
+        button(type: "submit", data: component.stimulus_target(:submit_button).to_h) { "Submit" }
       end
     end
   end
 
   # Test Phlex inheritance
-  class BasePhlexComponent < Phlex::HTML
-    include Vident::Component
+  class BasePhlexComponent < Vident::Phlex::HTML
     
     stimulus do
       actions :click
@@ -97,9 +101,9 @@ class StimulusDSLPhlexIntegrationTest < ActionView::TestCase
     end
     
     def view_template
-      div(**root_element_attributes[:html_options]) do
-        span(**as_stimulus_target(:base)) { "Base" }
-        span(**as_stimulus_target(:child)) { @content }
+      root_element do |component|
+        span(data: component.stimulus_target(:base).to_h) { "Base" }
+        span(data: component.stimulus_target(:child).to_h) { @content }
       end
     end
   end
@@ -171,7 +175,7 @@ class StimulusDSLPhlexIntegrationTest < ActionView::TestCase
     
     collapsed_key = data_attrs.keys.find { |k| k.include?("collapsed-value") }
     assert collapsed_key
-    assert_equal true, data_attrs[collapsed_key]
+    assert_equal "true", data_attrs[collapsed_key]
     
     variant_key = data_attrs.keys.find { |k| k.include?("variant-value") }
     assert variant_key
@@ -215,7 +219,7 @@ class StimulusDSLPhlexIntegrationTest < ActionView::TestCase
     # The exact format depends on the controller name, but targets should be present
     assert_match(/data-[^=]+-target="[^"]*header[^"]*"/, output)
     assert_match(/data-[^=]+-target="[^"]*body[^"]*"/, output)
-    assert_match(/data-[^=]+-target="[^"]*toggle_button[^"]*"/, output)
+    assert_match(/data-[^=]+-target="[^"]*toggleButton[^"]*"/, output)
   end
 
   def test_phlex_multi_block_component_merging
@@ -321,8 +325,7 @@ class StimulusDSLPhlexIntegrationTest < ActionView::TestCase
   end
 
   def test_phlex_empty_dsl_block_does_not_break_component
-    component_class = Class.new(Phlex::HTML) do
-      include Vident::Component
+    component_class = Class.new(Vident::Phlex::HTML) do
       
       stimulus do
         # Empty block
@@ -340,13 +343,13 @@ class StimulusDSLPhlexIntegrationTest < ActionView::TestCase
       render component
     end
     
-    output = render component
+    # Create a new instance for the second render
+    output = render component_class.new
     assert_includes output, "Empty DSL"
   end
 
   def test_phlex_dsl_with_no_props_still_works
-    component_class = Class.new(Phlex::HTML) do
-      include Vident::Component
+    component_class = Class.new(Vident::Phlex::HTML) do
       
       stimulus do
         actions :click
@@ -354,9 +357,15 @@ class StimulusDSLPhlexIntegrationTest < ActionView::TestCase
         values static: "value"
         classes active: "active"
       end
+
+      def root_element_attributes
+        {element_tag: :button}
+      end
       
       def view_template
-        button(**root_element_attributes[:html_options]) { "No Props" }
+        root_element do
+          "No Props"
+        end
       end
     end
     
@@ -377,10 +386,11 @@ class StimulusDSLPhlexIntegrationTest < ActionView::TestCase
     assert_includes output, "card-header"
     assert_includes output, "card-body"
     
-    # Should have multiple targets on different elements
-    header_matches = output.scan(/data-[^=]+-target="[^"]*header[^"]*"/).length
-    body_matches = output.scan(/data-[^=]+-target="[^"]*body[^"]*"/).length
-    button_matches = output.scan(/data-[^=]+-target="[^"]*toggle_button[^"]*"/).length
+    # Should have multiple targets on different elements (excluding the root element's target list)
+    # Look for individual target assignments, not the root element's comprehensive target list
+    header_matches = output.scan(/class="card-header"[^>]*data-[^=]+-target="header"/).length
+    body_matches = output.scan(/class="card-body"[^>]*data-[^=]+-target="body"/).length  
+    button_matches = output.scan(/<button[^>]*data-[^=]+-target="toggleButton"/).length
     
     assert_equal 1, header_matches
     assert_equal 1, body_matches

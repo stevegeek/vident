@@ -244,8 +244,8 @@ class StimulusDSLEdgeCasesTest < ActiveSupport::TestCase
     resolved = component.send(:resolve_stimulus_dsl_values, @component_class.stimulus_dsl_attributes[:stimulus_values])
     
     expected = {
-      existing_prop: "exists",
-      non_existent: nil  # Should be nil for non-existent instance variables
+      existing_prop: "exists"
+      # non_existent should not be included since the instance variable doesn't exist
     }
     assert_equal expected, resolved
   end
@@ -355,7 +355,7 @@ class StimulusDSLEdgeCasesTest < ActiveSupport::TestCase
       actions(*(1..500).map { |i| "action_#{i}".to_sym })
       targets(*(1..500).map { |i| "target_#{i}".to_sym })
       values((1..500).map { |i| ["value_#{i}".to_sym, "value_#{i}"] }.to_h)
-      classes((1..500).map { |i| ["class_#{i}".to_sym, "class_#{i}"] }.to_h)
+      classes(**((1..500).map { |i| ["class_#{i}".to_sym, "class_#{i}"] }.to_h))
     end
     
     dsl_attrs = large_component_class.stimulus_dsl_attributes

@@ -4,15 +4,15 @@ require "test_helper"
 
 class StimulusBuilderTest < ActiveSupport::TestCase
   def setup
-    @builder = Vident::StimulusBuilder.new
+    @builder = Vident::StimulusDSL::StimulusBuilder.new
   end
 
   def test_initial_state
     assert_equal [], @builder.instance_variable_get(:@actions)
     assert_equal [], @builder.instance_variable_get(:@targets)
-    assert_equal({}, @builder.instance_variable_get(:@values)
-    assert_equal({}, @builder.instance_variable_get(:@classes)
-    assert_equal({}, @builder.instance_variable_get(:@outlets)
+    assert_equal({}, @builder.instance_variable_get(:@values))
+    assert_equal({}, @builder.instance_variable_get(:@classes))
+    assert_equal({}, @builder.instance_variable_get(:@outlets))
   end
 
   def test_actions_with_symbols
@@ -154,7 +154,7 @@ class StimulusBuilderTest < ActiveSupport::TestCase
     assert_equal expected, @builder.instance_variable_get(:@outlets)
   end
 
-  def test_outlets_overwrites_existing_keys
+  def test_outlets_with_second_call_overwrites_key
     @builder.outlets(modal: ".first-modal")
     @builder.outlets(modal: ".second-modal")
     
@@ -193,7 +193,7 @@ class StimulusBuilderTest < ActiveSupport::TestCase
     assert_equal({ modal: ".modal" }, @builder.instance_variable_get(:@outlets))
   end
 
-  def test_build_method_returns_complete_attributes
+  def test_to_attributes_method_returns_complete_attributes
     @builder
       .actions(:click, :submit)
       .targets(:button, :form)
@@ -201,7 +201,7 @@ class StimulusBuilderTest < ActiveSupport::TestCase
       .classes(loading: "opacity-50", active: "bg-blue-500")
       .outlets(modal: ".modal")
     
-    result = @builder.build
+    result = @builder.to_attributes
     
     expected = {
       stimulus_actions: [:click, :submit],
@@ -214,46 +214,46 @@ class StimulusBuilderTest < ActiveSupport::TestCase
     assert_equal expected, result
   end
 
-  def test_build_method_with_empty_builder
-    result = @builder.build
+  def test_to_attributes_method_with_empty_builder
+    result = @builder.to_attributes
     
-    expected = {
-      stimulus_actions: [],
-      stimulus_targets: [],
-      stimulus_values: {},
-      stimulus_classes: {},
-      stimulus_outlets: {}
-    }
+    # Empty builder returns empty hash since all collections are empty
+    expected = {}
     
     assert_equal expected, result
   end
 
-  def test_build_method_filters_empty_collections
+  def test_to_attributes_method_filters_empty_collections
     @builder.actions(:click)
     # Leave targets, values, classes, outlets empty
     
-    result = @builder.build
+    result = @builder.to_attributes
     
+    # Only non-empty collections are included
     expected = {
-      stimulus_actions: [:click],
-      stimulus_targets: [],
-      stimulus_values: {},
-      stimulus_classes: {},
-      stimulus_outlets: {}
+      stimulus_actions: [:click]
     }
     
     assert_equal expected, result
   end
 
-  def test_builder_is_reusable
+  def test_builder_accumulates_values
     @builder.actions(:click)
-    first_result = @builder.build
+    first_result = @builder.to_attributes
     
     @builder.actions(:submit)
-    second_result = @builder.build
+    second_result = @builder.to_attributes
     
+    # Builder accumulates actions across calls - first_result reflects current state when called
+    # Since to_attributes returns current state, both results will be the same as the builder accumulates
     assert_equal [:click], first_result[:stimulus_actions]
     assert_equal [:click, :submit], second_result[:stimulus_actions]
+    
+    # Verify first result was captured correctly at that point in time
+    fresh_builder = Vident::StimulusDSL::StimulusBuilder.new
+    fresh_builder.actions(:click)
+    fresh_result = fresh_builder.to_attributes
+    assert_equal [:click], fresh_result[:stimulus_actions]
   end
 
   def test_complex_realistic_example
@@ -278,7 +278,7 @@ class StimulusBuilderTest < ActiveSupport::TestCase
         modal: ".modal-container"
       )
     
-    result = @builder.build
+    result = @builder.to_attributes
     
     assert_equal [:click, :mouseenter, :mouseleave, :focus, :blur], result[:stimulus_actions]
     assert_equal [:button, :icon, :tooltip, :spinner], result[:stimulus_targets]

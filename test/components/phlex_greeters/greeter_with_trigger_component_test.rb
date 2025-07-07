@@ -168,7 +168,7 @@ class PhlexGreeters::GreeterWithTriggerComponentTest < ActionView::TestCase
 
   def test_component_class_name
     expected_class_name = "phlex-greeters--greeter-with-trigger-component"
-    assert_equal expected_class_name, PhlexGreeters::GreeterWithTriggerComponent.component_class_name
+    assert_equal expected_class_name, PhlexGreeters::GreeterWithTriggerComponent.component_name
   end
 
   # Test rendering with a simple approach similar to the Phlex documentation
@@ -250,8 +250,8 @@ class PhlexGreeters::GreeterWithTriggerComponentTest < ActionView::TestCase
   end
 
   # Test for Vident::Phlex::HTML class methods
-  def test_current_component_modified_time_class_method
-    modified_time = PhlexGreeters::GreeterWithTriggerComponent.current_component_modified_time
+  def test_cache_component_modified_time_class_method
+    modified_time = PhlexGreeters::GreeterWithTriggerComponent.cache_component_modified_time
     assert_instance_of String, modified_time
     refute_empty modified_time
     assert_match(/\A\d+\z/, modified_time)
