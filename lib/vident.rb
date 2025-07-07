@@ -45,6 +45,7 @@ require "vident/class_list_builder"
 require "vident/stimulus_component"
 require "vident/component_class_lists"
 require "vident/component_attribute_resolver"
+require "vident/stimulus_builder"
 require "vident/stimulus_dsl"
 
 require "vident/component"

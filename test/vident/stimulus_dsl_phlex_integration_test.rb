@@ -110,7 +110,7 @@ class StimulusDSLPhlexIntegrationTest < ActionView::TestCase
   end
 
   def test_phlex_dsl_attributes_collected_correctly
-    dsl_attrs = TestCardComponent.stimulus_dsl_attributes
+    dsl_attrs = TestCardComponent.stimulus_dsl_attributes(TestCardComponent.new)
     
     assert_equal [:click, :toggle, :expand, :collapse], dsl_attrs[:stimulus_actions]
     assert_equal [:header, :body, :toggle_button, :spinner], dsl_attrs[:stimulus_targets]
@@ -145,7 +145,7 @@ class StimulusDSLPhlexIntegrationTest < ActionView::TestCase
     component = TestCardComponent.new(title: "My Card", collapsed: false, loading: true, url: "/api/card")
     
     # Test prop mapping
-    values_from_props = component.class.stimulus_dsl_attributes[:stimulus_values_from_props]
+    values_from_props = component.class.stimulus_dsl_attributes(component)[:stimulus_values_from_props]
     resolved_from_props = component.send(:resolve_values_from_props, values_from_props)
     
     expected_from_props = {
@@ -157,7 +157,7 @@ class StimulusDSLPhlexIntegrationTest < ActionView::TestCase
     assert_equal expected_from_props, resolved_from_props
     
     # Test static values
-    static_values = component.class.stimulus_dsl_attributes[:stimulus_values]
+    static_values = component.class.stimulus_dsl_attributes(component)[:stimulus_values]
     expected_static = { variant: "card" }
     assert_equal expected_static, static_values
   end
@@ -226,7 +226,7 @@ class StimulusDSLPhlexIntegrationTest < ActionView::TestCase
   end
 
   def test_phlex_multi_block_component_merging
-    dsl_attrs = TestFormComponent.stimulus_dsl_attributes
+    dsl_attrs = TestFormComponent.stimulus_dsl_attributes(TestFormComponent.new)
     
     # Actions from both blocks
     assert_equal [:submit, :reset, :change, :input], dsl_attrs[:stimulus_actions]
@@ -263,8 +263,8 @@ class StimulusDSLPhlexIntegrationTest < ActionView::TestCase
   end
 
   def test_phlex_inheritance_merging
-    parent_attrs = BasePhlexComponent.stimulus_dsl_attributes
-    child_attrs = ChildPhlexComponent.stimulus_dsl_attributes
+    parent_attrs = BasePhlexComponent.stimulus_dsl_attributes(BasePhlexComponent.new)
+    child_attrs = ChildPhlexComponent.stimulus_dsl_attributes(ChildPhlexComponent.new)
     
     # Parent should have its own attributes
     assert_equal [:click], parent_attrs[:stimulus_actions]

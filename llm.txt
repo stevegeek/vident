@@ -47,14 +47,38 @@ stimulus do
   # Define targets for DOM element references
   targets :button, :content
   
-  # Define static values
-  values animation_duration: 300, enabled: true
+  # Define static and dynamic values
+  values(
+    animation_duration: 300,
+    enabled: true,
+    # Dynamic values using procs (evaluated in component context)
+    item_count: -> { @items.count },
+    loading_state: proc { @loading ? "loading" : "idle" },
+    api_url: -> { Rails.application.routes.url_helpers.api_items_path }
+  )
   
   # Map component props as Stimulus values
   values_from_props :count, :title
   
-  # Define CSS classes for different states
-  classes expanded: "block", collapsed: "hidden", loading: "opacity-50"
+  # Define static and dynamic CSS classes
+  classes(
+    base: "component",
+    expanded: "block", 
+    collapsed: "hidden",
+    # Dynamic classes using procs
+    loading: -> { @loading ? "opacity-50" : "" },
+    size: proc { @items.count > 10 ? "large" : "small" }
+  )
+  
+  # Dynamic actions and targets using procs
+  # Each proc returns a single value (even if it's an array)
+  actions -> { @loading ? [] : [:click, :submit] }
+  targets -> { @expanded ? [:content, :toggle] : [:toggle] }
+  
+  # For multiple values, use multiple procs
+  actions -> { @can_edit ? :edit : nil },
+          -> { @can_delete ? :delete : nil },
+          :cancel  # static value
   
   # Define outlets for connecting to other controllers
   outlets modal: "#modal-id"
@@ -62,6 +86,21 @@ end
 
 # Disable Stimulus entirely
 no_stimulus_controller
+```
+
+## Proc Behavior
+Each proc returns a single value for its stimulus attribute. If a proc returns an array, that entire array is treated as one value, not multiple separate values. To provide multiple values for an attribute, use multiple procs or mix procs with static values.
+
+```ruby
+stimulus do
+  # Single proc = single value (even if array)
+  actions -> { @enabled ? [:click, :submit] : :disabled }
+  
+  # Multiple procs = multiple values
+  actions -> { @can_edit ? :edit : nil },
+          -> { @can_save ? :save : nil },
+          :cancel
+end
 ```
 
 ## Manual Stimulus Configuration

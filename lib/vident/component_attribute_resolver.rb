@@ -28,7 +28,7 @@ module Vident
 
     # Add stimulus attributes from DSL declarations using existing add_* methods
     def add_stimulus_attributes_from_dsl
-      dsl_attrs = self.class.stimulus_dsl_attributes
+      dsl_attrs = self.class.stimulus_dsl_attributes(self)
       return if dsl_attrs.empty?
 
       # Use existing add_* methods to integrate DSL attributes
@@ -37,7 +37,7 @@ module Vident
       add_stimulus_targets(dsl_attrs[:stimulus_targets]) if dsl_attrs[:stimulus_targets]
       add_stimulus_outlets(dsl_attrs[:stimulus_outlets]) if dsl_attrs[:stimulus_outlets]
       
-      # Add static values
+      # Add static values (now includes resolved proc values)
       add_stimulus_values(dsl_attrs[:stimulus_values]) if dsl_attrs[:stimulus_values]
       
       # Resolve and add values from props

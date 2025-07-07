@@ -53,7 +53,7 @@ class ButtonComponentTest < ViewComponent::TestCase
   end
   
   def test_stimulus_dsl_attributes_configured_correctly
-    dsl_attrs = ButtonComponent.stimulus_dsl_attributes
+    dsl_attrs = ButtonComponent.stimulus_dsl_attributes(ButtonComponent.new)
     
     assert_includes dsl_attrs[:stimulus_actions], [:click, :handle_click]
     assert_equal({ loading_duration: 1000 }, dsl_attrs[:stimulus_values])
@@ -65,7 +65,7 @@ class ButtonComponentTest < ViewComponent::TestCase
     component = ButtonComponent.new(clicked_count: 10)
     
     # Test the prop mapping
-    values_from_props = component.class.stimulus_dsl_attributes[:stimulus_values_from_props]
+    values_from_props = component.class.stimulus_dsl_attributes(component)[:stimulus_values_from_props]
     resolved_values = component.send(:resolve_values_from_props, values_from_props)
     
     assert_equal({ clicked_count: 10 }, resolved_values)

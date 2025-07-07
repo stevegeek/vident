@@ -81,7 +81,12 @@ class ButtonComponent < Vident::ViewComponent::Base
     values loading_duration: 1000
     # Map the clicked_count prop as a Stimulus value
     values_from_props :clicked_count
+    # Dynamic values using procs (evaluated in component context)
+    values item_count: -> { @items.count }
+    values api_url: -> { Rails.application.routes.url_helpers.api_items_path }
+    # Static and dynamic classes
     classes loading: "opacity-50 cursor-wait"
+    classes size: -> { @items.count > 10 ? "large" : "small" }
   end
 
   def call
@@ -302,6 +307,10 @@ class ToggleComponent < Vident::ViewComponent::Base
     # Define static values
     values animation_duration: 300
     
+    # Define dynamic values using procs (evaluated in component context)
+    values item_count: -> { @items.count }
+    values current_state: proc { expanded? ? "open" : "closed" }
+    
     # Map values from component props
     values_from_props :expanded
     
@@ -310,6 +319,65 @@ class ToggleComponent < Vident::ViewComponent::Base
             collapsed: "hidden",
             transitioning: "opacity-50"
   end
+end
+```
+
+### Dynamic Values and Classes with Procs
+
+The Stimulus DSL supports dynamic values and classes using procs or lambdas that are evaluated in the component instance context:
+
+```ruby
+class DynamicComponent < Vident::ViewComponent::Base
+  prop :items, _Array(Hash), default: -> { [] }
+  prop :loading, _Boolean, default: false
+  prop :user, _Nilable(User)
+  
+  stimulus do
+    # Mix static and dynamic values in a single call
+    values(
+      static_config: "always_same",
+      item_count: -> { @items.count },
+      loading_state: proc { @loading ? "loading" : "idle" },
+      user_role: -> { @user&.role || "guest" },
+      api_endpoint: -> { Rails.application.routes.url_helpers.api_items_path }
+    )
+    
+    # Mix static and dynamic classes
+    classes(
+      base: "component-container",
+      loading: -> { @loading ? "opacity-50 cursor-wait" : "" },
+      size: proc { @items.count > 10 ? "large" : "small" },
+      theme: -> { current_user&.dark_mode? ? "dark" : "light" }
+    )
+    
+    # Dynamic actions and targets
+    actions -> { @loading ? [] : [:click, :submit] }
+    targets -> { @expanded ? [:content, :toggle] : [:toggle] }
+  end
+  
+  private
+  
+  def current_user
+    @current_user ||= User.current
+  end
+end
+```
+
+Procs have access to instance variables, component methods, and Rails helpers.
+
+**Important**: Each proc returns a single value for its corresponding stimulus attribute. If a proc returns an array, that entire array is treated as a single value, not multiple separate values. To provide multiple values for an attribute, use multiple procs or mix procs with static values:
+
+```ruby
+stimulus do
+  # Single proc returns a single value (even if it's an array)
+  actions -> { @expanded ? [:click, :submit] : :click }
+  
+  # Multiple procs provide multiple values
+  actions -> { @can_edit ? :edit : nil },
+          -> { @can_delete ? :delete : nil },
+          :cancel  # static value
+  
+  # This results in: [:edit, :delete, :cancel] (assuming both conditions are true)
 end
 ```
 

@@ -4,7 +4,8 @@ require "test_helper"
 
 class StimulusBuilderTest < ActiveSupport::TestCase
   def setup
-    @builder = Vident::StimulusDSL::StimulusBuilder.new
+    @builder = Vident::StimulusBuilder.new
+    @mock_component = Object.new
   end
 
   def test_initial_state
@@ -190,7 +191,7 @@ class StimulusBuilderTest < ActiveSupport::TestCase
       .classes(loading: "opacity-50", active: "bg-blue-500")
       .outlets(modal: ".modal")
     
-    result = @builder.to_attributes
+    result = @builder.to_attributes(@mock_component)
     
     expected = {
       stimulus_actions: [:click, :submit],
@@ -204,7 +205,7 @@ class StimulusBuilderTest < ActiveSupport::TestCase
   end
 
   def test_to_attributes_method_with_empty_builder
-    result = @builder.to_attributes
+    result = @builder.to_attributes(@mock_component)
     
     # Empty builder returns empty hash since all collections are empty
     expected = {}
@@ -216,7 +217,7 @@ class StimulusBuilderTest < ActiveSupport::TestCase
     @builder.actions(:click)
     # Leave targets, values, classes, outlets empty
     
-    result = @builder.to_attributes
+    result = @builder.to_attributes(@mock_component)
     
     # Only non-empty collections are included
     expected = {
@@ -228,10 +229,10 @@ class StimulusBuilderTest < ActiveSupport::TestCase
 
   def test_builder_accumulates_values
     @builder.actions(:click)
-    first_result = @builder.to_attributes
+    first_result = @builder.to_attributes(@mock_component)
     
     @builder.actions(:submit)
-    second_result = @builder.to_attributes
+    second_result = @builder.to_attributes(@mock_component)
     
     # Builder accumulates actions across calls - first_result reflects current state when called
     # Since to_attributes returns current state, both results will be the same as the builder accumulates
@@ -239,9 +240,9 @@ class StimulusBuilderTest < ActiveSupport::TestCase
     assert_equal [:click, :submit], second_result[:stimulus_actions]
     
     # Verify first result was captured correctly at that point in time
-    fresh_builder = Vident::StimulusDSL::StimulusBuilder.new
+    fresh_builder = Vident::StimulusBuilder.new
     fresh_builder.actions(:click)
-    fresh_result = fresh_builder.to_attributes
+    fresh_result = fresh_builder.to_attributes(@mock_component)
     assert_equal [:click], fresh_result[:stimulus_actions]
   end
 
@@ -267,7 +268,7 @@ class StimulusBuilderTest < ActiveSupport::TestCase
         modal: ".modal-container"
       )
     
-    result = @builder.to_attributes
+    result = @builder.to_attributes(@mock_component)
     
     assert_equal [:click, :mouseenter, :mouseleave, :focus, :blur], result[:stimulus_actions]
     assert_equal [:button, :icon, :tooltip, :spinner], result[:stimulus_targets]

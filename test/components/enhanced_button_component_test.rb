@@ -9,7 +9,7 @@ class Greeters::EnhancedButtonComponentTest < ViewComponent::TestCase
   end
 
   def test_stimulus_dsl_attributes_collected
-    dsl_attrs = Greeters::EnhancedButtonComponent.stimulus_dsl_attributes
+    dsl_attrs = Greeters::EnhancedButtonComponent.stimulus_dsl_attributes(Greeters::EnhancedButtonComponent.new)
     
     assert_includes dsl_attrs[:stimulus_actions], :click
     assert_includes dsl_attrs[:stimulus_actions], :toggle_loading
@@ -20,7 +20,7 @@ class Greeters::EnhancedButtonComponentTest < ViewComponent::TestCase
   end
 
   def test_dsl_includes_expected_attributes
-    dsl_attrs = Greeters::EnhancedButtonComponent.stimulus_dsl_attributes
+    dsl_attrs = Greeters::EnhancedButtonComponent.stimulus_dsl_attributes(Greeters::EnhancedButtonComponent.new)
     
     # Should include values that will be mapped from props
     assert_includes dsl_attrs[:stimulus_values_from_props], :text

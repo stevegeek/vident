@@ -93,7 +93,7 @@ class StimulusDSLViewComponentIntegrationTest < ViewComponent::TestCase
   end
 
   def test_dsl_attributes_collected_correctly
-    dsl_attrs = TestButtonComponent.stimulus_dsl_attributes
+    dsl_attrs = TestButtonComponent.stimulus_dsl_attributes(TestButtonComponent.new)
     
     assert_equal [:click, :mouseenter, :mouseleave], dsl_attrs[:stimulus_actions]
     assert_equal [:button, :icon, :spinner], dsl_attrs[:stimulus_targets]
@@ -127,7 +127,7 @@ class StimulusDSLViewComponentIntegrationTest < ViewComponent::TestCase
     component = TestButtonComponent.new(text: "Test", disabled: true, loading: false, url: "/api/test")
     
     # Test the prop mapping method
-    values_from_props = component.class.stimulus_dsl_attributes[:stimulus_values_from_props]
+    values_from_props = component.class.stimulus_dsl_attributes(component)[:stimulus_values_from_props]
     resolved_from_props = component.send(:resolve_values_from_props, values_from_props)
     
     expected_from_props = {
@@ -139,7 +139,7 @@ class StimulusDSLViewComponentIntegrationTest < ViewComponent::TestCase
     assert_equal expected_from_props, resolved_from_props
     
     # Test static values
-    static_values = component.class.stimulus_dsl_attributes[:stimulus_values]
+    static_values = component.class.stimulus_dsl_attributes(component)[:stimulus_values]
     expected_static = { method: "POST" }
     assert_equal expected_static, static_values
   end
@@ -148,7 +148,7 @@ class StimulusDSLViewComponentIntegrationTest < ViewComponent::TestCase
     component = TestButtonComponent.new(text: "Test")  # Missing other props
     
     # Test prop mapping with defaults
-    values_from_props = component.class.stimulus_dsl_attributes[:stimulus_values_from_props]
+    values_from_props = component.class.stimulus_dsl_attributes(component)[:stimulus_values_from_props]
     resolved_from_props = component.send(:resolve_values_from_props, values_from_props)
     
     expected_from_props = {
@@ -214,7 +214,7 @@ class StimulusDSLViewComponentIntegrationTest < ViewComponent::TestCase
   end
 
   def test_multi_block_component_merging
-    dsl_attrs = TestMultiBlockComponent.stimulus_dsl_attributes
+    dsl_attrs = TestMultiBlockComponent.stimulus_dsl_attributes(TestMultiBlockComponent.new(name: "test"))
     
     # Actions from both blocks
     assert_equal [:click, :focus, :blur, :change], dsl_attrs[:stimulus_actions]
@@ -243,8 +243,8 @@ class StimulusDSLViewComponentIntegrationTest < ViewComponent::TestCase
   end
 
   def test_inheritance_merging
-    parent_attrs = BaseComponent.stimulus_dsl_attributes
-    child_attrs = ChildComponent.stimulus_dsl_attributes
+    parent_attrs = BaseComponent.stimulus_dsl_attributes(BaseComponent.new)
+    child_attrs = ChildComponent.stimulus_dsl_attributes(ChildComponent.new(title: "test"))
     
     # Parent should have its own attributes
     assert_equal [:click], parent_attrs[:stimulus_actions]
