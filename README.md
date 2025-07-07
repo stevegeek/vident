@@ -403,7 +403,7 @@ Vident provides helper methods for generating Stimulus attributes:
   </button>
   
   <!-- Use the tag helper -->
-  <%= component.target_tag :div, :output, class: "mt-4" do %>
+  <%= component.tag :div, stimulus_target: :output, class: "mt-4" do %>
     Output here
   <% end %>
   
