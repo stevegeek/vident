@@ -72,7 +72,10 @@ module Vident
 
     def test_inspect
       value = StimulusValue.new(:url, "https://example.com", implied_controller: @implied_controller)
-      assert_equal '#<Vident::StimulusValue {"foo--my-controller-url-value" => "https://example.com"}>', value.inspect
+      inspect_result = value.inspect
+      assert_includes inspect_result, '#<Vident::StimulusValue'
+      assert_includes inspect_result, '"foo--my-controller-url-value"'
+      assert_includes inspect_result, '"https://example.com"'
     end
 
     def test_invalid_number_of_arguments

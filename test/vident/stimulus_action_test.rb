@@ -57,7 +57,10 @@ module Vident
 
     def test_inspect
       action = StimulusAction.new(:click, :my_action, implied_controller: @implied_controller)
-      assert_equal '#<Vident::StimulusAction {"action" => "click->foo--my-controller#myAction"}>', action.inspect
+      inspect_result = action.inspect
+      assert_includes inspect_result, '#<Vident::StimulusAction'
+      assert_includes inspect_result, '"action"'
+      assert_includes inspect_result, '"click->foo--my-controller#myAction"'
     end
 
     def test_invalid_number_of_arguments

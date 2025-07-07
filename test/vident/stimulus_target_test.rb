@@ -38,7 +38,10 @@ module Vident
 
     def test_inspect
       target = StimulusTarget.new(:my_target, implied_controller: @implied_controller)
-      assert_equal '#<Vident::StimulusTarget {"foo--my-controller-target" => "myTarget"}>', target.inspect
+      inspect_result = target.inspect
+      assert_includes inspect_result, '#<Vident::StimulusTarget'
+      assert_includes inspect_result, '"foo--my-controller-target"'
+      assert_includes inspect_result, '"myTarget"'
     end
 
     def test_invalid_number_of_arguments

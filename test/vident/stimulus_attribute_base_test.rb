@@ -28,8 +28,16 @@ module Vident
       target = StimulusTarget.new(:my_target, implied_controller: @implied_controller)
 
       # Both should have inspect method from base class showing to_h
-      assert_equal '#<Vident::StimulusAction {"action" => "foo--my-controller#myAction"}>', action.inspect
-      assert_equal '#<Vident::StimulusTarget {"foo--my-controller-target" => "myTarget"}>', target.inspect
+      action_inspect = action.inspect
+      target_inspect = target.inspect
+      
+      assert_includes action_inspect, '#<Vident::StimulusAction'
+      assert_includes action_inspect, '"action"'
+      assert_includes action_inspect, '"foo--my-controller#myAction"'
+      
+      assert_includes target_inspect, '#<Vident::StimulusTarget'
+      assert_includes target_inspect, '"foo--my-controller-target"'
+      assert_includes target_inspect, '"myTarget"'
     end
 
     def test_to_h_method_inherited

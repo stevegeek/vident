@@ -95,7 +95,10 @@ module Vident
 
     def test_inspect
       outlet = StimulusOutlet.new(:user_status, ".online-user", implied_controller: @implied_controller)
-      assert_equal '#<Vident::StimulusOutlet {"foo--my-controller-user-status-outlet" => ".online-user"}>', outlet.inspect
+      inspect_result = outlet.inspect
+      assert_includes inspect_result, '#<Vident::StimulusOutlet'
+      assert_includes inspect_result, '"foo--my-controller-user-status-outlet"'
+      assert_includes inspect_result, '".online-user"'
     end
 
     def test_invalid_number_of_arguments

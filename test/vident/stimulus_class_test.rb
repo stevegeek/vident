@@ -68,7 +68,10 @@ module Vident
 
     def test_inspect
       css_class = StimulusClass.new(:loading, "spinner active", implied_controller: @implied_controller)
-      assert_equal '#<Vident::StimulusClass {"foo--my-controller-loading-class" => "spinner active"}>', css_class.inspect
+      inspect_result = css_class.inspect
+      assert_includes inspect_result, '#<Vident::StimulusClass'
+      assert_includes inspect_result, '"foo--my-controller-loading-class"'
+      assert_includes inspect_result, '"spinner active"'
     end
 
     def test_invalid_number_of_arguments

@@ -293,13 +293,13 @@ class Greeters::GreeterWithTriggerComponentTest < ViewComponent::TestCase
   def test_component_path_class_method
     expected_path = Rails.root.join("app/components", "greeters/greeter_with_trigger_component.rb").to_s
     assert_equal expected_path, Greeters::GreeterWithTriggerComponent.component_path
-    assert_match %r{/workspaces/gems/vident/test/dummy/app/components/greeters/greeter_with_trigger_component\.rb$}, Greeters::GreeterWithTriggerComponent.component_path
+    assert_match %r{test/dummy/app/components/greeters/greeter_with_trigger_component\.rb$}, Greeters::GreeterWithTriggerComponent.component_path
   end
 
   def test_template_path_class_method
     expected_path = Rails.root.join("app/components", "greeters/greeter_with_trigger_component.erb").to_s
     assert_equal expected_path, Greeters::GreeterWithTriggerComponent.template_path
-    assert_match %r{/workspaces/gems/vident/test/dummy/app/components/greeters/greeter_with_trigger_component\.erb$}, Greeters::GreeterWithTriggerComponent.template_path
+    assert_match %r{test/dummy/app/components/greeters/greeter_with_trigger_component\.erb$}, Greeters::GreeterWithTriggerComponent.template_path
   end
 
   def test_components_base_path_class_method
