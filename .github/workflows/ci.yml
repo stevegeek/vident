@@ -1,4 +1,4 @@
-name: CI
+name: Test
 
 on:
   push:
@@ -30,6 +30,5 @@ jobs:
     - name: Install dependencies
       run: |
         bundle install
-        bundle exec appraisal install
     - name: Run tests
-      run: bundle exec appraisal bin/rails test
+      run: bundle exec bin/rails test
