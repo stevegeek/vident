@@ -231,17 +231,17 @@ class StimulusDSLEdgeCasesTest < ActiveSupport::TestCase
     assert_equal expected_values, child_attrs[:stimulus_values]
   end
 
-  def test_auto_map_with_non_existent_instance_variables
+  def test_values_from_props_with_non_existent_instance_variables
     component = @component_class.new
     
     @component_class.stimulus do
-      values existing_prop: :auto_map_from_prop, non_existent: :auto_map_from_prop
+      values_from_props :existing_prop, :non_existent
     end
     
     # Set only one instance variable
     component.instance_variable_set(:@existing_prop, "exists")
     
-    resolved = component.send(:resolve_stimulus_dsl_values, @component_class.stimulus_dsl_attributes[:stimulus_values])
+    resolved = component.send(:resolve_values_from_props, @component_class.stimulus_dsl_attributes[:stimulus_values_from_props])
     
     expected = {
       existing_prop: "exists"
@@ -250,7 +250,7 @@ class StimulusDSLEdgeCasesTest < ActiveSupport::TestCase
     assert_equal expected, resolved
   end
 
-  def test_auto_map_with_complex_instance_variable_values
+  def test_values_from_props_with_complex_instance_variable_values
     component = @component_class.new
     
     # Set complex instance variables
@@ -259,10 +259,10 @@ class StimulusDSLEdgeCasesTest < ActiveSupport::TestCase
     component.instance_variable_set(:@object_prop, Time.now)
     
     @component_class.stimulus do
-      values array_prop: :auto_map_from_prop, hash_prop: :auto_map_from_prop, object_prop: :auto_map_from_prop
+      values_from_props :array_prop, :hash_prop, :object_prop
     end
     
-    resolved = component.send(:resolve_stimulus_dsl_values, @component_class.stimulus_dsl_attributes[:stimulus_values])
+    resolved = component.send(:resolve_values_from_props, @component_class.stimulus_dsl_attributes[:stimulus_values_from_props])
     
     assert_equal [1, 2, 3], resolved[:array_prop]
     assert_equal({ key: "value" }, resolved[:hash_prop])
@@ -354,7 +354,7 @@ class StimulusDSLEdgeCasesTest < ActiveSupport::TestCase
     large_component_class.stimulus do
       actions(*(1..500).map { |i| "action_#{i}".to_sym })
       targets(*(1..500).map { |i| "target_#{i}".to_sym })
-      values((1..500).map { |i| ["value_#{i}".to_sym, "value_#{i}"] }.to_h)
+      values(**((1..500).map { |i| ["value_#{i}".to_sym, "value_#{i}"] }.to_h))
       classes(**((1..500).map { |i| ["class_#{i}".to_sym, "class_#{i}"] }.to_h))
     end
     

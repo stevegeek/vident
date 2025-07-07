@@ -37,30 +37,18 @@ module Vident
       add_stimulus_targets(dsl_attrs[:stimulus_targets]) if dsl_attrs[:stimulus_targets]
       add_stimulus_outlets(dsl_attrs[:stimulus_outlets]) if dsl_attrs[:stimulus_outlets]
       
-      # Resolve auto-mapped values from props
-      if dsl_attrs[:stimulus_values]
-        resolved_values = resolve_stimulus_dsl_values(dsl_attrs[:stimulus_values])
+      # Add static values
+      add_stimulus_values(dsl_attrs[:stimulus_values]) if dsl_attrs[:stimulus_values]
+      
+      # Resolve and add values from props
+      if dsl_attrs[:stimulus_values_from_props]
+        resolved_values = resolve_values_from_props(dsl_attrs[:stimulus_values_from_props])
         add_stimulus_values(resolved_values) unless resolved_values.empty?
       end
       
       add_stimulus_classes(dsl_attrs[:stimulus_classes]) if dsl_attrs[:stimulus_classes]
     end
 
-    # Resolve auto-mapped values from DSL declarations to instance variables
-    def resolve_stimulus_dsl_values(dsl_values)
-      return {} unless dsl_values.is_a?(Hash)
-
-      resolved = {}
-      dsl_values.each do |name, value|
-        if value == :auto_map_from_prop
-          # Auto-map from instance variable if it exists
-          resolved[name] = instance_variable_get("@#{name}") if instance_variable_defined?("@#{name}")
-        else
-          resolved[name] = value
-        end
-      end
-      resolved
-    end
 
     # Prepare stimulus collections and implied controller path from the given attributes, called after initialization
     def prepare_stimulus_collections # Convert raw attributes to stimulus attribute collections

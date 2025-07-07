@@ -104,6 +104,57 @@
         <pre class="block"><%= component.cache_key %></pre>
       </div>
     </section>
+
+    <h2 class="text-xl pt-6">ButtonComponent Examples (README Example)</h2>
+
+    <section class="space-y-8">
+      <div class="space-y-6">
+        <h3 class="text-md font-bold">Default primary button</h3>
+        <code class="block bg-gray-100">render ButtonComponent.new</code>
+        <div class="block">
+          <%= render ButtonComponent.new %>
+        </div>
+      </div>
+      
+      <div class="space-y-6">
+        <h3 class="text-md font-bold">Custom text and secondary style</h3>
+        <code class="block bg-gray-100">render ButtonComponent.new(text: "Save Draft", style: :secondary)</code>
+        <div class="block">
+          <%= render ButtonComponent.new(text: "Save Draft", style: :secondary) %>
+        </div>
+      </div>
+      
+      <div class="space-y-6">
+        <h3 class="text-md font-bold">Button with pre-set click count</h3>
+        <code class="block bg-gray-100">render ButtonComponent.new(text: "Already Clicked 5 Times", clicked_count: 5)</code>
+        <div class="block">
+          <%= render ButtonComponent.new(text: "Already Clicked 5 Times", clicked_count: 5) %>
+        </div>
+      </div>
+      
+      <div class="space-y-6">
+        <h3 class="text-md font-bold">Rendered as a link when URL is provided</h3>
+        <code class="block bg-gray-100">render ButtonComponent.new(text: "Go Home", url: "/", style: :secondary)</code>
+        <div class="block">
+          <%= render ButtonComponent.new(text: "Go Home", url: "/", style: :secondary) %>
+        </div>
+      </div>
+      
+      <div class="space-y-6">
+        <h3 class="text-md font-bold">Stimulus Integration Features</h3>
+        <p class="text-sm text-gray-600">This component demonstrates:</p>
+        <ul class="text-sm text-gray-600 list-disc ml-6">
+          <li><strong>Static Stimulus values:</strong> <code>loading_duration: 1000</code></li>
+          <li><strong>Prop-mapped values:</strong> <code>values_from_props :clicked_count</code></li>
+          <li><strong>Stimulus actions:</strong> <code>click->button-component#handleClick</code></li>
+          <li><strong>CSS classes:</strong> <code>loading: "opacity-50 cursor-wait"</code></li>
+        </ul>
+        <p class="text-sm text-gray-600 mt-2">
+          Click any button above to see the Stimulus controller in action. The button will show a loading state for 1 second, 
+          then update the text to show the current click count.
+        </p>
+      </div>
+    </section>
   </div>
 
   <h1>ViewComponent Components</h1>

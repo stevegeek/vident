@@ -17,7 +17,8 @@ class StimulusDSLViewComponentIntegrationTest < ViewComponent::TestCase
     stimulus do
       actions :click, :mouseenter, :mouseleave
       targets :button, :icon, :spinner
-      values :text, :disabled, :loading, :url, method: "POST"
+      values_from_props :text, :disabled, :loading, :url
+      values method: "POST"
       classes(
         loading: "opacity-50 cursor-wait",
         disabled: "opacity-25 cursor-not-allowed",
@@ -49,13 +50,13 @@ class StimulusDSLViewComponentIntegrationTest < ViewComponent::TestCase
     stimulus do
       actions :click, :focus
       targets :input
-      values :name
+      values_from_props :name
     end
     
     stimulus do
       actions :blur, :change
       targets :output
-      values :count
+      values_from_props :count
       classes active: "bg-blue-500"
     end
     
@@ -81,7 +82,7 @@ class StimulusDSLViewComponentIntegrationTest < ViewComponent::TestCase
     stimulus do
       actions :submit
       targets :child
-      values :title
+      values_from_props :title
     end
     
     def call
@@ -97,14 +98,11 @@ class StimulusDSLViewComponentIntegrationTest < ViewComponent::TestCase
     assert_equal [:click, :mouseenter, :mouseleave], dsl_attrs[:stimulus_actions]
     assert_equal [:button, :icon, :spinner], dsl_attrs[:stimulus_targets]
     
-    expected_values = {
-      text: :auto_map_from_prop,
-      disabled: :auto_map_from_prop,
-      loading: :auto_map_from_prop,
-      url: :auto_map_from_prop,
-      method: "POST"
-    }
+    expected_values = { method: "POST" }
     assert_equal expected_values, dsl_attrs[:stimulus_values]
+    
+    expected_values_from_props = [:text, :disabled, :loading, :url]
+    assert_equal expected_values_from_props, dsl_attrs[:stimulus_values_from_props]
     
     expected_classes = {
       loading: "opacity-50 cursor-wait",
@@ -128,34 +126,38 @@ class StimulusDSLViewComponentIntegrationTest < ViewComponent::TestCase
   def test_dsl_value_resolution
     component = TestButtonComponent.new(text: "Test", disabled: true, loading: false, url: "/api/test")
     
-    # Test the internal resolve method
-    dsl_values = component.class.stimulus_dsl_attributes[:stimulus_values]
-    resolved = component.send(:resolve_stimulus_dsl_values, dsl_values)
+    # Test the prop mapping method
+    values_from_props = component.class.stimulus_dsl_attributes[:stimulus_values_from_props]
+    resolved_from_props = component.send(:resolve_values_from_props, values_from_props)
     
-    expected = {
+    expected_from_props = {
       text: "Test",
       disabled: true,
       loading: false,
-      url: "/api/test",
-      method: "POST"  # explicit value, not auto-mapped
+      url: "/api/test"
     }
-    assert_equal expected, resolved
+    assert_equal expected_from_props, resolved_from_props
+    
+    # Test static values
+    static_values = component.class.stimulus_dsl_attributes[:stimulus_values]
+    expected_static = { method: "POST" }
+    assert_equal expected_static, static_values
   end
 
   def test_dsl_value_resolution_with_missing_props
     component = TestButtonComponent.new(text: "Test")  # Missing other props
     
-    dsl_values = component.class.stimulus_dsl_attributes[:stimulus_values]
-    resolved = component.send(:resolve_stimulus_dsl_values, dsl_values)
+    # Test prop mapping with defaults
+    values_from_props = component.class.stimulus_dsl_attributes[:stimulus_values_from_props]
+    resolved_from_props = component.send(:resolve_values_from_props, values_from_props)
     
-    expected = {
+    expected_from_props = {
       text: "Test",
       disabled: false,  # default value
       loading: false,   # default value
-      url: nil,         # no default, prop not provided
-      method: "POST"    # explicit value
+      url: nil          # no default, prop not provided
     }
-    assert_equal expected, resolved
+    assert_equal expected_from_props, resolved_from_props
   end
 
   def test_stimulus_data_attributes_integration
@@ -221,11 +223,8 @@ class StimulusDSLViewComponentIntegrationTest < ViewComponent::TestCase
     assert_equal [:input, :output], dsl_attrs[:stimulus_targets]
     
     # Values from both blocks
-    expected_values = {
-      name: :auto_map_from_prop,
-      count: :auto_map_from_prop
-    }
-    assert_equal expected_values, dsl_attrs[:stimulus_values]
+    expected_values_from_props = [:name, :count]
+    assert_equal expected_values_from_props, dsl_attrs[:stimulus_values_from_props]
     
     # Classes from second block
     assert_equal({ active: "bg-blue-500" }, dsl_attrs[:stimulus_classes])
@@ -254,7 +253,7 @@ class StimulusDSLViewComponentIntegrationTest < ViewComponent::TestCase
     # Child should inherit parent's attributes and add its own
     assert_equal [:click, :submit], child_attrs[:stimulus_actions]
     assert_equal [:base, :child], child_attrs[:stimulus_targets]
-    assert_equal({ title: :auto_map_from_prop }, child_attrs[:stimulus_values])
+    assert_equal([:title], child_attrs[:stimulus_values_from_props])
   end
 
   def test_inheritance_rendering

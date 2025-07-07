@@ -9,6 +9,7 @@ module Vident
         @actions = []
         @targets = []
         @values = {}
+        @values_from_props = []
         @classes = {}
         @outlets = {}
       end
@@ -23,18 +24,15 @@ module Vident
         self
       end
 
-      def values(*value_names, **value_hash)
-        # Handle hash as first argument: values({ name: "test", count: 42 })
-        if value_names.length == 1 && value_names.first.is_a?(Hash)
-          @values.merge!(value_names.first)
-        else
-          # Handle symbol arguments: values :name, :other (will be mapped from props with same names)
-          value_names.each { |name| @values[name] = :auto_map_from_prop }
-        end
-        
-        # Handle hash arguments: values name: "default_value", other: "other_default"
+      def values(**value_hash)
+        # Handle keyword arguments: values name: "default_value", count: 42
         @values.merge!(value_hash) unless value_hash.empty?
-        
+        self
+      end
+      
+      def values_from_props(*prop_names)
+        # Handle prop names that should be mapped as stimulus values
+        @values_from_props.concat(prop_names)
         self
       end
 
@@ -52,7 +50,8 @@ module Vident
         attrs = {}
         attrs[:stimulus_actions] = @actions.dup unless @actions.empty?
         attrs[:stimulus_targets] = @targets.dup unless @targets.empty?
-        attrs[:stimulus_values] = resolve_values.dup unless @values.empty?
+        attrs[:stimulus_values] = @values.dup unless @values.empty?
+        attrs[:stimulus_values_from_props] = @values_from_props.dup unless @values_from_props.empty?
         attrs[:stimulus_classes] = @classes.dup unless @classes.empty?
         attrs[:stimulus_outlets] = @outlets.dup unless @outlets.empty?
         attrs
@@ -62,13 +61,6 @@ module Vident
         to_attributes
       end
       alias_method :to_h, :to_hash
-
-      private
-
-      def resolve_values
-        # Values marked as :auto_map_from_prop will be resolved at runtime
-        @values
-      end
     end
 
     class_methods do
@@ -87,6 +79,7 @@ module Vident
             @stimulus_builder.instance_variable_get(:@actions).concat(parent_attrs[:stimulus_actions] || [])
             @stimulus_builder.instance_variable_get(:@targets).concat(parent_attrs[:stimulus_targets] || [])
             @stimulus_builder.instance_variable_get(:@values).merge!(parent_attrs[:stimulus_values] || {})
+            @stimulus_builder.instance_variable_get(:@values_from_props).concat(parent_attrs[:stimulus_values_from_props] || [])
             @stimulus_builder.instance_variable_get(:@classes).merge!(parent_attrs[:stimulus_classes] || {})
             @stimulus_builder.instance_variable_get(:@outlets).merge!(parent_attrs[:stimulus_outlets] || {})
           end
@@ -107,19 +100,15 @@ module Vident
       end
     end
 
-    # Instance method to resolve auto-mapped values at runtime
-    def resolve_stimulus_dsl_values(dsl_values)
-      return {} if dsl_values.empty?
+    # Instance method to resolve prop-mapped values at runtime
+    def resolve_values_from_props(prop_names)
+      return {} if prop_names.empty?
 
       resolved = {}
-      dsl_values.each do |name, value|
-        if value == :auto_map_from_prop
-          # Auto-map from instance variable if it exists
-          if instance_variable_defined?("@#{name}")
-            resolved[name] = instance_variable_get("@#{name}")
-          end
-        else
-          resolved[name] = value
+      prop_names.each do |name|
+        # Map from instance variable if it exists
+        if instance_variable_defined?("@#{name}")
+          resolved[name] = instance_variable_get("@#{name}")
         end
       end
       resolved

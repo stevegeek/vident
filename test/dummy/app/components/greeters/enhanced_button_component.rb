@@ -12,7 +12,7 @@ module Greeters
     stimulus do
       actions :click, :toggle_loading
       targets :button, :spinner
-      values :text, :loading  # Auto-maps from props with same names
+      values_from_props :text, :loading  # Maps from props with same names
       classes loading: "opacity-50 cursor-not-allowed", success: "text-green-500", error: "text-red-500"
     end
 

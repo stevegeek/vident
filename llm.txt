@@ -1,0 +1,204 @@
+# Vident LLM Reference
+
+Rails component library for building interactive, type-safe components with Stimulus.js integration. Supports ViewComponent and Phlex rendering engines.
+
+## Core Features
+- Type-safe properties using Literal gem
+- First-class Stimulus.js integration with declarative DSL
+- Support for ViewComponent and Phlex
+- Intelligent CSS class management with Tailwind CSS merging
+- Component caching for performance
+- Automatic Stimulus controller naming and data attribute generation
+
+## Installation
+```ruby
+gem "vident"                 # Core gem
+gem "vident-view_component"  # ViewComponent support
+gem "vident-phlex"           # Phlex support
+```
+
+## Base Classes
+- ViewComponent: `Vident::ViewComponent::Base`
+- Phlex: `Vident::Phlex::HTML`
+
+## Property Definition
+```ruby
+# Type-safe properties using Literal gem
+prop :text, String, default: "Click me"
+prop :url, _Nilable(String)
+prop :style, Symbol, in: [:primary, :secondary], default: :primary
+prop :enabled, _Boolean, default: false
+prop :items, _Array(String), default: -> { [] }
+prop :count, Integer, default: 0
+```
+
+## Built-in Properties
+- `element_tag` - Root HTML tag (default: :div)
+- `id` - DOM ID (auto-generated if not provided)
+- `classes` - Additional CSS classes
+- `html_options` - Hash of HTML attributes
+
+## Stimulus DSL
+```ruby
+stimulus do
+  # Define actions controller responds to
+  actions :click, :toggle, :expand, :collapse
+  
+  # Define targets for DOM element references
+  targets :button, :content
+  
+  # Define static values
+  values animation_duration: 300, enabled: true
+  
+  # Map component props as Stimulus values
+  values_from_props :count, :title
+  
+  # Define CSS classes for different states
+  classes expanded: "block", collapsed: "hidden", loading: "opacity-50"
+  
+  # Define outlets for connecting to other controllers
+  outlets modal: "#modal-id"
+end
+
+# Disable Stimulus entirely
+no_stimulus_controller
+```
+
+## Manual Stimulus Configuration
+```ruby
+def root_element_attributes
+  {
+    element_tag: :button,
+    stimulus_controllers: ["custom", "analytics"],
+    stimulus_actions: [[:click, :handleClick], [:custom_event, :handleCustom]],
+    stimulus_targets: { container: true },
+    stimulus_values: { endpoint: "/api/data", refresh_interval: 5000 },
+    stimulus_classes: { active: "bg-blue-500", loading: "opacity-50" }
+  }
+end
+```
+
+## Template Helpers (ViewComponent)
+```erb
+<%= root_element do |component| %>
+  <!-- Create targets -->
+  <div <%= component.as_target(:content) %>>Content</div>
+  
+  <!-- Create actions -->
+  <button <%= component.as_action(:click, :toggle) %>>Toggle</button>
+  
+  <!-- Use tag helper -->
+  <%= component.target_tag :div, :output, class: "mt-4" do %>
+    Output here
+  <% end %>
+  
+  <!-- Multiple targets/actions -->
+  <input <%= component.as_targets(:input, :field) %> 
+         <%= component.as_actions([:input, :validate], [:change, :save]) %>>
+<% end %>
+```
+
+## Phlex Syntax
+```ruby
+def view_template
+  root do |component|
+    div(data: component.stimulus_target(:name).to_h) { "Content" }
+    button(data: {**component.stimulus_actions(:click)}) { "Click" }
+    component.tag(:span, stimulus_target: :output, class: "ml-4")
+  end
+end
+```
+
+## Controller Naming Convention
+- `ButtonComponent` → `button-component`
+- `Admin::UserCardComponent` → `admin--user-card-component`
+- `MyApp::WidgetComponent` → `my-app--widget-component`
+
+## Generated Data Attributes
+- `data-controller="component-name"`
+- `data-component-name-target="target"`
+- `data-action="event->component-name#action"`
+- `data-component-name-value-name-value="value"`
+- `data-component-name-class-name-class="classes"`
+
+## Class Management
+```ruby
+# Override element_classes for custom CSS classes
+def element_classes
+  base_classes = "btn"
+  case @style
+  when :primary
+    "#{base_classes} btn-primary"
+  when :secondary
+    "#{base_classes} btn-secondary"
+  end
+end
+
+# Classes are intelligently merged from multiple sources
+```
+
+## Component Caching
+```ruby
+class ExpensiveComponent < Vident::ViewComponent::Base
+  include Vident::Caching
+  
+  with_cache_key :to_h  # Cache based on all attributes
+  # or
+  with_cache_key :id, :updated_at  # Cache based on specific attributes
+end
+
+# Usage:
+<% cache component.cache_key do %>
+  <%= render component %>
+<% end %>
+```
+
+## Tailwind CSS Integration
+Built-in support for Tailwind CSS class merging when `tailwind_merge` gem is available. Conflicting classes are automatically resolved.
+
+## Testing
+```ruby
+# ViewComponent testing
+render_inline(ButtonComponent.new(text: "Save", style: :primary))
+assert_selector "[data-controller='button-component']"
+assert_selector "[data-button-component-clicked-count-value='0']"
+
+# Test Stimulus attributes
+assert_selector "button[data-action='click->button-component#handleClick']"
+```
+
+## Key Methods
+- `root_element` / `root` - Renders root element with all configured attributes
+- `element_classes` - Override for custom CSS classes
+- `root_element_attributes` - Override for element tag, HTML attributes, and Stimulus config
+- `stimulus_action(event, method)` - Create action configuration
+- `stimulus_controller(name)` - Add additional controller
+- `after_component_initialize` - Post-initialization hook
+
+## Literal Types Reference
+- Basic: `String`, `Integer`, `Symbol`, `Float`
+- Boolean: `_Boolean`
+- Nullable: `_Nilable(Type)`
+- Collections: `_Array(Type)`, `_Hash(KeyType, ValueType)`
+- Unions: `_Union(:small, :medium, :large)`
+- Any: `_Any`
+
+## Child Component Integration
+```ruby
+# Pass Stimulus actions between parent and child components
+class ParentComponent < Vident::ViewComponent::Base
+  renders_one :nested_button, ButtonComponent
+  
+  stimulus do
+    actions :handleTrigger
+  end
+end
+
+# In template:
+<%= root_element do |parent| %>
+  <% parent.with_nested_button(
+    text: "Click me",
+    stimulus_actions: [parent.stimulus_action(:click, :handleTrigger)]
+  ) %>
+<% end %>
+```

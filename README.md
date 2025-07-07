@@ -1,55 +1,579 @@
 # Vident
 
-Vident is a collection of gems that provide a set of tools for building web applications with Ruby on Rails.
+A powerful Ruby gem for building interactive, type-safe components in Rails applications with seamless [Stimulus.js](https://stimulus.hotwired.dev/) integration. 
 
-## Included Gems
+Vident supports both [ViewComponent](https://viewcomponent.org/) and [Phlex](https://www.phlex.fun/) rendering engines while providing a consistent API for creating 
+reusable UI components powered by [Stimulus.js](https://stimulus.hotwired.dev/).
 
-The core gems:
+## Table of Contents
 
-- `vident`: The core Vident library
-- `vident-phlex`: Phlex integration for Vident
-- `vident-view_component`: ViewComponent integration for Vident
+- [Introduction](#introduction)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Core Concepts](#core-concepts)
+- [Component DSL](#component-dsl)
+- [Stimulus Integration](#stimulus-integration)
+- [Advanced Features](#advanced-features)
+- [Testing](#testing)
+- [Contributing](#contributing)
 
-Note that you can use both `Phlex` and `ViewComponent` in the same application if desired.
+## Introduction
 
-And then optional extra features:
+Vident is a collection of gems that enhance Rails view components with:
 
-- `vident-tailwind`: Tailwind CSS integration for Vident
-- `vident-typed`: Type system for Vident components
-- `vident-typed-minitest`: Minitest integration for typed Vident components
-- `vident-typed-phlex`: Phlex integration for typed Vident components
-- `vident-typed-view_component`: ViewComponent integration for typed Vident
-- `vident-better_html`: Better HTML integration for Vident
+- **Type-safe properties** using the Literal gem
+- **First-class [Stimulus.js](https://stimulus.hotwired.dev/) integration** for interactive behaviors
+- **Support for both [ViewComponent](https://viewcomponent.org/) and [Phlex](https://www.phlex.fun/)** rendering engines
+- **Intelligent CSS class management** with built-in Tailwind CSS merging
+- **Component caching** for improved performance
+- **Declarative DSL** for clean, maintainable component code
 
-## Directory Structure
+### Why Vident?
 
-The repository is structured like this:
+Stimulus.js is a powerful framework for adding interactivity to HTML, but managing the data attributes can be cumbersome,
+and refactoring can be error-prone (as say controller names are repeated in many places).
 
+Vident simplifies this by providing a declarative DSL for defining Stimulus controllers, actions, targets, and values
+directly within your component classes so you don't need to manually craft data attributes in your templates.
+
+Vident also ensures that your components are flexible: for example you can easily add to, or override configuration,
+classes etc at the point of rendering.
+
+Vident's goal is to make building UI components more maintainable, and remove some of the boilerplate code of Stimulus 
+without being over-bearing or including too much magic.
+
+## Installation
+
+Add the core gem and your preferred rendering engine integration to your Gemfile:
+
+```ruby
+# Core gem (required)
+gem "vident"
+
+# Choose your rendering engine (at least one required)
+gem "vident-view_component"  # For ViewComponent support
+gem "vident-phlex"           # For Phlex support
 ```
-vident/
-├── lib/                       # All gem code
-│   ├── vident.rb              # Core entry point
-│   ├── vident-phlex.rb        # Gem entry points
-│   ├── vident-better_html.rb
-│   ├── vident/                # Shared code
-│       ├── base.rb
-│       ├── phlex/             # Phlex integration
-│       ├── better_html/       # Better HTML integration
-│       └── ...
-├── test/                      # All tests
-│   ├── vident/                # Core tests
-│   ├── vident-phlex/          # Tests for each gem
-│   └── ...
-├── docs/                      # Documentation
-├── examples/                  # Examples
-├── vident.gemspec            # Gemspec for core gem
-├── vident-phlex.gemspec      # Gemspecs for each gem
-└── ...
+
+Then run:
+
+```bash
+bundle install
 ```
+
+## Quick Start
+
+Here's a simple example of a Vident component using ViewComponent:
+
+```ruby
+# app/components/button_component.rb
+class ButtonComponent < Vident::ViewComponent::Base
+  # Define typed properties
+  prop :text, String, default: "Click me"
+  prop :url, _Nilable(String)
+  prop :style, Symbol, in: [:primary, :secondary], default: :primary
+  prop :clicked_count, Integer, default: 0
+  
+  # Configure Stimulus integration
+  stimulus do
+    actions [:click, :handle_click]
+    # Static values
+    values loading_duration: 1000
+    # Map the clicked_count prop as a Stimulus value
+    values_from_props :clicked_count
+    classes loading: "opacity-50 cursor-wait"
+  end
+
+  def call
+    root_element do
+      @text
+    end
+  end
+
+  private
+
+  def root_element_attributes
+    {
+      element_tag: @url ? :a : :button,
+      html_options: { href: @url }.compact
+    }
+  end
+
+  def element_classes
+    base_classes = "btn"
+    case @style
+    when :primary
+      "#{base_classes} btn-primary"
+    when :secondary
+      "#{base_classes} btn-secondary"
+    end
+  end
+end
+```
+
+
+Add the corresponding Stimulus controller would be:
+
+```javascript
+// app/javascript/controllers/button_component_controller.js
+// Can also be "side-car" in the same directory as the component, see the documentation for details
+import { Controller } from "@hotwired/stimulus"
+
+export default class extends Controller {
+  static values = { 
+    clickedCount: Number, 
+    loadingDuration: Number 
+  }
+  static classes = ["loading"]
+  
+  handleClick(event) {
+    // Increment counter
+    this.clickedCountValue++
+    
+    // Add loading state
+    this.element.classList.add(this.loadingClass)
+    this.element.disabled = true
+    
+    // Use the loading duration from the component
+    setTimeout(() => {
+      this.element.classList.remove(this.loadingClass)
+      this.element.disabled = false
+      
+      // Update text to show count
+      this.element.textContent = `${this.element.textContent} (${this.clickedCountValue})`
+    }, this.loadingDurationValue)
+  }
+}
+```
+
+Use the component in your views:
+
+```erb
+<!-- Default clicked count of 0 -->
+<%= render ButtonComponent.new(text: "Save", style: :primary) %>
+
+<!-- Pre-set clicked count -->
+<%= render ButtonComponent.new(text: "Submit", style: :primary, clicked_count: 5) %>
+
+<!-- Link variant -->
+<%= render ButtonComponent.new(text: "Cancel", url: "/home", style: :secondary) %>
+
+<!-- Override things -->
+<%= render ButtonComponent.new(text: "Cancel", url: "/home" classes: "bg-red-900", html_options: {role: "button"}) %>
+```
+
+The rendered HTML includes all Stimulus data attributes:
+
+```html
+<!-- First button with default count -->
+<button class="bg-blue-500 hover:bg-blue-700 text-white" 
+        data-controller="button-component" 
+        data-action="click->button-component#handleClick"
+        data-button-component-clicked-count-value="0"
+        data-button-component-loading-duration-value="1000"
+        data-button-component-loading-class="opacity-50 cursor-wait"
+        id="button-component-123">
+  Save
+</button>
+
+<!-- Second button with pre-set count -->
+<button class="bg-blue-500 hover:bg-blue-700 text-white" 
+        data-controller="button-component" 
+        data-action="click->button-component#handleClick"
+        data-button-component-clicked-count-value="5"
+        data-button-component-loading-duration-value="1000"
+        data-button-component-loading-class="opacity-50 cursor-wait"
+        id="button-component-456">
+  Submit
+</button>
+```
+
+## Core Concepts
+
+### Component Properties
+
+Vident uses the Literal gem to provide type-safe component properties:
+
+```ruby
+class CardComponent < Vident::ViewComponent::Base
+  # Basic property with type
+  prop :title, String
+  
+  # Property with default value
+  prop :subtitle, String, default: ""
+  
+  # Nullable property
+  prop :image_url, _Nilable(String)
+  
+  # Property with validation
+  prop :size, _Union(:small, :medium, :large), default: :medium
+  
+  # Boolean property (creates predicate method)
+  prop :featured, _Boolean, default: false
+end
+```
+
+### Built-in Properties
+
+Every Vident component includes these properties:
+
+- `element_tag` - The HTML tag for the root element (default: `:div`)
+- `id` - The component's DOM ID (auto-generated if not provided)
+- `classes` - Additional CSS classes
+- `html_options` - Hash of HTML attributes
+
+### Root Element Rendering
+
+The `root_element` helper method renders your component's root element with all configured attributes:
+
+```ruby
+# In your component class
+def element_classes
+  ["card", featured? ? "card-featured" : nil]
+end
+
+private
+
+def root_element_attributes
+  {
+    html_options: { role: "article", "aria-label": title }
+  }
+end
+```
+
+```erb
+<%# In your template %>
+<%= root_element do %>
+  <h2><%= title %></h2>
+  <p><%= subtitle %></p>
+<% end %>
+```
+
+## Component DSL
+
+### ViewComponent Integration
+
+```ruby
+class MyComponent < Vident::ViewComponent::Base
+  # Component code
+end
+
+# Or with an application base class
+class ApplicationComponent < Vident::ViewComponent::Base
+  # Shared configuration
+end
+
+class MyComponent < ApplicationComponent
+  # Component code
+end
+```
+
+### Phlex Integration
+
+```ruby
+class MyComponent < Vident::Phlex::HTML
+  def view_template
+    root do
+      h1 { "Hello from Phlex!" }
+    end
+  end
+end
+```
+
+## Stimulus Integration
+
+Vident provides comprehensive Stimulus.js integration to add interactivity to your components.
+
+### Declarative Stimulus DSL
+
+Use the `stimulus` block for clean, declarative configuration:
+
+```ruby
+class ToggleComponent < Vident::ViewComponent::Base
+  prop :expanded, _Boolean, default: false
+  
+  stimulus do
+    # Define actions the controller responds to
+    actions :toggle, :expand, :collapse
+    
+    # Define targets for DOM element references
+    targets :button, :content
+    
+    # Define static values
+    values animation_duration: 300
+    
+    # Map values from component props
+    values_from_props :expanded
+    
+    # Define CSS classes for different states
+    classes expanded: "block",
+            collapsed: "hidden",
+            transitioning: "opacity-50"
+  end
+end
+```
+
+### Manual Stimulus Configuration
+
+For more control, configure Stimulus attributes manually:
+
+```ruby
+class CustomComponent < Vident::ViewComponent::Base
+  private
+  
+  def root_element_attributes
+    {
+      element_tag: :article,
+      stimulus_controllers: ["custom", "analytics"],
+      stimulus_actions: [
+        [:click, :handleClick],
+        [:custom_event, :handleCustom]
+      ],
+      stimulus_values: {
+        endpoint: "/api/data",
+        refresh_interval: 5000
+      },
+      stimulus_targets: {
+        container: true
+      }
+    }
+  end
+end
+```
+
+or you can use tag helpers to generate HTML with Stimulus attributes:
+
+```erb
+  <%= content_tag(:input, type: "text", class: "...", data: {**greeter.stimulus_target(:name)}) %>
+  <%= content_tag(:button, @cta, class: "...", data: {**greeter.stimulus_action([:click, :greet])}) do %>
+    <%= @cta %>
+  <% end %>
+  <%= content_tag(:span, class: "...", data: {**greeter.stimulus_target(:output)}) %>
+
+  <%# OR use the vident tag helper  %>
+
+  <%= greeter.tag(:input, stimulus_target: :name, type: "text", class: "...") %>
+  <%= greeter.tag(:button, stimulus_action: [:click, :greet], class: "...") do %>
+    <%= @cta %>
+  <% end %>
+  <%= greeter.tag(:span, stimulus_target: :output, class: "...") %>
+```
+
+or in your Phlex templates:
+
+```ruby
+root_element do |greeter|
+  input(type: "text", data: {**greeter.stimulus_target(:name)}, class: %(...))
+  trigger_or_default(greeter)
+  greeter.tag(:span, stimulus_target: :output, class: "ml-4 #{greeter.class_list_for_stimulus_classes(:pre_click)}") do
+    plain %( ... )
+  end
+end
+```
+
+or directly in the ViewComponent template (eg with ERB) using the `as_stimulus_*` helpers
+
+```erb
+  <%# HTML embellishment approach, most familiar to working with HTML in ERB, but is injecting directly into open HTML tags... %>
+  <input type="text"
+         <%= greeter.as_stimulus_targets(:name) %>
+         class="...">
+  <button <%= greeter.as_stimulus_actions([:click, :greet]) %>
+          class="...">
+    <%= @cta %>
+  </button>
+  <span <%= greeter.as_stimulus_targets(:output) %> class="..."></span>
+```
+
+
+### Stimulus Helpers in Templates
+
+Vident provides helper methods for generating Stimulus attributes:
+
+```erb
+<%= render root do |component| %>
+  <!-- Create a target -->
+  <div <%= component.as_target(:content) %>>
+    Content here
+  </div>
+  
+  <!-- Create an action -->
+  <button <%= component.as_action(:click, :toggle) %>>
+    Toggle
+  </button>
+  
+  <!-- Use the tag helper -->
+  <%= component.target_tag :div, :output, class: "mt-4" do %>
+    Output here
+  <% end %>
+  
+  <!-- Multiple targets/actions -->
+  <input <%= component.as_targets(:input, :field) %> 
+         <%= component.as_actions([:input, :validate], [:change, :save]) %>>
+<% end %>
+```
+
+### Stimulus Outlets
+
+Connect components via Stimulus outlets:
+
+
+
+
+### Stimulus Controller Naming
+
+Vident automatically generates Stimulus controller names based on your component class:
+
+- `ButtonComponent` → `button-component`
+- `Admin::UserCardComponent` → `admin--user-card-component`
+- `MyApp::WidgetComponent` → `my-app--widget-component`
+
+### Working with Child Components
+
+Setting Stimulus configuration between parent and child components:
+
+```ruby
+class ParentComponent < Vident::ViewComponent::Base
+  renders_one :a_nested_component, ButtonComponent
+  
+  stimulus do
+    actions :handleTrigger
+  end
+end
+```
+
+```erb
+<%= root_element do |parent| %>
+  <% parent.with_a_nested_component(
+    text: "Click me",
+    stimulus_actions: [
+      parent.stimulus_action(:click, :handleTrigger)
+    ]
+  ) %>
+<% end %>
+```
+
+This creates a nested component that once clicked triggers the parent components `handleTrigger` action.
+
+## Other Features
+
+### Custom Element Tags
+
+Change the root element tag dynamically:
+
+```ruby
+class LinkOrButtonComponent < Vident::ViewComponent::Base
+  prop :url, _Nilable(String)
+  
+  private
+  
+  def root_element_attributes
+    {
+      element_tag: url? ? :a : :button,
+      html_options: {
+        href: url,
+        type: url? ? nil : "button"
+      }.compact
+    }
+  end
+end
+```
+
+### Intelligent Class Management
+
+Vident intelligently merges CSS classes from multiple sources:
+
+```ruby
+class StyledComponent < Vident::ViewComponent::Base
+  prop :variant, Symbol, default: :default
+  
+  private
+  
+  # Classes on the root element
+  def element_classes
+    ["base-class", variant_class]
+  end
+  
+  def variant_class
+    case @variant
+    when :primary then "text-blue-600 bg-blue-100"
+    when :danger then "text-red-600 bg-red-100"
+    else "text-gray-600 bg-gray-100"
+    end
+  end
+end
+```
+
+Usage:
+```erb
+<!-- All classes are intelligently merged -->
+<%= render StyledComponent.new(
+  variant: :primary,
+  classes: "rounded-lg shadow"
+) %>
+<!-- Result: class="base-class text-blue-600 bg-blue-100 rounded-lg shadow" -->
+```
+
+### Tailwind CSS Integration
+
+Vident includes built-in support for Tailwind CSS class merging when the `tailwind_merge` gem is available:
+
+```ruby
+class TailwindComponent < Vident::ViewComponent::Base
+  prop :size, Symbol, default: :medium
+  
+  private
+  
+  def element_classes
+    # Conflicts with size_class will be resolved automatically
+    "p-2 text-sm #{size_class}"
+  end
+  
+  def size_class
+    case @size
+    when :small then "p-1 text-xs"
+    when :large then "p-4 text-lg"
+    else "p-2 text-base"
+    end
+  end
+end
+```
+
+### Component Caching
+
+Enable fragment caching for expensive components:
+
+```ruby
+class ExpensiveComponent < Vident::ViewComponent::Base
+  include Vident::Caching
+  
+  with_cache_key :to_h  # Cache based on all attributes
+  # or
+  with_cache_key :id, :updated_at  # Cache based on specific attributes
+end
+```
+
+```erb
+<% cache component.cache_key do %>
+  <%= render component %>
+<% end %>
+```
+
+
+## Testing
+
+Vident components work seamlessly with testing frameworks that support ViewComponent or Phlex.
 
 ## Development
 
-### Setting Up Development Environment
+### Running Tests
+
+```bash
+# Run all tests
+bin/rails test
+```
+
+### Local Development
 
 ```bash
 # Clone the repository
@@ -58,794 +582,27 @@ cd vident
 
 # Install dependencies
 bundle install
-```
 
-### Running Tests
-
-To run tests for all gems:
-
-```bash
-rake test
-```
-
-To run tests for a specific gem:
-
-```bash
-rake test:vident-phlex
-```
-
-### Building and Installing Gems
-
-To build all gems:
-
-```bash
-rake build
-```
-
-To install all gems locally:
-
-```bash
-rake install
+# Run the dummy app
+cd test/dummy
+rails s
 ```
 
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create a new Pull Request
+2. Create your feature branch (`git checkout -b feature/my-new-feature`)
+3. Write tests for your changes
+4. Commit your changes (`git commit -am 'Add new feature'`)
+5. Push to the branch (`git push origin feature/my-new-feature`)
+6. Create a Pull Request
 
 ## License
 
-The gems are available as open source under the terms of the [MIT License](LICENSE.txt).
+The gem is available as open source under the terms of the [MIT License](LICENSE.txt).
 
----
+## Credits
 
-# Component Documentation
+Vident is maintained by [Stephen Ierodiaconou](https://github.com/stevegeek).
 
----
-
-## gem: vident-typed-view_component
-
-# Vident::Typed::ViewComponent
-
-Adds typed attributes to Vident ViewComponent components.
-
-```ruby
-class ApplicationComponent < ::Vident::Typed::ViewComponent::Base
-end
-```
-
-For more details see [vident](https://github.com/stevegeek/vident).
-
-### Examples
-
-Before we dive into a specific example note that there are some components implemented in `test/dummy/app/components`.
-
-Try them out by starting Rails:
-
-```bash
-cd test/dummy
-bundle install
-rails assets:precompile
-rails s
-```
-
-and visiting http://localhost:3000
-
-
-### A Vident component example (without Stimulus)
-
-First is an example component that uses `Vident::Typed::ViewComponent::Base` but no Stimulus features.
-
-It is an avatar component that can either be displayed as an image or as initials.
-
-It supports numerous sizes and shapes and can optionally have a border. It also generates a cache key for use in fragment caching or etag generation.
-
-```ruby
-class AvatarComponent < ::Vident::Typed::ViewComponent::Base
-  include ::Vident::Tailwind
-  include ::Vident::Caching
-
-  no_stimulus_controller
-  with_cache_key :attributes
-
-  attribute :url, String, allow_nil: true, allow_blank: false
-  attribute :initials, String, allow_blank: false
-
-  attribute :shape, Symbol, in: %i[circle square], default: :circle
-
-  attribute :border, :boolean, default: false
-
-  attribute :size, Symbol, in: %i[tiny small normal medium large x_large xx_large], default: :normal
-
-  private
-
-  def default_html_options
-    if image_avatar?
-      { class: "inline-block object-contain", src: url, alt: t(".image") }
-    else
-      { class: "inline-flex items-center justify-center bg-gray-500" }
-    end
-  end
-
-  def element_classes
-    [size_classes, shape_class, border? ? "border" : ""]
-  end
-
-  alias_method :image_avatar?, :url?
-
-  def shape_class
-    (shape == :circle) ? "rounded-full" : "rounded-md"
-  end
-
-  def size_classes
-    case size
-    when :tiny
-      "w-6 h-6"
-    when :small
-      "w-8 h-8"
-    when :medium
-      "w-12 h-12"
-    when :large
-      "w-14 h-14"
-    when :x_large
-      "sm:w-24 sm:h-24 w-16 h-16"
-    when :xx_large
-      "sm:w-32 sm:h-32 w-24 h-24"
-    else
-      "w-10 h-10"
-    end
-  end
-
-  def text_size_class
-    case size
-    when :tiny
-      "text-xs"
-    when :small
-      "text-xs"
-    when :medium
-      "text-lg"
-    when :large
-      "sm:text-xl text-lg"
-    when :extra_large
-      "sm:text-2xl text-xl"
-    else
-      "text-medium"
-    end
-  end
-end
-```
-
-```erb
-<%= render root(
-             element_tag: image_avatar? ? :img : :div,
-             html_options: default_html_options
-           ) do %>
-  <% unless image_avatar? %>
-    <span class="<%= text_size_class %> font-medium leading-none text-white"><%= initials %></span>
-  <% end %>
-<% end %>
-
-```
-
-Example usages:
-
-```erb
-<!-- These will render -->
-<%= render AvatarComponent.new(url: "https://someurl.com/avatar.jpg", initials: "AB" size: :large) %>
-<%= render AvatarComponent.new(url: "https://someurl.com/avatar.jpg", html_options: {alt: "My alt text", class: "object-scale-down"}) %>
-<%= render AvatarComponent.new(initials: "SG", size: :small) %>
-<%= render AvatarComponent.new(initials: "SG", size: :large, html_options: {class: "border-2 border-red-600"}) %>
-
-<!-- These will raise an error -->
-<!-- missing initals -->
-<%= render AvatarComponent.new(url: "https://someurl.com/avatar.jpg", size: :large) %> 
-<!-- initials blank -->
-<%= render AvatarComponent.new(initials: "", size: :large) %> 
- <!-- invalid size -->
-<%= render AvatarComponent.new(initials: "SG", size: :foo_bar) %>
-```
-
-
-The following is rendered when used `render AvatarComponent.new(initials: "SG", size: :small, border: true)`:
-
-```html
-<div class="avatar-component w-8 h-8 rounded-full border inline-flex items-center justify-center bg-gray-500" id="avatar-component-9790427-12">
-  <span class="text-xs font-medium leading-none text-white">SG</span>
-</div>
-```
-
-The following is rendered when used `render AvatarComponent.new(url: "https://i.pravatar.cc/300", initials: "AB", html_options: {alt: "My alt text", class: "block"})`:
-
-```html
-<img src="https://i.pravatar.cc/300" alt="My alt text" class="avatar-component w-10 h-10 rounded-full object-contain block" id="avatar-component-7083941-11">
-```
-
-----
-
-![Example](examples/avatar.png)
-
-
-### Another ViewComponent + Vident example with Stimulus
-
-Consider the following ERB that might be part of an application's views. The app uses `ViewComponent`, `Stimulus` and `Vident`.
-
-The Greeter is a component that displays a text input and a button. When the button is clicked, the text input's value is
-used to greet the user. At the same time the button changes to be a 'reset' button, which resets the greeting when clicked again.
-
-![ex1.gif](examples/ex1.gif)
-
-```erb
-<%# app/views/home/index.html.erb %>
-
-<!-- ... -->
-
-<!-- render the Greeter ViewComponent (that uses Vident) -->
-<%= render ::GreeterComponent.new(cta: "Hey!", html_options: {class: "my-4"}) do |greeter| %>
-  <%# this component has a slot called `trigger` that renders a `ButtonComponent` (which also uses Vident) %> 
-  <% greeter.with_trigger(
-       
-       # The button component has attributes that are typed
-       before_clicked: "Greet",
-       after_clicked: "Greeted! Reset?",
-       
-       # A stimulus action is added to the button that triggers the `greet` action on the greeter stimulus controller.
-       # This action will be added to any defined on the button component itself
-       actions: [
-         greeter.action(:click, :greet),
-       ],
-       
-       # We can also override the default button classes of our component, or set other HTML attributes
-       html_options: {
-         class: "bg-red-500 hover:bg-red-700"
-       }
-     ) %>
-<% end %>
-
-<!-- ... -->
-```
-
-The output HTML of the above, using Vident, is:
-
-```html 
-<div class="greeter-component py-2 my-4" 
-     data-controller="greeter-component" 
-     data-greeter-component-pre-click-class="text-md text-gray-500" 
-     data-greeter-component-post-click-class="text-xl text-blue-700" 
-     id="greeter-component-1599855-6">
-  <input type="text" 
-         data-greeter-component-target="name" 
-         class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-  <button class="button-component ml-4 whitespace-no-wrap bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded bg-red-500 hover:bg-red-700" 
-          data-controller="button-component" 
-          data-action="click->greeter-component#greet button-component#changeMessage" 
-          data-button-component-after-clicked-message="Greeted! Reset?" 
-          data-button-component-before-clicked-message="Greet" 
-          id="button-component-7799479-7">Hey!</button>
-  <!-- you can also use the `target_tag` helper to render targets -->
-  <span class="ml-4 text-md text-gray-500" 
-        data-greeter-component-target="output">
-    ...
-  </span>
-</div>
-```
-
-Let's look at the components in more detail.
-
-The main component is the `GreeterComponent`:
-
-```ruby
-# app/components/greeter_component.rb
-
-class GreeterComponent < ::Vident::ViewComponent::Base
-  renders_one :trigger, ButtonComponent
-end
-```
-
-```erb
-<%# app/components/greeter_component.html.erb %>
-
-<%# Rendering the `root` element creates a tag which has stimulus `data-*`s, a unique id & other attributes set. %>
-<%# The stimulus controller name (identifier) is derived from the component name, and then used to generate the relavent data attribute names. %>
-
-<%= render root named_classes: {
-  pre_click: "text-md text-gray-500", # named classes are exposed to Stimulus as `data-<controller>-<n>-class` attributes
-  post_click: "text-xl text-blue-700",
-  html_options: {class: "py-2"}
-} do |greeter| %>
-
-  <%# `greeter` is the root element and exposes methods to generate stimulus targets and actions %>
-  <input type="text"
-         <%= greeter.as_target(:name) %>
-         class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-  
-  <%# Render the slot %>
-  <%= trigger %>
-  
-  <%# you can also use the `target_tag` helper to render targets %>
-  <%= greeter.target_tag(
-        :span, 
-        :output, 
-        # Stimulus named classes can be referenced to set class attributes at render time
-        class: "ml-4 #{greeter.named_classes(:pre_click)}" 
-      ) do %>
-    ...
-  <% end %>
-<% end %>
-
-```
-
-```js
-// app/components/greeter_component_controller.js
-
-import { Controller } from "@hotwired/stimulus"
-
-// This is a Stimulus controller that is automatically registered for the `GreeterComponent`
-// and is 'sidecar' to the component. You can see that while in the ERB we use Ruby naming conventions
-// with snake_case Symbols, here they are converted to camelCase names. We can also just use camelCase 
-// in the ERB if we want.
-export default class extends Controller {
-  static targets = [ "name", "output" ]
-  static classes = [ "preClick", "postClick" ]
-
-  greet() {
-    this.clicked = !this.clicked;
-    this.outputTarget.classList.toggle(this.preClickClasses, !this.clicked);
-    this.outputTarget.classList.toggle(this.postClickClasses, this.clicked);
-
-    if (this.clicked)
-      this.outputTarget.textContent = `Hello, ${this.nameTarget.value}!`
-    else
-      this.clear();
-  }
-
-  clear() {
-    this.outputTarget.textContent = '...';
-    this.nameTarget.value = '';
-  }
-}
-```
-
-The slot renders a `ButtonComponent` component:
-
-```ruby
-# app/components/button_component.rb
-
-class ButtonComponent < ::Vident::Typed::ViewComponent::Base
-  # The attributes can specify an expected type, a default value and if nil is allowed.
-  attribute :after_clicked, String, default: "Greeted!"
-  attribute :before_clicked, String, allow_nil: false
-
-  # This example is a templateless ViewComponent.
-  def call
-    # The button is rendered as a <button> tag with an click action on its own controller.
-    render root(
-      element_tag: :button,
-      
-      # We can define actions as arrays of Symbols, or pass manually manually crafted strings.
-      # Here we specify the action name only, implying an action on the current components controller
-      # and the default event type of `click`.
-      actions: [:change_message],
-      # Alternatively: [:click, :change_message] or ["click", "changeMessage"] or even "click->button-component#changeMessage"
-      
-      # A couple of data values are also set which will be available to the controller
-      data_maps: [{after_clicked_message: after_clicked, before_clicked_message: before_clicked}],
-      
-      # The <button> tag has a default styling set directly on it. Note that
-      # if not using utility classes, you can style the component using its 
-      # canonical class name (which is equal to the component's stimulus identifier), 
-      # in this case `button-component`.
-      html_options: {class: "ml-4 whitespace-no-wrap bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"}
-    ) do
-      @before_clicked
-    end
-  end
-end
-```
-
-```js  
-// app/components/button_component_controller.js
-
-import { Controller } from "@hotwired/stimulus"
-
-export default class extends Controller {
-  // The action is in camelCase.
-  changeMessage() {
-    this.clicked = !this.clicked;
-    // The data attributes have their naming convention converted to camelCase.
-    this.element.textContent = this.clicked ? this.data.get("afterClickedMessage") : this.data.get("beforeClickedMessage");
-  }
-}
-
-```
-
-### Usage
-How to use my plugin.
-
-### Installation
-Add this line to your application's Gemfile:
-
-```ruby
-gem "vident-typed-view_component"
-```
-
-And then execute:
-```bash
-$ bundle
-```
-
-Or install it yourself as:
-```bash
-$ gem install vident-typed-view_component
-```
-
----
-
-
-## gem: vident-view_component
-
-# Vident::ViewComponent
-
-[ViewComponent](https://viewcomponent.org/) powered [Vident](https://github.com/stevegeek/vident) components.
-
-```ruby
-class ApplicationComponent < ::Vident::ViewComponent::Base
-end
-```
-
-For more details see [vident](https://github.com/stevegeek/vident).
-
-### Examples
-
-Before we dive into a specific example note that there are some components implemented in the `test/dummy/app/components`.
-
-Try them out by starting Rails:
-
-```bash
-cd test/dummy
-bundle install
-rails assets:precompile
-rails s
-```
-
-and visiting http://localhost:3000
-
-
-### A Vident component example (without Stimulus)
-
-First is an example component that uses `Vident::ViewComponent::Base` but no Stimulus features. 
-
-It is an avatar component that can either be displayed as an image or as initials. It supports numerous sizes and shapes and can optionally have a border. It also generates a cache key for use in fragment caching or etag generation.
-
-```ruby
-class AvatarComponent < ::Vident::ViewComponent::Base
-  include ::Vident::Tailwind
-  include ::Vident::Caching
-
-  no_stimulus_controller
-  with_cache_key :attributes
-
-  attribute :url, allow_nil: true
-  attribute :initials, allow_nil: false
-
-  attribute :shape, default: :circle
-
-  attribute :border, default: false
-
-  attribute :size, default: :normal
-
-  private
-
-  def default_html_options
-    if image_avatar?
-      { class: "inline-block object-contain", src: url, alt: t(".image") }
-    else
-      { class: "inline-flex items-center justify-center bg-gray-500" }
-    end
-  end
-
-  def element_classes
-    [size_classes, shape_class, border? ? "border" : ""]
-  end
-
-  alias_method :image_avatar?, :url?
-
-  def shape_class
-    (shape == :circle) ? "rounded-full" : "rounded-md"
-  end
-
-  def size_classes
-    case size
-    when :tiny
-      "w-6 h-6"
-    when :small
-      "w-8 h-8"
-    when :medium
-      "w-12 h-12"
-    when :large
-      "w-14 h-14"
-    when :x_large
-      "sm:w-24 sm:h-24 w-16 h-16"
-    when :xx_large
-      "sm:w-32 sm:h-32 w-24 h-24"
-    else
-      "w-10 h-10"
-    end
-  end
-
-  def text_size_class
-    case size
-    when :tiny
-      "text-xs"
-    when :small
-      "text-xs"
-    when :medium
-      "text-lg"
-    when :large
-      "sm:text-xl text-lg"
-    when :extra_large
-      "sm:text-2xl text-xl"
-    else
-      "text-medium"
-    end
-  end
-end
-```
-
-```erb
-<%= render root(
-             element_tag: image_avatar? ? :img : :div,
-             html_options: default_html_options
-           ) do %>
-  <% unless image_avatar? %>
-    <span class="<%= text_size_class %> font-medium leading-none text-white"><%= initials %></span>
-  <% end %>
-<% end %>
-```
-
-Example usages:
-
-```erb
-<%= render AvatarComponent.new(url: "https://someurl.com/avatar.jpg", initials: "AB" size: :large) %>
-<%= render AvatarComponent.new(url: "https://someurl.com/avatar.jpg", html_options: {alt: "My alt text", class: "object-scale-down"}) %>
-<%= render AvatarComponent.new(initials: "SG", size: :small) %>
-<%= render AvatarComponent.new(initials: "SG", size: :large, html_options: {class: "border-2 border-red-600"}) %>
-```
-
-The following is rendered when used `render AvatarComponent.new(initials: "SG", size: :small, border: true)`:
-
-```html
-<div class="avatar-component w-8 h-8 rounded-full border inline-flex items-center justify-center bg-gray-500" id="avatar-component-9790427-12">
-  <span class="text-xs font-medium leading-none text-white">SG</span>
-</div>
-```
-
-The following is rendered when used `render AvatarComponent.new(url: "https://i.pravatar.cc/300", initials: "AB", html_options: {alt: "My alt text", class: "block"})`:
-
-```html
-<img src="https://i.pravatar.cc/300" alt="My alt text" class="avatar-component w-10 h-10 rounded-full object-contain block" id="avatar-component-7083941-11">
-```
-
-----
-
-![Example](examples/avatar.png)
-
-### Usage
-How to use my plugin.
-
-### Installation
-Add this line to your application's Gemfile:
-
-```ruby
-gem "vident-view_component"
-```
-
-And then execute:
-```bash
-$ bundle
-```
-
-Or install it yourself as:
-```bash
-$ gem install vident-view_component
-```
-
----
-
-## gem: vident-better_html
-
-# Vident::BetterHtml
-Short description and motivation.
-
-### Usage
-How to use my plugin.
-
-```ruby
-BetterHtml.config = BetterHtml::Config.new(YAML.load(File.read(".better-html.yml")))
-
-BetterHtml.configure do |config|
-  config.template_exclusion_filter = proc { |filename| !filename.start_with?(Rails.root.to_s) }
-end
-# ViewComponent needs to do this hack to work in certain cases
-# see https://github.com/Shopify/better-html/pull/98
-class BetterHtml::HtmlAttributes
-  alias_method :to_s_without_html_safe, :to_s
-
-  def to_s
-    to_s_without_html_safe.html_safe
-  end
-end
-```
-
-### Installation
-Add this line to your application's Gemfile:
-
-```ruby
-gem "vident-better_html"
-```
-
-And then execute:
-```bash
-$ bundle
-```
-
-Or install it yourself as:
-```bash
-$ gem install vident-better_html
-```
-
----
-
-## gem: vident-phlex
-
-# Vident::Phlex
-
-[Phlex](https://phlex.fun/) powered [Vident](https://github.com/stevegeek/vident) components.
-
-```ruby
-class ApplicationComponent < ::Vident::Phlex::HTML
-end
-```
-
-For more details see [vident](https://github.com/stevegeek/vident).
-
-### Usage
-How to use my plugin.
-
-### Installation
-Add this line to your application's Gemfile:
-
-```ruby
-gem "vident-phlex"
-```
-
-And then execute:
-```bash
-$ bundle
-```
-
-Or install it yourself as:
-```bash
-$ gem install vident-phlex
-```
-
----
-
-## gem: vident-tailwind
-
-# Vident::Tailwind
-Short description and motivation.
-
-### Usage
-How to use my plugin.
-
-### Installation
-Add this line to your application's Gemfile:
-
-```ruby
-gem "vident-tailwind"
-```
-
-And then execute:
-```bash
-$ bundle
-```
-
-Or install it yourself as:
-```bash
-$ gem install vident-tailwind
-```
-
----
-
-## gem: vident-typed-minitest
-
-# Vident::Typed::Minitest
-Short description and motivation.
-
-### Usage
-How to use my plugin.
-
-### Installation
-Add this line to your application's Gemfile:
-
-```ruby
-gem "vident-typed-minitest"
-```
-
-And then execute:
-```bash
-$ bundle
-```
-
-Or install it yourself as:
-```bash
-$ gem install vident-typed-minitest
-```
-
----
-
-## gem: vident-typed-phlex
-
-# Vident::Typed::Phlex
-
-Adds typed attributes to Vident Phlex based components.
-
-```ruby
-class ApplicationComponent < ::Vident::Typed::Phlex::HTML
-end
-```
-
-For more details see [vident](https://github.com/stevegeek/vident).
-
-### Usage
-How to use my plugin.
-
-### Installation
-Add this line to your application's Gemfile:
-
-```ruby
-gem "vident-typed-phlex"
-```
-
-And then execute:
-```bash
-$ bundle
-```
-
-Or install it yourself as:
-```bash
-$ gem install vident-typed-phlex
-```
-
----
-
-
-## gem: vident-typed
-
-# Vident::Typed
-Short description and motivation.
-
-### Usage
-How to use my plugin.
-
-### Installation
-Add this line to your application's Gemfile:
-
-```ruby
-gem "vident-typed"
-```
-
-And then execute:
-```bash
-$ bundle
-```
-
-Or install it yourself as:
-```bash
-$ gem install vident-typed
-```
-
----
+Special thanks to the ViewComponent and Phlex communities for their excellent component frameworks that Vident builds upon.

@@ -20,7 +20,8 @@ class StimulusDSLPhlexIntegrationTest < ActionView::TestCase
     stimulus do
       actions :click, :toggle, :expand, :collapse
       targets :header, :body, :toggle_button, :spinner
-      values :title, :collapsed, :loading, :url, variant: "card"
+      values_from_props :title, :collapsed, :loading, :url
+      values variant: "card"
       classes(
         collapsed: "h-16 overflow-hidden",
         expanded: "h-auto",
@@ -58,13 +59,13 @@ class StimulusDSLPhlexIntegrationTest < ActionView::TestCase
     stimulus do
       actions :submit, :reset
       targets :form, :submit_button
-      values :action
+      values_from_props :action
     end
     
     stimulus do
       actions :change, :input
       targets :input, :error
-      values :method, :disabled
+      values_from_props :method, :disabled
       classes invalid: "border-red-500", valid: "border-green-500"
     end
     
@@ -97,7 +98,7 @@ class StimulusDSLPhlexIntegrationTest < ActionView::TestCase
     stimulus do
       actions :hover
       targets :child
-      values :content
+      values_from_props :content
     end
     
     def view_template
@@ -114,14 +115,11 @@ class StimulusDSLPhlexIntegrationTest < ActionView::TestCase
     assert_equal [:click, :toggle, :expand, :collapse], dsl_attrs[:stimulus_actions]
     assert_equal [:header, :body, :toggle_button, :spinner], dsl_attrs[:stimulus_targets]
     
-    expected_values = {
-      title: :auto_map_from_prop,
-      collapsed: :auto_map_from_prop,
-      loading: :auto_map_from_prop,
-      url: :auto_map_from_prop,
-      variant: "card"
-    }
+    expected_values = { variant: "card" }
     assert_equal expected_values, dsl_attrs[:stimulus_values]
+    
+    expected_values_from_props = [:title, :collapsed, :loading, :url]
+    assert_equal expected_values_from_props, dsl_attrs[:stimulus_values_from_props]
     
     expected_classes = {
       collapsed: "h-16 overflow-hidden",
@@ -146,17 +144,22 @@ class StimulusDSLPhlexIntegrationTest < ActionView::TestCase
   def test_phlex_dsl_value_resolution
     component = TestCardComponent.new(title: "My Card", collapsed: false, loading: true, url: "/api/card")
     
-    dsl_values = component.class.stimulus_dsl_attributes[:stimulus_values]
-    resolved = component.send(:resolve_stimulus_dsl_values, dsl_values)
+    # Test prop mapping
+    values_from_props = component.class.stimulus_dsl_attributes[:stimulus_values_from_props]
+    resolved_from_props = component.send(:resolve_values_from_props, values_from_props)
     
-    expected = {
+    expected_from_props = {
       title: "My Card",
       collapsed: false,
       loading: true,
-      url: "/api/card",
-      variant: "card"  # explicit value, not auto-mapped
+      url: "/api/card"
     }
-    assert_equal expected, resolved
+    assert_equal expected_from_props, resolved_from_props
+    
+    # Test static values
+    static_values = component.class.stimulus_dsl_attributes[:stimulus_values]
+    expected_static = { variant: "card" }
+    assert_equal expected_static, static_values
   end
 
   def test_phlex_stimulus_data_attributes_integration
@@ -232,12 +235,8 @@ class StimulusDSLPhlexIntegrationTest < ActionView::TestCase
     assert_equal [:form, :submit_button, :input, :error], dsl_attrs[:stimulus_targets]
     
     # Values from both blocks
-    expected_values = {
-      action: :auto_map_from_prop,
-      method: :auto_map_from_prop,
-      disabled: :auto_map_from_prop
-    }
-    assert_equal expected_values, dsl_attrs[:stimulus_values]
+    expected_values_from_props = [:action, :method, :disabled]
+    assert_equal expected_values_from_props, dsl_attrs[:stimulus_values_from_props]
     
     # Classes from second block
     expected_classes = { invalid: "border-red-500", valid: "border-green-500" }
@@ -275,7 +274,7 @@ class StimulusDSLPhlexIntegrationTest < ActionView::TestCase
     # Child should inherit parent's attributes and add its own
     assert_equal [:click, :hover], child_attrs[:stimulus_actions]
     assert_equal [:base, :child], child_attrs[:stimulus_targets]
-    assert_equal({ content: :auto_map_from_prop }, child_attrs[:stimulus_values])
+    assert_equal([:content], child_attrs[:stimulus_values_from_props])
     assert_equal({ active: "active" }, child_attrs[:stimulus_classes])
   end
 

@@ -22,21 +22,21 @@ class Greeters::EnhancedButtonComponentTest < ViewComponent::TestCase
   def test_dsl_includes_expected_attributes
     dsl_attrs = Greeters::EnhancedButtonComponent.stimulus_dsl_attributes
     
-    # Should include values that will be auto-mapped from props
-    assert_includes dsl_attrs[:stimulus_values], :text
-    assert_includes dsl_attrs[:stimulus_values], :loading
+    # Should include values that will be mapped from props
+    assert_includes dsl_attrs[:stimulus_values_from_props], :text
+    assert_includes dsl_attrs[:stimulus_values_from_props], :loading
     
     # Should include explicit classes
     assert_equal "text-red-500", dsl_attrs[:stimulus_classes][:error]
   end
 
-  def test_dsl_value_auto_mapping
+  def test_dsl_value_prop_mapping
     component = Greeters::EnhancedButtonComponent.new(text: "Test")
     
-    # Test DSL auto-mapping from props
-    resolved_values = component.send(:resolve_stimulus_dsl_values, {text: :auto_map_from_prop, missing: :auto_map_from_prop})
+    # Test DSL prop mapping
+    resolved_values = component.send(:resolve_values_from_props, [:text, :missing])
     assert_equal "Test", resolved_values[:text]
-    assert_nil resolved_values[:missing] # prop doesn't exist
+    assert_empty resolved_values.reject { |k, v| v.nil? }.except(:text) # missing prop doesn't exist
   end
 
   def test_dsl_and_root_element_merging

@@ -57,14 +57,14 @@ class StimulusDSLTest < ActiveSupport::TestCase
     assert_equal [:button, :form, :input], dsl_attrs[:stimulus_targets]
   end
 
-  def test_stimulus_block_with_values_array
+  def test_stimulus_block_with_values_from_props
     @component_class.stimulus do
-      values :name, :count, :active
+      values_from_props :name, :count, :active
     end
     
     dsl_attrs = @component_class.stimulus_dsl_attributes
-    expected = { name: :auto_map_from_prop, count: :auto_map_from_prop, active: :auto_map_from_prop }
-    assert_equal expected, dsl_attrs[:stimulus_values]
+    expected = [:name, :count, :active]
+    assert_equal expected, dsl_attrs[:stimulus_values_from_props]
   end
 
   def test_stimulus_block_with_values_hash
@@ -101,7 +101,8 @@ class StimulusDSLTest < ActiveSupport::TestCase
     @component_class.stimulus do
       actions :click, :submit
       targets :button, :form
-      values :name, :count
+      values count: 0, enabled: true
+      values_from_props :name, :title
       classes loading: "opacity-50", active: "bg-blue-500"
       outlets modal: ".modal"
     end
@@ -110,7 +111,8 @@ class StimulusDSLTest < ActiveSupport::TestCase
     
     assert_equal [:click, :submit], dsl_attrs[:stimulus_actions]
     assert_equal [:button, :form], dsl_attrs[:stimulus_targets]
-    assert_equal({ name: :auto_map_from_prop, count: :auto_map_from_prop }, dsl_attrs[:stimulus_values])
+    assert_equal({ count: 0, enabled: true }, dsl_attrs[:stimulus_values])
+    assert_equal([:name, :title], dsl_attrs[:stimulus_values_from_props])
     assert_equal({ loading: "opacity-50", active: "bg-blue-500" }, dsl_attrs[:stimulus_classes])
     assert_equal({ modal: ".modal" }, dsl_attrs[:stimulus_outlets])
   end
@@ -119,19 +121,21 @@ class StimulusDSLTest < ActiveSupport::TestCase
     @component_class.stimulus do
       actions :click
       targets :button
+      values count: 0
     end
     
     @component_class.stimulus do
       actions :submit
       targets :form
-      values :name
+      values_from_props :name
     end
     
     dsl_attrs = @component_class.stimulus_dsl_attributes
     
     assert_equal [:click, :submit], dsl_attrs[:stimulus_actions]
     assert_equal [:button, :form], dsl_attrs[:stimulus_targets]
-    assert_equal({ name: :auto_map_from_prop }, dsl_attrs[:stimulus_values])
+    assert_equal({ count: 0 }, dsl_attrs[:stimulus_values])
+    assert_equal([:name], dsl_attrs[:stimulus_values_from_props])
   end
 
   def test_stimulus_block_inheritance
@@ -176,7 +180,7 @@ class StimulusDSLTest < ActiveSupport::TestCase
     @component_class.stimulus do
       actions
       targets
-      values
+      values_from_props
     end
     
     dsl_attrs = @component_class.stimulus_dsl_attributes
@@ -207,20 +211,15 @@ class StimulusDSLTest < ActiveSupport::TestCase
     assert_equal ["button", :form, "input"], dsl_attrs[:stimulus_targets]
   end
 
-  def test_values_with_mixed_hash_and_array
+  def test_values_with_mixed_static_and_from_props
     @component_class.stimulus do
-      values :auto_mapped_value
-      values explicit_value: "explicit"
-      values :another_auto_mapped
+      values_from_props :auto_mapped_value, :another_auto_mapped
+      values explicit_value: "explicit", count: 42
     end
     
     dsl_attrs = @component_class.stimulus_dsl_attributes
-    expected = { 
-      auto_mapped_value: :auto_map_from_prop,
-      explicit_value: "explicit",
-      another_auto_mapped: :auto_map_from_prop
-    }
-    assert_equal expected, dsl_attrs[:stimulus_values]
+    assert_equal({ explicit_value: "explicit", count: 42 }, dsl_attrs[:stimulus_values])
+    assert_equal([:auto_mapped_value, :another_auto_mapped], dsl_attrs[:stimulus_values_from_props])
   end
 
   def test_classes_with_multiple_calls

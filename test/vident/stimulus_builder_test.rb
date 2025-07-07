@@ -62,10 +62,10 @@ class StimulusBuilderTest < ActiveSupport::TestCase
     assert_equal [], @builder.instance_variable_get(:@targets)
   end
 
-  def test_values_with_symbols_auto_map
-    @builder.values(:name, :count, :active)
-    expected = { name: :auto_map_from_prop, count: :auto_map_from_prop, active: :auto_map_from_prop }
-    assert_equal expected, @builder.instance_variable_get(:@values)
+  def test_values_from_props_with_symbols
+    @builder.values_from_props(:name, :count, :active)
+    expected = [:name, :count, :active]
+    assert_equal expected, @builder.instance_variable_get(:@values_from_props)
   end
 
   def test_values_with_hash
@@ -74,17 +74,12 @@ class StimulusBuilderTest < ActiveSupport::TestCase
     assert_equal expected, @builder.instance_variable_get(:@values)
   end
 
-  def test_values_with_mixed_hash_and_symbols
-    @builder.values(:auto_mapped)
+  def test_values_with_mixed_static_and_from_props
+    @builder.values_from_props(:auto_mapped, :another_auto_mapped)
     @builder.values(explicit: "value")
-    @builder.values(:another_auto_mapped)
     
-    expected = { 
-      auto_mapped: :auto_map_from_prop,
-      explicit: "value",
-      another_auto_mapped: :auto_map_from_prop
-    }
-    assert_equal expected, @builder.instance_variable_get(:@values)
+    assert_equal([:auto_mapped, :another_auto_mapped], @builder.instance_variable_get(:@values_from_props))
+    assert_equal({ explicit: "value" }, @builder.instance_variable_get(:@values))
   end
 
   def test_values_hash_overwrites_existing_keys
@@ -92,12 +87,6 @@ class StimulusBuilderTest < ActiveSupport::TestCase
     @builder.values(name: "second", count: 1)
     
     expected = { name: "second", count: 1 }
-    assert_equal expected, @builder.instance_variable_get(:@values)
-  end
-
-  def test_values_with_single_hash_argument
-    @builder.values({ name: "test", count: 42 })
-    expected = { name: "test", count: 42 }
     assert_equal expected, @builder.instance_variable_get(:@values)
   end
 
@@ -181,14 +170,14 @@ class StimulusBuilderTest < ActiveSupport::TestCase
     result = @builder
       .actions(:click, :submit)
       .targets(:button, :form)
-      .values(:name, :count)
+      .values_from_props(:name, :count)
       .classes(loading: "opacity-50")
       .outlets(modal: ".modal")
     
     assert_equal @builder, result
     assert_equal [:click, :submit], @builder.instance_variable_get(:@actions)
     assert_equal [:button, :form], @builder.instance_variable_get(:@targets)
-    assert_equal({ name: :auto_map_from_prop, count: :auto_map_from_prop }, @builder.instance_variable_get(:@values))
+    assert_equal([:name, :count], @builder.instance_variable_get(:@values_from_props))
     assert_equal({ loading: "opacity-50" }, @builder.instance_variable_get(:@classes))
     assert_equal({ modal: ".modal" }, @builder.instance_variable_get(:@outlets))
   end
