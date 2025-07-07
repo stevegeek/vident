@@ -65,7 +65,6 @@ module Vident
     def root(...)
       root_element(...)
     end
-    alias_method :parent_element, :root
 
     def root_element_tag_options
       options = @html_options&.dup || {}
@@ -81,7 +80,7 @@ module Vident
 
     # Generate a random ID for the component, which is used to ensure uniqueness in the DOM.
     def random_id
-      @random_id ||= "#{component_class_name}-#{StableId.next_id_in_sequence}"
+      @random_id ||= "#{component_name}-#{StableId.next_id_in_sequence}"
     end
   end
 end

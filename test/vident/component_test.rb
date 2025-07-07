@@ -36,10 +36,6 @@ module Vident
       assert_equal "admin--settings--user-profile", result
     end
 
-    def test_component_class_name
-      assert_equal "test-component", @test_component_class.component_class_name
-    end
-
     def test_component_name
       assert_equal "test-component", @test_component_class.component_name
     end
@@ -95,8 +91,8 @@ module Vident
       assert_equal "test-component", @component.stimulus_identifier
     end
 
-    def test_component_class_name_instance_method
-      assert_equal "test-component", @component.component_class_name
+    def test_component_name_instance_method
+      assert_equal "test-component", @component.component_name
     end
 
     def test_element_classes_default_nil
@@ -150,7 +146,7 @@ module Vident
 
       component = nested_class.new
       assert_equal "admin--settings--user-profile", component.stimulus_identifier
-      assert_equal "admin--settings--user-profile", component.component_class_name
+      assert_equal "admin--settings--user-profile", component.component_name
     end
 
     def test_after_component_initialize_hook

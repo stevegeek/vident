@@ -18,7 +18,7 @@ module Vident
     def class_list_builder
       @class_list_builder ||= ClassListBuilder.new(
         tailwind_merger:,
-        component_class_name:,
+        component_name:,
         element_classes:,
         additional_classes: @classes,
         html_class: @html_options&.fetch(:class, nil)

@@ -36,12 +36,7 @@ class StimulusDSLTest < ActiveSupport::TestCase
     fresh_class = Class.new { include Vident::StimulusDSL }
     dsl_attrs = fresh_class.stimulus_dsl_attributes
     
-    assert_equal({}, dsl_attrs[:stimulus_controllers])
-    assert_equal([], dsl_attrs[:stimulus_actions])
-    assert_equal([], dsl_attrs[:stimulus_targets])
-    assert_equal({}, dsl_attrs[:stimulus_outlets])
-    assert_equal({}, dsl_attrs[:stimulus_values])
-    assert_equal({}, dsl_attrs[:stimulus_classes])
+    assert_equal({}, dsl_attrs)
   end
 
   def test_stimulus_block_with_actions
@@ -98,7 +93,7 @@ class StimulusDSLTest < ActiveSupport::TestCase
     end
     
     dsl_attrs = @component_class.stimulus_dsl_attributes
-    expected = { modal: ".modal", tooltip: ".tooltip" }
+    expected = [{ modal: ".modal", tooltip: ".tooltip" }]
     assert_equal expected, dsl_attrs[:stimulus_outlets]
   end
 
@@ -117,7 +112,7 @@ class StimulusDSLTest < ActiveSupport::TestCase
     assert_equal [:button, :form], dsl_attrs[:stimulus_targets]
     assert_equal({ name: :auto_map_from_prop, count: :auto_map_from_prop }, dsl_attrs[:stimulus_values])
     assert_equal({ loading: "opacity-50", active: "bg-blue-500" }, dsl_attrs[:stimulus_classes])
-    assert_equal({ modal: ".modal" }, dsl_attrs[:stimulus_outlets])
+    assert_equal([{ modal: ".modal" }], dsl_attrs[:stimulus_outlets])
   end
 
   def test_multiple_stimulus_blocks_merge
@@ -173,11 +168,8 @@ class StimulusDSLTest < ActiveSupport::TestCase
     end
     
     dsl_attrs = @component_class.stimulus_dsl_attributes
-    assert_equal [], dsl_attrs[:stimulus_actions]
-    assert_equal [], dsl_attrs[:stimulus_targets]
-    assert_equal({}, dsl_attrs[:stimulus_values])
-    assert_equal({}, dsl_attrs[:stimulus_classes])
-    assert_equal({}, dsl_attrs[:stimulus_outlets])
+    # Empty block should return empty hash since no attributes are set
+    assert_equal({}, dsl_attrs)
   end
 
   def test_stimulus_block_with_no_arguments
@@ -188,9 +180,8 @@ class StimulusDSLTest < ActiveSupport::TestCase
     end
     
     dsl_attrs = @component_class.stimulus_dsl_attributes
-    assert_equal [], dsl_attrs[:stimulus_actions]
-    assert_equal [], dsl_attrs[:stimulus_targets]
-    assert_equal({}, dsl_attrs[:stimulus_values])
+    # When called with no arguments, methods should not add any attributes
+    assert_equal({}, dsl_attrs)
   end
 
   def test_stimulus_block_with_duplicate_values
@@ -250,7 +241,7 @@ class StimulusDSLTest < ActiveSupport::TestCase
     end
     
     dsl_attrs = @component_class.stimulus_dsl_attributes
-    expected = { modal: ".modal", tooltip: ".tooltip", dropdown: ".dropdown" }
+    expected = [{ modal: ".modal" }, { tooltip: ".tooltip", dropdown: ".dropdown" }]
     assert_equal expected, dsl_attrs[:stimulus_outlets]
   end
 end

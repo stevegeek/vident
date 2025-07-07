@@ -4,15 +4,15 @@ module Vident
       include ::Vident::Component
 
       class << self
-        def current_component_modified_time
-          sidecar_view_modified_time + rb_component_modified_time
+        def cache_component_modified_time
+          cache_sidecar_view_modified_time + cache_rb_component_modified_time
         end
 
-        def sidecar_view_modified_time
+        def cache_sidecar_view_modified_time
           ::File.exist?(template_path) ? ::File.mtime(template_path).to_i.to_s : ""
         end
 
-        def rb_component_modified_time
+        def cache_rb_component_modified_time
           ::File.exist?(component_path) ? ::File.mtime(component_path).to_i.to_s : ""
         end
 

@@ -35,8 +35,8 @@ module Vident
         @classes.merge!(class_mappings)
       end
 
-      def outlets(*outlet_names)
-        @outlets.concat(outlet_names)
+      def outlets(**outlet_mappings)
+        @outlets << outlet_mappings unless outlet_mappings.empty?
       end
 
       def to_attributes
@@ -59,11 +59,36 @@ module Vident
 
     class_methods do
       def stimulus(&block)
-        @stimulus_builder = StimulusBuilder.new
+        # Initialize stimulus builder if not already present
+        if @stimulus_builder.nil?
+          @stimulus_builder = StimulusBuilder.new
+          @inheritance_merged = false
+        end
+        
+        # Merge with parent class attributes only once per class
+        if !@inheritance_merged && superclass.respond_to?(:stimulus_dsl_attributes)
+          parent_attrs = superclass.stimulus_dsl_attributes
+          unless parent_attrs.empty?
+            # Merge parent attributes into current builder
+            @stimulus_builder.instance_variable_get(:@actions).concat(parent_attrs[:stimulus_actions] || [])
+            @stimulus_builder.instance_variable_get(:@targets).concat(parent_attrs[:stimulus_targets] || [])
+            @stimulus_builder.instance_variable_get(:@values).merge!(parent_attrs[:stimulus_values] || {})
+            @stimulus_builder.instance_variable_get(:@classes).merge!(parent_attrs[:stimulus_classes] || {})
+            @stimulus_builder.instance_variable_get(:@outlets).concat(parent_attrs[:stimulus_outlets] || [])
+          end
+          @inheritance_merged = true
+        end
+        
+        # Execute the new block to add/merge new attributes
         @stimulus_builder.instance_eval(&block)
       end
 
       def stimulus_dsl_attributes
+        # If no stimulus blocks have been defined on this class, check parent
+        if @stimulus_builder.nil? && superclass.respond_to?(:stimulus_dsl_attributes)
+          return superclass.stimulus_dsl_attributes
+        end
+        
         @stimulus_builder&.to_attributes || {}
       end
     end

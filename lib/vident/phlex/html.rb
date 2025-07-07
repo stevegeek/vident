@@ -18,7 +18,7 @@ module Vident
         attr_accessor :component_source_file_path
 
         # Caching support
-        def current_component_modified_time
+        def cache_component_modified_time
           path = component_source_file_path
           raise StandardError, "No component source file exists #{path}" unless path && ::File.exist?(path)
           ::File.mtime(path).to_i.to_s

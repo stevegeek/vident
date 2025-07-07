@@ -14,7 +14,7 @@ class ComponentClassListsTest < Minitest::Test
       def class_list_builder
         @class_list_builder ||= Vident::ClassListBuilder.new(
           tailwind_merger: nil,
-          component_class_name: "test-component",
+          component_name: "test-component",
           element_classes: "base-class",
           additional_classes: nil,
           html_class: nil
@@ -38,7 +38,7 @@ class ComponentClassListsTest < Minitest::Test
       def class_list_builder
         @class_list_builder ||= Vident::ClassListBuilder.new(
           tailwind_merger: nil,
-          component_class_name: "test-component",
+          component_name: "test-component",
           element_classes: "base-class",
           additional_classes: nil,
           html_class: nil
@@ -77,7 +77,7 @@ class ComponentClassListsTest < Minitest::Test
       def class_list_builder
         @class_list_builder ||= Vident::ClassListBuilder.new(
           tailwind_merger: nil,
-          component_class_name: nil,
+          component_name: nil,
           element_classes: nil,
           additional_classes: nil,
           html_class: nil
@@ -105,7 +105,7 @@ class ComponentClassListsTest < Minitest::Test
       def class_list_builder
         @class_list_builder ||= Vident::ClassListBuilder.new(
           tailwind_merger: nil,
-          component_class_name: nil,
+          component_name: nil,
           element_classes: nil,
           additional_classes: nil,
           html_class: nil
@@ -135,7 +135,7 @@ class ComponentClassListsTest < Minitest::Test
         nil
       end
 
-      def component_class_name
+      def component_name
         "test-component"
       end
 

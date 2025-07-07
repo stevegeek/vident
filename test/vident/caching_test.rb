@@ -15,7 +15,7 @@ module Vident
           "TestCachingComponent"
         end
 
-        def self.current_component_modified_time
+        def self.cache_component_modified_time
           "123456789"
         end
 
@@ -151,7 +151,7 @@ module Vident
       assert_equal "123456789", @test_component_class.instance_variable_get(:@component_modified_time)
     end
 
-    def test_component_modified_time_raises_without_current_component_modified_time
+    def test_component_modified_time_raises_without_cache_component_modified_time
       test_class = Class.new do
         include Vident::Caching
         def self.name
@@ -159,7 +159,7 @@ module Vident
         end
       end
 
-      assert_raises(StandardError, "Must implement current_component_modified_time") do
+      assert_raises(StandardError, "Must implement cache_component_modified_time") do
         test_class.component_modified_time
       end
     end
@@ -353,7 +353,7 @@ module Vident
           "EmptyComponent"
         end
 
-        def self.current_component_modified_time
+        def self.cache_component_modified_time
           "time"
         end
 
@@ -383,7 +383,7 @@ module Vident
         end
 
         # Empty time
-        def self.current_component_modified_time
+        def self.cache_component_modified_time
           ""
         end
 
@@ -528,7 +528,7 @@ module Vident
 
     # Test error conditions
 
-    def test_component_modified_time_without_current_component_modified_time_implementation
+    def test_component_modified_time_without_cache_component_modified_time_implementation
       broken_class = Class.new do
         include Vident::Caching
         def self.name
@@ -575,7 +575,7 @@ module Vident
       dep1_class = Class.new do
         include Vident::Caching
 
-        def self.current_component_modified_time
+        def self.cache_component_modified_time
           "dep1_time"
         end
       end
@@ -583,7 +583,7 @@ module Vident
       dep2_class = Class.new do
         include Vident::Caching
 
-        def self.current_component_modified_time
+        def self.cache_component_modified_time
           "dep2_time"
         end
       end

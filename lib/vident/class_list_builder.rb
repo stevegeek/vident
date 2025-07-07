@@ -6,8 +6,8 @@ module Vident
   class ClassListBuilder
     CLASSNAME_SEPARATOR = " "
 
-    def initialize(tailwind_merger: nil, component_class_name: nil, element_classes: nil, html_class: nil, additional_classes: nil)
-      @class_list = component_class_name ? [component_class_name] : []
+    def initialize(tailwind_merger: nil, component_name: nil, element_classes: nil, html_class: nil, additional_classes: nil)
+      @class_list = component_name ? [component_name] : []
       @class_list.concat(Array.wrap(element_classes)) if element_classes
       @class_list.concat(Array.wrap(html_class)) if html_class
       @class_list.concat(Array.wrap(additional_classes)) if additional_classes
