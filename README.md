@@ -76,21 +76,23 @@ class ButtonComponent < Vident::ViewComponent::Base
   
   # Configure Stimulus integration
   stimulus do
-    actions [:click, :handle_click]
-    # Static values
-    values loading_duration: 1000
+    # Setup actions, including with proc to evaluate on instance 
+    actions [:click, :handle_click], 
+            -> { [stimulus_scoped_event(:my_custom_event), :handle_this] if should_handle_this? }
     # Map the clicked_count prop as a Stimulus value
     values_from_props :clicked_count
     # Dynamic values using procs (evaluated in component context)
-    values item_count: -> { @items.count }
-    values api_url: -> { Rails.application.routes.url_helpers.api_items_path }
+    values item_count: -> { @items.count },
+           api_url: -> { Rails.application.routes.url_helpers.api_items_path },
+           loading_duration: 1000 # or set static values
     # Static and dynamic classes
-    classes loading: "opacity-50 cursor-wait"
-    classes size: -> { @items.count > 10 ? "large" : "small" }
+    classes loading: "opacity-50 cursor-wait",
+            size: -> { @items.count > 10 ? "large" : "small" }
   end
 
   def call
     root_element do |component|
+      # Wire up targets etc
       component.tag(:span, stimulus_target: :status) do
         @text
       end
@@ -99,6 +101,7 @@ class ButtonComponent < Vident::ViewComponent::Base
 
   private
 
+  # Configure your components root HTML element
   def root_element_attributes
     {
       element_tag: @url ? :a : :button,
@@ -106,6 +109,7 @@ class ButtonComponent < Vident::ViewComponent::Base
     }
   end
 
+  # optionally add logic to determine initial classes
   def element_classes
     base_classes = "btn"
     case @style
