@@ -221,9 +221,10 @@ class PhlexGreeters::GreeterWithTriggerComponentTest < ActionView::TestCase
     assert_equal expected_path, PhlexGreeters::GreeterWithTriggerComponent.stimulus_identifier_path
   end
 
-  def test_component_js_event_name_prefix
+  def test_component_stimulus_scoped_events
     expected_prefix = "phlex-greeters--greeter-with-trigger-component"
-    assert_equal expected_prefix, PhlexGreeters::GreeterWithTriggerComponent.js_event_name_prefix
+    assert_equal "#{expected_prefix}:click", PhlexGreeters::GreeterWithTriggerComponent.stimulus_scoped_event(:click)
+    assert_equal "#{expected_prefix}:click@window", PhlexGreeters::GreeterWithTriggerComponent.stimulus_scoped_event_on_window(:click)
   end
 
   def test_root_element_attributes_structure

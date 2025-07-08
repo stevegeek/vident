@@ -103,6 +103,24 @@ stimulus do
 end
 ```
 
+## Scoped Custom Events
+Generate unique event names for component communication:
+
+```ruby
+# Define actions that respond to scoped events
+stimulus do
+  actions [stimulus_scoped_event_on_window(:data_loaded), :handle_data_loaded]
+end
+
+# Generate scoped event names
+stimulus_scoped_event(:data_loaded)         # => "component-name:dataLoaded"
+stimulus_scoped_event_on_window(:data_loaded) # => "component-name:dataLoaded@window"
+
+# Available as both class and instance methods
+MyComponent.stimulus_scoped_event(:click)
+component_instance.stimulus_scoped_event(:click)
+```
+
 ## Manual Stimulus Configuration
 ```ruby
 def root_element_attributes

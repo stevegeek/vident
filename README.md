@@ -381,6 +381,37 @@ stimulus do
 end
 ```
 
+### Scoped Custom Events
+
+Vident provides helper methods to generate scoped event names for dispatching custom events that are unique to your component:
+
+```ruby
+class MyComponent < Vident::ViewComponent::Base
+  stimulus do
+    # Define an action that responds to a scoped event
+    actions [stimulus_scoped_event_on_window(:data_loaded), :handle_data_loaded]
+  end
+  
+  def handle_click
+    # Dispatch a scoped event from JavaScript
+    # This would generate: "my-component:dataLoaded"
+    puts stimulus_scoped_event(:data_loaded)
+    
+    # For window events, this generates: "my-component:dataLoaded@window" 
+    puts stimulus_scoped_event_on_window(:data_loaded)
+  end
+end
+
+# Available as both class and instance methods:
+MyComponent.stimulus_scoped_event(:data_loaded)      # => "my-component:dataLoaded"
+MyComponent.new.stimulus_scoped_event(:data_loaded)  # => "my-component:dataLoaded"
+```
+
+This is useful for:
+- Dispatching events from Stimulus controllers to communicate between components
+- Creating unique event names that won't conflict with other components
+- Setting up window-level event listeners with scoped names
+
 ### Manual Stimulus Configuration
 
 For more control, configure Stimulus attributes manually:

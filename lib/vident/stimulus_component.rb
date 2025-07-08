@@ -33,8 +33,6 @@ module Vident
       def component_name
         @component_name ||= stimulus_identifier
       end
-      # It is also used to generate the prefix for Stimulus events
-      alias_method :js_event_name_prefix, :component_name
     end
 
     # Components have the following properties
@@ -68,9 +66,6 @@ module Vident
 
     # An name that can helps identify the component type in the DOM or for styling purposes (its also used as a class name on the root element)
     def component_name = self.class.component_name
-
-    # The prefix for Stimulus events, which is used to generate the event names for Stimulus actions
-    def js_event_name_prefix = self.class.js_event_name_prefix
 
     # The `component` class name is used to create the controller name.
     # The path of the Stimulus controller when none is explicitly set

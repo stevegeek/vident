@@ -2,6 +2,25 @@
 
 module Vident
   module StimulusAttributes
+    extend ActiveSupport::Concern
+
+    class_methods do
+      # Class methods for generating scoped event names
+      def stimulus_scoped_event(event)
+        "#{component_name}:#{stimulus_js_name(event)}"
+      end
+
+      def stimulus_scoped_event_on_window(event)
+        "#{component_name}:#{stimulus_js_name(event)}@window"
+      end
+
+      private
+
+      def stimulus_js_name(name)
+        name.to_s.camelize(:lower)
+      end
+    end
+
     # Parse inputs to create a StimulusController instance representing a Stimulus controller attribute
     #   examples:
     #   stimulus_controller("my_controller") => StimulusController that converts to {"controller" => "my-controller"}
@@ -210,6 +229,15 @@ module Vident
       else
         classes
       end
+    end
+
+    # Stimulus events name for this component
+    def stimulus_scoped_event(event)
+      self.class.stimulus_scoped_event(event)
+    end
+
+    def stimulus_scoped_event_on_window(event)
+      self.class.stimulus_scoped_event_on_window(event)
     end
 
     private
