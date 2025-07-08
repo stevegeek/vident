@@ -5,7 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [1.0.0.alpha1] - 2025-07-04
+
+## [1.0.0.alpha2] - 2025-07-08
+
+### Breaking
+- `nil` values in Stimulus values are ok, but `nil` for an action/target/outlet makes no sense so is ignored.
+
+### Fixed
+
+- `stimulus_scoped_event` must return a Symbol to work with `stimulus_action` and `stimulus_target` methods etc.
+
+## [1.0.0.alpha1] - 2025-07-08
 
 This release is a major overhaul of the Vident library, and introduces a new API for defining components and Stimulus attributes. The new API is designed to be more consistent and easier to use.
 
