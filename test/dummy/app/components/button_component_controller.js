@@ -5,17 +5,24 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static values = { 
     clickedCount: Number, 
-    loadingDuration: Number 
+    loadingDuration: Number,
+    itemCount: Number,
+    apiUrl: String
   }
-  static classes = ["loading"]
+  static classes = ["loading", "size"]
+  static targets = ["status"]
   
   handleClick(event) {
     // Increment counter
     this.clickedCountValue++
     
+    // Store original text
+    const originalText = this.statusTarget.textContent
+    
     // Add loading state
     this.element.classList.add(this.loadingClass)
     this.element.disabled = true
+    this.statusTarget.textContent = "Loading..."
     
     // Use the loading duration from the component
     setTimeout(() => {
@@ -23,7 +30,7 @@ export default class extends Controller {
       this.element.disabled = false
       
       // Update text to show count
-      this.element.textContent = `${this.element.textContent} (${this.clickedCountValue})`
+      this.statusTarget.textContent = `${originalText} (${this.clickedCountValue})`
     }, this.loadingDurationValue)
   }
 }

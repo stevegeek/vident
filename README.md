@@ -90,8 +90,10 @@ class ButtonComponent < Vident::ViewComponent::Base
   end
 
   def call
-    root_element do
-      @text
+    root_element do |component|
+      component.tag(:span, stimulus_target: :status) do
+        @text
+      end
     end
   end
 
@@ -130,14 +132,19 @@ export default class extends Controller {
     loadingDuration: Number 
   }
   static classes = ["loading"]
+  static targets = ["status"]
   
   handleClick(event) {
     // Increment counter
     this.clickedCountValue++
     
+    // Store original text
+    const originalText = this.statusTarget.textContent
+    
     // Add loading state
     this.element.classList.add(this.loadingClass)
     this.element.disabled = true
+    this.statusTarget.textContent = "Loading..."
     
     // Use the loading duration from the component
     setTimeout(() => {
@@ -145,7 +152,7 @@ export default class extends Controller {
       this.element.disabled = false
       
       // Update text to show count
-      this.element.textContent = `${this.element.textContent} (${this.clickedCountValue})`
+      this.statusTarget.textContent = `${originalText} (${this.clickedCountValue})`
     }, this.loadingDurationValue)
   }
 }
@@ -178,7 +185,7 @@ The rendered HTML includes all Stimulus data attributes:
         data-button-component-loading-duration-value="1000"
         data-button-component-loading-class="opacity-50 cursor-wait"
         id="button-component-123">
-  Save
+  <span data-button-component-target="status">Save</span>
 </button>
 
 <!-- Second button with pre-set count -->
@@ -189,7 +196,7 @@ The rendered HTML includes all Stimulus data attributes:
         data-button-component-loading-duration-value="1000"
         data-button-component-loading-class="opacity-50 cursor-wait"
         id="button-component-456">
-  Submit
+  <span data-button-component-target="status">Submit</span>
 </button>
 ```
 

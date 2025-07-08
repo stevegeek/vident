@@ -14,13 +14,20 @@ class ButtonComponent < Vident::ViewComponent::Base
     values loading_duration: 1000
     # Map the clicked_count prop as a Stimulus value
     values_from_props :clicked_count
+    # Dynamic values using procs (evaluated in component context)
+    values item_count: -> { @items&.count || 0 }
+    values api_url: -> { Rails.application.routes.url_helpers.root_path }
+    # Static and dynamic classes
     classes loading: "opacity-50 cursor-wait"
+    classes size: -> { (@items&.count || 0) > 10 ? "large" : "small" }
   end
 
   # Using the call method instead of ERB template
   def call
-    root_element do
-      @text
+    root_element do |component|
+      component.tag(:span, stimulus_target: :status) do
+        @text
+      end
     end
   end
 
