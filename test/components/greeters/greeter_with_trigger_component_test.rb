@@ -263,8 +263,8 @@ class Greeters::GreeterWithTriggerComponentTest < ViewComponent::TestCase
 
   def test_component_stimulus_scoped_events
     expected_prefix = "greeters--greeter-with-trigger-component"
-    assert_equal "#{expected_prefix}:click", Greeters::GreeterWithTriggerComponent.stimulus_scoped_event(:click)
-    assert_equal "#{expected_prefix}:click@window", Greeters::GreeterWithTriggerComponent.stimulus_scoped_event_on_window(:click)
+    assert_equal :"#{expected_prefix}:click", Greeters::GreeterWithTriggerComponent.stimulus_scoped_event(:click)
+    assert_equal :"#{expected_prefix}:click@window", Greeters::GreeterWithTriggerComponent.stimulus_scoped_event_on_window(:click)
   end
 
   def test_root_element_attributes_structure

@@ -5,13 +5,14 @@ module Vident
     extend ActiveSupport::Concern
 
     class_methods do
-      # Class methods for generating scoped event names
+      # Class methods for generating scoped event names. Returns a symbol
+      # so that the action parser will see it as a Stimulus event.
       def stimulus_scoped_event(event)
-        "#{component_name}:#{stimulus_js_name(event)}"
+        "#{component_name}:#{stimulus_js_name(event)}".to_sym
       end
 
       def stimulus_scoped_event_on_window(event)
-        "#{component_name}:#{stimulus_js_name(event)}@window"
+        "#{component_name}:#{stimulus_js_name(event)}@window".to_sym
       end
 
       private
