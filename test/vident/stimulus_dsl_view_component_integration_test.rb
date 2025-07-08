@@ -155,7 +155,7 @@ class StimulusDSLViewComponentIntegrationTest < ViewComponent::TestCase
       text: "Test",
       disabled: false,  # default value
       loading: false,   # default value
-      url: nil          # no default, prop not provided
+      url: nil          # nil values are now included from props
     }
     assert_equal expected_from_props, resolved_from_props
   end

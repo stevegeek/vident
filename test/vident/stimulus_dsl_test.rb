@@ -374,8 +374,10 @@ class StimulusDSLTest < ActiveSupport::TestCase
     end
     
     dsl_attrs = @component_class.stimulus_dsl_attributes(@component)
+    # Values allow nil from procs
     assert_equal({ nil_value: nil, false_value: false }, dsl_attrs[:stimulus_values])
-    assert_equal({ nil_class: nil, false_class: false }, dsl_attrs[:stimulus_classes])
+    # Classes exclude nil from procs (nil is not valid for classes)
+    assert_equal({ false_class: false }, dsl_attrs[:stimulus_classes])
   end
 
   def test_proc_with_complex_logic
@@ -486,7 +488,8 @@ class StimulusDSLTest < ActiveSupport::TestCase
     end
     
     dsl_attrs = @component_class.stimulus_dsl_attributes(@component)
-    expected = [:symbol, "string", 123, nil, true, false]
+    # Static nil values are excluded from actions (nil is not valid for actions)
+    expected = [:symbol, "string", 123, true, false]
     assert_equal expected, dsl_attrs[:stimulus_actions]
   end
 

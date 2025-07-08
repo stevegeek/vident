@@ -53,11 +53,11 @@ module Vident
 
     def to_attributes(component_instance)
       attrs = {}
-      attrs[:stimulus_actions] = resolve_values(@actions, component_instance) unless @actions.empty?
-      attrs[:stimulus_targets] = resolve_values(@targets, component_instance) unless @targets.empty?
-      attrs[:stimulus_values] = resolve_hash_values(@values, component_instance) unless @values.empty?
+      attrs[:stimulus_actions] = resolve_attributes_filtering_nil(@actions, component_instance) unless @actions.empty?
+      attrs[:stimulus_targets] = resolve_attributes_filtering_nil(@targets, component_instance) unless @targets.empty?
+      attrs[:stimulus_values] = resolve_hash_values_allowing_nil(@values, component_instance) unless @values.empty?
       attrs[:stimulus_values_from_props] = @values_from_props.dup unless @values_from_props.empty?
-      attrs[:stimulus_classes] = resolve_hash_values(@classes, component_instance) unless @classes.empty?
+      attrs[:stimulus_classes] = resolve_hash_classes_filtering_nil(@classes, component_instance) unless @classes.empty?
       attrs[:stimulus_outlets] = @outlets.dup unless @outlets.empty?
       attrs
     end
@@ -95,18 +95,41 @@ module Vident
 
     private
 
-    def resolve_values(array, component_instance)
-      array.map do |value|
+    # For actions, targets - filter out nil values from procs AND static
+    def resolve_attributes_filtering_nil(array, component_instance)
+      result = []
+      array.each do |value|
         if callable?(value)
-          component_instance.instance_exec(&value)
+          resolved_value = component_instance.instance_exec(&value)
+          # Exclude nil from procs (nil is not valid for actions/targets)
+          result << resolved_value unless resolved_value.nil?
         else
-          value
+          # Exclude static nil values (nil is not valid for actions/targets)
+          result << value unless value.nil?
         end
       end
+      result
     end
 
-    def resolve_hash_values(hash, component_instance)
+    # For values - allow nil values from procs and static (will become "null" in JavaScript)
+    def resolve_hash_values_allowing_nil(hash, component_instance)
       hash.transform_values { |value| callable?(value) ? component_instance.instance_exec(&value) : value }
+    end
+
+    # For classes - filter out nil values from procs AND static
+    def resolve_hash_classes_filtering_nil(hash, component_instance)
+      result = {}
+      hash.each do |key, value|
+        if callable?(value)
+          resolved_value = component_instance.instance_exec(&value)
+          # Exclude nil from procs (nil is not valid for classes)
+          result[key] = resolved_value unless resolved_value.nil?
+        else
+          # Exclude static nil values (nil is not valid for classes)
+          result[key] = value unless value.nil?
+        end
+      end
+      result
     end
 
     def callable?(value)
