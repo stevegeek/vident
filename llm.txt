@@ -109,7 +109,7 @@ Generate unique event names for component communication:
 ```ruby
 # Define actions that respond to scoped events
 stimulus do
-  actions [stimulus_scoped_event_on_window(:data_loaded), :handle_data_loaded]
+  actions -> { [stimulus_scoped_event_on_window(:data_loaded), :handle_data_loaded] }
 end
 
 # Generate scoped event names

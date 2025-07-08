@@ -389,7 +389,7 @@ Vident provides helper methods to generate scoped event names for dispatching cu
 class MyComponent < Vident::ViewComponent::Base
   stimulus do
     # Define an action that responds to a scoped event
-    actions [stimulus_scoped_event_on_window(:data_loaded), :handle_data_loaded]
+    actions -> { [stimulus_scoped_event_on_window(:data_loaded), :handle_data_loaded] }
   end
   
   def handle_click
