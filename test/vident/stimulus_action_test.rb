@@ -58,7 +58,7 @@ module Vident
     def test_inspect
       action = StimulusAction.new(:click, :my_action, implied_controller: @implied_controller)
       inspect_result = action.inspect
-      assert_includes inspect_result, '#<Vident::StimulusAction'
+      assert_includes inspect_result, "#<Vident::StimulusAction"
       assert_includes inspect_result, '"action"'
       assert_includes inspect_result, '"click->foo--my-controller#myAction"'
     end

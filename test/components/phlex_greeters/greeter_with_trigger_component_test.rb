@@ -19,6 +19,7 @@ class PhlexGreeters::GreeterWithTriggerComponentTest < ActionView::TestCase
   def parse_html(html)
     Nokogiri::HTML5.fragment(html)
   end
+
   def test_can_be_instantiated
     component = PhlexGreeters::GreeterWithTriggerComponent.new
     assert_instance_of PhlexGreeters::GreeterWithTriggerComponent, component
@@ -93,7 +94,7 @@ class PhlexGreeters::GreeterWithTriggerComponentTest < ActionView::TestCase
   def test_renders_with_custom_trigger
     component = PhlexGreeters::GreeterWithTriggerComponent.new
     component.trigger(before_clicked_message: "Custom Button Text")
-    
+
     html = render(component)
     doc = parse_html(html)
 
@@ -104,7 +105,7 @@ class PhlexGreeters::GreeterWithTriggerComponentTest < ActionView::TestCase
   def test_trigger_method_creates_greeter_button_component
     component = PhlexGreeters::GreeterWithTriggerComponent.new
     trigger = component.trigger(before_clicked_message: "Click me")
-    
+
     assert_instance_of PhlexGreeters::GreeterButtonComponent, trigger
   end
 
@@ -114,7 +115,7 @@ class PhlexGreeters::GreeterWithTriggerComponentTest < ActionView::TestCase
       after_clicked_message: "Clicked!",
       before_clicked_message: "Click me"
     )
-    
+
     assert_instance_of PhlexGreeters::GreeterButtonComponent, trigger
   end
 
@@ -122,7 +123,7 @@ class PhlexGreeters::GreeterWithTriggerComponentTest < ActionView::TestCase
     component = PhlexGreeters::GreeterWithTriggerComponent.new
     trigger1 = component.trigger(before_clicked_message: "First")
     trigger2 = component.trigger(before_clicked_message: "Second")
-    
+
     # Should return the same instance (memoized)
     assert_same trigger1, trigger2
   end
@@ -130,7 +131,7 @@ class PhlexGreeters::GreeterWithTriggerComponentTest < ActionView::TestCase
   def test_root_element_attributes_returns_stimulus_classes
     component = PhlexGreeters::GreeterWithTriggerComponent.new
     attributes = component.send(:root_element_attributes)
-    
+
     assert_instance_of Hash, attributes
     assert_includes attributes.keys, :stimulus_classes
     assert_equal "text-md text-gray-500", attributes[:stimulus_classes][:pre_click]
@@ -174,20 +175,20 @@ class PhlexGreeters::GreeterWithTriggerComponentTest < ActionView::TestCase
   # Test rendering with a simple approach similar to the Phlex documentation
   def test_view_template_structure
     component = PhlexGreeters::GreeterWithTriggerComponent.new
-    
+
     # Test that the view_template method exists and is private
     assert component.private_methods.include?(:view_template)
   end
 
   def test_trigger_or_default_with_no_custom_trigger
     component = PhlexGreeters::GreeterWithTriggerComponent.new
-    
+
     # Mock a greeter object with stimulus_action method
     greeter = Object.new
     def greeter.stimulus_action(event, action)
       "click->test##{action}"
     end
-    
+
     # The method will fail when called outside of a rendering context
     # because it tries to call render() which needs a view context
     assert_raises(NoMethodError) do
@@ -197,11 +198,11 @@ class PhlexGreeters::GreeterWithTriggerComponentTest < ActionView::TestCase
 
   def test_trigger_or_default_with_custom_trigger
     component = PhlexGreeters::GreeterWithTriggerComponent.new
-    custom_trigger = component.trigger(before_clicked_message: "Custom")
-    
+    component.trigger(before_clicked_message: "Custom")
+
     # Mock a greeter object
     greeter = Object.new
-    
+
     # Should return the custom trigger when one is set
     # The method will fail because it tries to call render on @trigger
     # This is expected behavior in a view context, but not in isolation
@@ -230,7 +231,7 @@ class PhlexGreeters::GreeterWithTriggerComponentTest < ActionView::TestCase
   def test_root_element_attributes_structure
     component = PhlexGreeters::GreeterWithTriggerComponent.new
     attributes = component.send(:root_element_attributes)
-    
+
     assert_equal [:stimulus_classes], attributes.keys
     assert_equal 2, attributes[:stimulus_classes].size
     assert attributes[:stimulus_classes].key?(:pre_click)
@@ -240,10 +241,10 @@ class PhlexGreeters::GreeterWithTriggerComponentTest < ActionView::TestCase
   def test_stimulus_classes_values
     component = PhlexGreeters::GreeterWithTriggerComponent.new
     attributes = component.send(:root_element_attributes)
-    
+
     pre_click_classes = attributes[:stimulus_classes][:pre_click]
     post_click_classes = attributes[:stimulus_classes][:post_click]
-    
+
     assert_includes pre_click_classes, "text-md"
     assert_includes pre_click_classes, "text-gray-500"
     assert_includes post_click_classes, "text-xl"

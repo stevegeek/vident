@@ -39,7 +39,7 @@ module Vident
     def test_inspect
       target = StimulusTarget.new(:my_target, implied_controller: @implied_controller)
       inspect_result = target.inspect
-      assert_includes inspect_result, '#<Vident::StimulusTarget'
+      assert_includes inspect_result, "#<Vident::StimulusTarget"
       assert_includes inspect_result, '"foo--my-controller-target"'
       assert_includes inspect_result, '"myTarget"'
     end

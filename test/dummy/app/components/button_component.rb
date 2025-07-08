@@ -6,7 +6,7 @@ class ButtonComponent < Vident::ViewComponent::Base
   prop :url, _Nilable(String)
   prop :style, Symbol, default: :primary
   prop :clicked_count, Integer, default: 0
-  
+
   # Configure Stimulus integration
   stimulus do
     actions [:click, :handle_click]
@@ -19,7 +19,7 @@ class ButtonComponent < Vident::ViewComponent::Base
     values api_url: -> { Rails.application.routes.url_helpers.root_path }
     # Static and dynamic classes
     classes loading: "opacity-50 cursor-wait"
-    classes size: -> { (@items&.count || 0) > 10 ? "large" : "small" }
+    classes size: -> { ((@items&.count || 0) > 10) ? "large" : "small" }
   end
 
   # Using the call method instead of ERB template
@@ -36,7 +36,7 @@ class ButtonComponent < Vident::ViewComponent::Base
   def root_element_attributes
     {
       element_tag: @url ? :a : :button,
-      html_options: { href: @url }.compact
+      html_options: {href: @url}.compact
     }
   end
 

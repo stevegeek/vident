@@ -11,10 +11,10 @@ module Vident
           @stimulus_builder = StimulusBuilder.new
           @inheritance_merged = false
         end
-        
+
         # Ensure inheritance is applied
         ensure_inheritance_merged
-        
+
         # Execute the new block to add/merge new attributes
         @stimulus_builder.instance_eval(&block)
       end
@@ -24,10 +24,10 @@ module Vident
         if @stimulus_builder.nil? && superclass.respond_to?(:stimulus_dsl_attributes)
           return superclass.stimulus_dsl_attributes(component_instance)
         end
-        
+
         # Ensure inheritance is applied at access time
         ensure_inheritance_merged
-        
+
         @stimulus_builder&.to_attributes(component_instance) || {}
       end
 
@@ -35,7 +35,7 @@ module Vident
 
       def ensure_inheritance_merged
         return if @inheritance_merged || @stimulus_builder.nil?
-        
+
         if superclass.respond_to?(:stimulus_dsl_builder, true)
           parent_builder = superclass.send(:stimulus_dsl_builder)
           if parent_builder

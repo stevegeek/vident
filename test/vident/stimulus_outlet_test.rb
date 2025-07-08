@@ -96,7 +96,7 @@ module Vident
     def test_inspect
       outlet = StimulusOutlet.new(:user_status, ".online-user", implied_controller: @implied_controller)
       inspect_result = outlet.inspect
-      assert_includes inspect_result, '#<Vident::StimulusOutlet'
+      assert_includes inspect_result, "#<Vident::StimulusOutlet"
       assert_includes inspect_result, '"foo--my-controller-user-status-outlet"'
       assert_includes inspect_result, '".online-user"'
     end

@@ -69,7 +69,7 @@ module Vident
     def test_inspect
       css_class = StimulusClass.new(:loading, "spinner active", implied_controller: @implied_controller)
       inspect_result = css_class.inspect
-      assert_includes inspect_result, '#<Vident::StimulusClass'
+      assert_includes inspect_result, "#<Vident::StimulusClass"
       assert_includes inspect_result, '"foo--my-controller-loading-class"'
       assert_includes inspect_result, '"spinner active"'
     end

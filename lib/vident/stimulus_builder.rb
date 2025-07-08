@@ -35,7 +35,7 @@ module Vident
       @values.merge!(value_hash) unless value_hash.empty?
       self
     end
-    
+
     def values_from_props(*prop_names)
       @values_from_props.concat(prop_names)
       self

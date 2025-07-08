@@ -11,7 +11,7 @@ module Vident
       # Add stimulus attributes from DSL first (lower precedence)
       add_stimulus_attributes_from_dsl
 
-      # Process root_element_attributes (higher precedence) 
+      # Process root_element_attributes (higher precedence)
       extra = root_element_attributes
       @html_options = (extra[:html_options] || {}).merge(@html_options) if extra.key?(:html_options)
       @html_options[:class] = render_classes(extra[:classes])
@@ -36,19 +36,18 @@ module Vident
       add_stimulus_actions(dsl_attrs[:stimulus_actions]) if dsl_attrs[:stimulus_actions]
       add_stimulus_targets(dsl_attrs[:stimulus_targets]) if dsl_attrs[:stimulus_targets]
       add_stimulus_outlets(dsl_attrs[:stimulus_outlets]) if dsl_attrs[:stimulus_outlets]
-      
+
       # Add static values (now includes resolved proc values)
       add_stimulus_values(dsl_attrs[:stimulus_values]) if dsl_attrs[:stimulus_values]
-      
+
       # Resolve and add values from props
       if dsl_attrs[:stimulus_values_from_props]
         resolved_values = resolve_values_from_props(dsl_attrs[:stimulus_values_from_props])
         add_stimulus_values(resolved_values) unless resolved_values.empty?
       end
-      
+
       add_stimulus_classes(dsl_attrs[:stimulus_classes]) if dsl_attrs[:stimulus_classes]
     end
-
 
     # Prepare stimulus collections and implied controller path from the given attributes, called after initialization
     def prepare_stimulus_collections # Convert raw attributes to stimulus attribute collections

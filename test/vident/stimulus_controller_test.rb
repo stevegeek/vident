@@ -38,7 +38,7 @@ module Vident
     def test_inspect
       controller = StimulusController.new("my_controller", implied_controller: @implied_controller_path)
       inspect_result = controller.inspect
-      assert_includes inspect_result, '#<Vident::StimulusController'
+      assert_includes inspect_result, "#<Vident::StimulusController"
       assert_includes inspect_result, '"controller"'
       assert_includes inspect_result, '"my-controller"'
     end

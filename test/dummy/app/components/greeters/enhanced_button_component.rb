@@ -20,7 +20,7 @@ module Greeters
     def root_element_attributes
       {
         element_tag: :button,
-        html_options: { 
+        html_options: {
           class: variant_classes,
           disabled: @loading
         }
@@ -33,7 +33,7 @@ module Greeters
       case @variant
       when :primary
         "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-      when :secondary  
+      when :secondary
         "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
       else
         "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"

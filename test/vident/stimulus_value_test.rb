@@ -73,7 +73,7 @@ module Vident
     def test_inspect
       value = StimulusValue.new(:url, "https://example.com", implied_controller: @implied_controller)
       inspect_result = value.inspect
-      assert_includes inspect_result, '#<Vident::StimulusValue'
+      assert_includes inspect_result, "#<Vident::StimulusValue"
       assert_includes inspect_result, '"foo--my-controller-url-value"'
       assert_includes inspect_result, '"https://example.com"'
     end

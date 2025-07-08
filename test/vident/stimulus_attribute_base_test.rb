@@ -30,12 +30,12 @@ module Vident
       # Both should have inspect method from base class showing to_h
       action_inspect = action.inspect
       target_inspect = target.inspect
-      
-      assert_includes action_inspect, '#<Vident::StimulusAction'
+
+      assert_includes action_inspect, "#<Vident::StimulusAction"
       assert_includes action_inspect, '"action"'
       assert_includes action_inspect, '"foo--my-controller#myAction"'
-      
-      assert_includes target_inspect, '#<Vident::StimulusTarget'
+
+      assert_includes target_inspect, "#<Vident::StimulusTarget"
       assert_includes target_inspect, '"foo--my-controller-target"'
       assert_includes target_inspect, '"myTarget"'
     end
