@@ -59,10 +59,10 @@ class TestAttributesComponentTest < Minitest::Test
   end
 
   def test_renders_without_url_as_plain_text_when_empty_string
-    component = TestAttributesComponent.new(name: "Dave", initials: "D", url: "")
+    component = TestAttributesComponent.new(name: "Dave", initials: "D", url: nil)
     result = component.call
 
-    # Should render as plain text when URL is empty string
+    # Should render as plain text when URL is nil (empty string violates the present constraint)
     assert_equal "Hi Dave", result
     refute_includes result, "<a"
   end
@@ -72,17 +72,29 @@ class TestAttributesComponentTest < Minitest::Test
     component = TestAttributesComponent.new(initials: "AB")
     assert_equal "AB", component.initials
 
-    # Should reject empty string during validation (if validation is enforced)
-    # Note: This depends on how Literal validation works with _String(&:present?)
+    # Should reject empty string due to present constraint
+    assert_raises(Literal::TypeError) do
+      TestAttributesComponent.new(initials: "")
+    end
+
+    # Should reject nil since it's not _Nilable
+    assert_raises(Literal::TypeError) do
+      TestAttributesComponent.new(initials: nil)
+    end
   end
 
   def test_url_validation
-    # Should accept nil
+    # Should accept nil (due to _Nilable wrapper)
     component = TestAttributesComponent.new(initials: "T", url: nil)
     assert_nil component.url
 
     # Should accept non-empty string
     component = TestAttributesComponent.new(initials: "T", url: "https://example.com")
     assert_equal "https://example.com", component.url
+
+    # Should reject empty string due to present constraint
+    assert_raises(Literal::TypeError) do
+      TestAttributesComponent.new(initials: "T", url: "")
+    end
   end
 end
