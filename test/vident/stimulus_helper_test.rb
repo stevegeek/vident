@@ -2,11 +2,11 @@
 
 require "test_helper"
 
-class StimulusDSLTest < ActiveSupport::TestCase
+class StimulusHelperTest < ActiveSupport::TestCase
   def setup
     # Create a fresh component class for each test to avoid state sharing
     @component_class = Class.new do
-      include Vident::StimulusDSL
+      include Vident::StimulusHelper
 
       def initialize(**props)
         props.each { |key, value| instance_variable_set("@#{key}", value) }
@@ -33,7 +33,7 @@ class StimulusDSLTest < ActiveSupport::TestCase
   def test_stimulus_dsl_attributes_initially_empty
     # Fresh class should have empty DSL attributes
     fresh_class = Class.new do
-      include Vident::StimulusDSL
+      include Vident::StimulusHelper
       def initialize
       end
     end
@@ -143,7 +143,7 @@ class StimulusDSLTest < ActiveSupport::TestCase
 
   def test_stimulus_block_inheritance
     parent_class = Class.new do
-      include Vident::StimulusDSL
+      include Vident::StimulusHelper
       def initialize
       end
       stimulus do
@@ -341,7 +341,7 @@ class StimulusDSLTest < ActiveSupport::TestCase
 
   def test_proc_inheritance_with_parent_and_child_procs
     parent_class = Class.new do
-      include Vident::StimulusDSL
+      include Vident::StimulusHelper
       def initialize
         @parent_value = "parent"
       end
@@ -457,7 +457,7 @@ class StimulusDSLTest < ActiveSupport::TestCase
 
   def test_inheritance_with_conflicting_dsl_attributes
     parent_class = Class.new do
-      include Vident::StimulusDSL
+      include Vident::StimulusHelper
       def initialize
       end
       stimulus do

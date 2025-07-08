@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class StimulusDSLViewComponentIntegrationTest < ViewComponent::TestCase
+class StimulusHelperViewComponentIntegrationTest < ViewComponent::TestCase
   include ::ActiveSupport::Testing::ConstantStubbing
 
   # Test ViewComponent that uses the stimulus DSL

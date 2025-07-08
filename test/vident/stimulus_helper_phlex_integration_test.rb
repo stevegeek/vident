@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class StimulusDSLPhlexIntegrationTest < ActionView::TestCase
+class StimulusHelperPhlexIntegrationTest < ActionView::TestCase
   # Helper method to render Phlex components
   def render(component)
     component.call
