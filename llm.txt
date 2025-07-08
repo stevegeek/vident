@@ -224,13 +224,29 @@ assert_selector "[data-button-component-clicked-count-value='0']"
 assert_selector "button[data-action='click->button-component#handleClick']"
 ```
 
+## Post-Initialization Hooks
+
+Components can perform actions after initialization:
+
+```ruby
+class MyComponent < Vident::ViewComponent::Base
+  prop :data, Hash, default: -> { {} }
+
+  def after_component_initialize
+    @processed_data = process_data(@data)
+  end
+end
+```
+
+**Important**: If overriding Literal `after_initialize`, you **must** call `super` first to ensure Vident's initialization completes properly. The `after_component_initialize` hook is recommended as it doesn't require calling `super`.
+
 ## Key Methods
 - `root_element` / `root` - Renders root element with all configured attributes
 - `element_classes` - Override for custom CSS classes
 - `root_element_attributes` - Override for element tag, HTML attributes, and Stimulus config
 - `stimulus_action(event, method)` - Create action configuration
 - `stimulus_controller(name)` - Add additional controller
-- `after_component_initialize` - Post-initialization hook
+- `after_component_initialize` - Post-initialization hook (recommended)
 
 ## Literal Types Reference
 - Basic: `String`, `Integer`, `Symbol`, `Float`

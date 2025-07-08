@@ -225,6 +225,29 @@ class CardComponent < Vident::ViewComponent::Base
 end
 ```
 
+### Post-Initialization Hooks
+
+Vident provides a hook for performing actions after component initialization:
+
+```ruby
+class MyComponent < Vident::ViewComponent::Base
+  prop :data, Hash, default: -> { {} }
+  
+  def after_component_initialize
+    @processed_data = process_data(@data)
+  end
+  
+  private
+  
+  def process_data(data)
+    # Your initialization logic here
+    data.transform_values(&:upcase)
+  end
+end
+```
+
+**Important**: If you decide to override Literal's `after_initialize`, you **must** call `super` first to ensure Vident's initialization completes properly. Alternatively, use `after_component_initialize` which doesn't require calling `super`.
+
 ### Built-in Properties
 
 Every Vident component includes these properties:
