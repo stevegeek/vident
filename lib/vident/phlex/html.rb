@@ -26,20 +26,20 @@ module Vident
       end
 
       # Helper to create the main element
-      def root_element(&block)
+      def root_element(**overrides, &block)
         tag_type = root_element_tag_type
         check_valid_html_tag!(tag_type)
         # Evaluate before generating the outer tag options to ensure DSL methods are executed
         if block_given?
           content = capture(self, &block).html_safe
-          options = root_element_tag_options
+          options = resolve_root_element_attributes_before_render(overrides)
           if content
             send(tag_type, **options) { content }
           else
             send(tag_type, **options)
           end
         else
-          send(tag_type, **root_element_tag_options)
+          send(tag_type, **resolve_root_element_attributes_before_render(overrides))
         end
       end
 

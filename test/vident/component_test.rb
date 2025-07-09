@@ -183,5 +183,77 @@ module Vident
 
       refute test_class.stimulus_controller?
     end
+
+    def test_resolve_root_element_attributes_before_render_with_no_attributes
+      options = @component.send(:resolve_root_element_attributes_before_render)
+      expected = {
+        data: @component.send(:stimulus_data_attributes),
+        class: @component.component_name,
+        id: @component.id
+      }
+      assert_equal expected, options
+    end
+
+    def test_resolve_root_element_attributes_before_render_with_root_element_html_options
+      root_html_options = { 
+        class: "test-class",
+        data: { test: "value" }
+      }
+      options = @component.send(:resolve_root_element_attributes_before_render, root_html_options)
+      expected = {
+        data: @component.send(:stimulus_data_attributes).merge(test: "value"),
+        class: "test-component test-class",
+        id: @component.id
+      }
+      assert_equal expected, options
+    end
+
+    def test_resolve_root_element_attributes_before_render_with_html_options_prop
+      component = @test_component_class.new(html_options: { 
+        class: "prop-class",
+        data: { prop: "value" }
+      })
+      options = component.send(:resolve_root_element_attributes_before_render)
+      
+      expected = {
+        data: component.send(:stimulus_data_attributes).merge(prop: "value"),
+        class: "test-component prop-class",
+        id: component.id
+      }
+      assert_equal expected, options
+    end
+
+    def test_resolve_root_element_attributes_before_render_precedence_order
+      component = @test_component_class.new(html_options: { 
+        class: "highest-precedence",
+        data: { prop: "highest" }
+      })
+      
+      root_html_options = { 
+        class: "mid-precedence",
+        data: { root: "mid", prop: "mid" }
+      }
+      
+      options = component.send(:resolve_root_element_attributes_before_render, root_html_options)
+      
+      expected = {
+        data: component.send(:stimulus_data_attributes).merge(root: "mid", prop: "highest"),
+        class: "test-component highest-precedence",
+        id: component.id
+      }
+      assert_equal expected, options
+    end
+
+    def test_resolve_root_element_attributes_before_render_with_id
+      component = @test_component_class.new(id: "test-id")
+      options = component.send(:resolve_root_element_attributes_before_render)
+      
+      expected = {
+        data: component.send(:stimulus_data_attributes),
+        class: component.component_name,
+        id: "test-id"
+      }
+      assert_equal expected, options
+    end
   end
 end

@@ -66,14 +66,6 @@ module Vident
       root_element(...)
     end
 
-    def root_element_tag_options
-      options = @html_options&.dup || {}
-      data_attrs = stimulus_data_attributes
-      options[:data] = options[:data].present? ? data_attrs.merge(options[:data]) : data_attrs
-      return options unless @id
-      options.merge(id: @id)
-    end
-
     def root_element_tag_type
       @element_tag.presence&.to_sym || :div
     end

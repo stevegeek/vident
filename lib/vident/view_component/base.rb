@@ -41,10 +41,10 @@ module Vident
 
       SELF_CLOSING_TAGS = Set[:area, :base, :br, :col, :embed, :hr, :img, :input, :link, :meta, :param, :source, :track, :wbr].freeze
 
-      def root_element(&block)
+      def root_element(**overrides, &block)
         tag_type = root_element_tag_type
         child_content = view_context.capture(self, &block) if block_given? # Evaluate before generating the outer tag options to ensure DSL methods are executed
-        options = root_element_tag_options
+        options = resolve_root_element_attributes_before_render(overrides)
         if SELF_CLOSING_TAGS.include?(tag_type)
           view_context.tag(tag_type, options)
         else

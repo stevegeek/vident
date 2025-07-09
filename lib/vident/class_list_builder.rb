@@ -6,12 +6,23 @@ module Vident
   class ClassListBuilder
     CLASSNAME_SEPARATOR = " "
 
-    def initialize(tailwind_merger: nil, component_name: nil, element_classes: nil, html_class: nil, additional_classes: nil)
+    # If the HTML "class" option is provided, it is taken in order of precedence of source.
+    # The order of precedence is:
+    # lowest  | element_classes => whatever is returned
+    # ....... | root_element_attributes => the `html_options[:class]` value
+    # ....... | root_element(class: ...) => the `class` value of the arguments passed to the root element
+    # highest | render MyComponent.new(html_options: { class: ... }) => the `html_options[:class]` value
+    # The "classes" prop on the component on the other hand is used to add additional classes to the component.
+    # eg: render MyComponent.new(classes: "my-additional-class another-class")
+    def initialize(tailwind_merger: nil, component_name: nil, root_element_attributes_classes: nil, element_classes: nil, root_element_html_class: nil, html_class: nil, additional_classes: nil)
       @class_list = component_name ? [component_name] : []
-      @class_list.concat(Array.wrap(element_classes)) if element_classes
+      @class_list.concat(Array.wrap(element_classes)) if element_classes && !root_element_attributes_classes && !root_element_html_class && !html_class
+      @class_list.concat(Array.wrap(root_element_attributes_classes)) if root_element_attributes_classes && !root_element_html_class && !html_class
+      @class_list.concat(Array.wrap(root_element_html_class)) if root_element_html_class && !html_class
       @class_list.concat(Array.wrap(html_class)) if html_class
       @class_list.concat(Array.wrap(additional_classes)) if additional_classes
       @class_list.compact!
+
       @tailwind_merger = tailwind_merger
 
       if @tailwind_merger && !defined?(::TailwindMerge::Merger)

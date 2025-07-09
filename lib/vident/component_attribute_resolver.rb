@@ -4,7 +4,7 @@ module Vident
   module ComponentAttributeResolver
     private
 
-    # FIXME: in a view_component the parsing of html_options might have to be in `before_render`
+    # Prepare attributes set at initialization, which will later be merged together before rendering.
     def prepare_component_attributes
       prepare_stimulus_collections
 
@@ -14,8 +14,8 @@ module Vident
       # Process root_element_attributes (higher precedence)
       extra = root_element_attributes
       @html_options = (extra[:html_options] || {}).merge(@html_options) if extra.key?(:html_options)
-      @html_options[:class] = render_classes(extra[:classes])
-      @html_options[:id] = (extra[:id] || id) unless @html_options.key?(:id)
+      @root_element_attributes_classes = extra[:classes]
+      @root_element_attributes_id = (extra[:id] || id)
       @element_tag = extra[:element_tag] if extra.key?(:element_tag)
 
       add_stimulus_controllers(extra[:stimulus_controllers]) if extra.key?(:stimulus_controllers)
@@ -24,6 +24,32 @@ module Vident
       add_stimulus_outlets(extra[:stimulus_outlets]) if extra.key?(:stimulus_outlets)
       add_stimulus_values(extra[:stimulus_values]) if extra.key?(:stimulus_values)
       add_stimulus_classes(extra[:stimulus_classes]) if extra.key?(:stimulus_classes)
+    end
+
+    def resolve_root_element_attributes_before_render(root_element_html_options = nil)
+      extra = root_element_html_options || {}
+
+      # Options set on component at render time take precedence over attributes set by methods on the component
+      # or attributes passed to root_element in the template
+      final_attributes = {
+        data: stimulus_data_attributes  # Lowest precedence
+      }
+      if root_element_html_options.present? # Mid precedence
+        root_element_tag_html_options_merge(final_attributes, root_element_html_options)
+      end
+      if @html_options.present? # Highest precedence
+        root_element_tag_html_options_merge(final_attributes, @html_options)
+      end
+      final_attributes[:class] = render_classes(extra[:class])
+      final_attributes[:id] = (extra[:id] || @root_element_attributes_id) unless final_attributes.key?(:id)
+      final_attributes
+    end
+
+    def root_element_tag_html_options_merge(final_attributes, other_html_options)
+      if other_html_options[:data].present?
+        final_attributes[:data].merge!(other_html_options[:data])
+      end
+      final_attributes.merge!(other_html_options.except(:data))
     end
 
     # Add stimulus attributes from DSL declarations using existing add_* methods

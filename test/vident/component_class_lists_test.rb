@@ -11,11 +11,13 @@ class ComponentClassListsTest < Minitest::Test
         "TestComponent"
       end
 
-      def class_list_builder
+      def class_list_builder(root_element_html_class = nil)
         @class_list_builder ||= Vident::ClassListBuilder.new(
           tailwind_merger: nil,
           component_name: "test-component",
+          root_element_attributes_classes: nil,
           element_classes: "base-class",
+          root_element_html_class: root_element_html_class,
           additional_classes: nil,
           html_class: nil
         )
@@ -35,11 +37,13 @@ class ComponentClassListsTest < Minitest::Test
         "TestComponent"
       end
 
-      def class_list_builder
+      def class_list_builder(root_element_html_class = nil)
         @class_list_builder ||= Vident::ClassListBuilder.new(
           tailwind_merger: nil,
           component_name: "test-component",
+          root_element_attributes_classes: nil,
           element_classes: "base-class",
+          root_element_html_class: root_element_html_class,
           additional_classes: nil,
           html_class: nil
         )
@@ -48,8 +52,10 @@ class ComponentClassListsTest < Minitest::Test
 
     component = test_class.new
     result = component.render_classes("extra-class")
-    assert_includes result, "base-class"
+    # With the new precedence logic, root_element_html_class ("extra-class") overrides element_classes ("base-class")
+    assert_includes result, "test-component"
     assert_includes result, "extra-class"
+    refute_includes result, "base-class"
   end
 
   def test_class_list_for_stimulus_classes
@@ -74,11 +80,13 @@ class ComponentClassListsTest < Minitest::Test
         obj
       end
 
-      def class_list_builder
+      def class_list_builder(root_element_html_class = nil)
         @class_list_builder ||= Vident::ClassListBuilder.new(
           tailwind_merger: nil,
           component_name: nil,
+          root_element_attributes_classes: nil,
           element_classes: nil,
+          root_element_html_class: root_element_html_class,
           additional_classes: nil,
           html_class: nil
         )
@@ -102,11 +110,13 @@ class ComponentClassListsTest < Minitest::Test
         @stimulus_classes_collection = []
       end
 
-      def class_list_builder
+      def class_list_builder(root_element_html_class = nil)
         @class_list_builder ||= Vident::ClassListBuilder.new(
           tailwind_merger: nil,
           component_name: nil,
+          root_element_attributes_classes: nil,
           element_classes: nil,
+          root_element_html_class: root_element_html_class,
           additional_classes: nil,
           html_class: nil
         )
