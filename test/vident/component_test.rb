@@ -96,18 +96,18 @@ module Vident
     end
 
     def test_element_classes_default_nil
-      assert_nil @component.element_classes
+      assert_nil @component.root_element_classes
     end
 
     def test_element_classes_can_be_overridden
       test_class = Class.new(@test_component_class) do
-        def element_classes
+        def root_element_classes
           ["custom-class", "another-class"]
         end
       end
 
       component = test_class.new
-      assert_equal ["custom-class", "another-class"], component.element_classes
+      assert_equal ["custom-class", "another-class"], component.root_element_classes
     end
 
     def test_root_element_attributes_default

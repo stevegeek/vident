@@ -180,8 +180,8 @@ end
 
 ## Class Management
 ```ruby
-# Override element_classes for custom CSS classes
-def element_classes
+# Override root_element_classes for custom CSS classes
+def root_element_classes
   base_classes = "btn"
   case @style
   when :primary
@@ -242,7 +242,7 @@ end
 
 ## Key Methods
 - `root_element` / `root` - Renders root element with all configured attributes
-- `element_classes` - Override for custom CSS classes
+- `root_element_classes` - Override for custom CSS classes
 - `root_element_attributes` - Override for element tag, HTML attributes, and Stimulus config
 - `stimulus_action(event, method)` - Create action configuration
 - `stimulus_controller(name)` - Add additional controller

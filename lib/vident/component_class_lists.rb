@@ -20,7 +20,7 @@ module Vident
         tailwind_merger:,
         component_name:,
         root_element_attributes_classes: @root_element_attributes_classes,
-        element_classes:,
+        root_element_classes:,
         root_element_html_class:,
         additional_classes: @classes,
         html_class: @html_options&.fetch(:class, nil)

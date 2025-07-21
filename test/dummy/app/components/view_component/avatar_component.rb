@@ -31,7 +31,7 @@ module ViewComponent
       end
     end
 
-    def element_classes
+    def root_element_classes
       [size_classes, shape_class, border? ? "border" : ""]
     end
 

@@ -110,7 +110,7 @@ class ButtonComponent < Vident::ViewComponent::Base
   end
 
   # optionally add logic to determine initial classes
-  def element_classes
+  def root_element_classes
     base_classes = "btn"
     case @style
     when :primary
@@ -267,7 +267,7 @@ The `root_element` helper method renders your component's root element with all 
 
 ```ruby
 # In your component class
-def element_classes
+def root_element_classes
   ["card", featured? ? "card-featured" : nil]
 end
 
@@ -623,7 +623,7 @@ class StyledComponent < Vident::ViewComponent::Base
   private
   
   # Classes on the root element
-  def element_classes
+  def root_element_classes
     ["base-class", variant_class]
   end
   
@@ -657,7 +657,7 @@ class TailwindComponent < Vident::ViewComponent::Base
   
   private
   
-  def element_classes
+  def root_element_classes
     # Conflicts with size_class will be resolved automatically
     "p-2 text-sm #{size_class}"
   end

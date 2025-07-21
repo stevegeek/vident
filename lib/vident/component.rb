@@ -29,7 +29,7 @@ module Vident
     end
 
     # This can be overridden to return an array of extra class names, or a string of class names.
-    def element_classes
+    def root_element_classes
     end
 
     # Properties/attributes passed to the "root" element of the component. You normally override this method to

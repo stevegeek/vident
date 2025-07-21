@@ -92,7 +92,7 @@ class AvatarComponentTest < Minitest::Test
       border: false
     )
     expected_classes = ["w-12 h-12", "rounded-full", ""]
-    assert_equal expected_classes, component.send(:element_classes)
+    assert_equal expected_classes, component.send(:root_element_classes)
 
     # Test with border
     component_with_border = ViewComponent::AvatarComponent.new(
@@ -102,7 +102,7 @@ class AvatarComponentTest < Minitest::Test
       border: true
     )
     expected_classes_with_border = ["w-14 h-14", "rounded-md", "border"]
-    assert_equal expected_classes_with_border, component_with_border.send(:element_classes)
+    assert_equal expected_classes_with_border, component_with_border.send(:root_element_classes)
   end
 
   def test_default_html_options_for_image_avatar

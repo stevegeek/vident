@@ -16,7 +16,7 @@ class ComponentClassListsTest < Minitest::Test
           tailwind_merger: nil,
           component_name: "test-component",
           root_element_attributes_classes: nil,
-          element_classes: "base-class",
+          root_element_classes: "base-class",
           root_element_html_class: root_element_html_class,
           additional_classes: nil,
           html_class: nil
@@ -42,7 +42,7 @@ class ComponentClassListsTest < Minitest::Test
           tailwind_merger: nil,
           component_name: "test-component",
           root_element_attributes_classes: nil,
-          element_classes: "base-class",
+          root_element_classes: "base-class",
           root_element_html_class: root_element_html_class,
           additional_classes: nil,
           html_class: nil
@@ -52,7 +52,7 @@ class ComponentClassListsTest < Minitest::Test
 
     component = test_class.new
     result = component.render_classes("extra-class")
-    # With the new precedence logic, root_element_html_class ("extra-class") overrides element_classes ("base-class")
+    # root_element_html_class ("extra-class") overrides root_element_classes ("base-class")
     assert_includes result, "test-component"
     assert_includes result, "extra-class"
     refute_includes result, "base-class"
@@ -85,7 +85,7 @@ class ComponentClassListsTest < Minitest::Test
           tailwind_merger: nil,
           component_name: nil,
           root_element_attributes_classes: nil,
-          element_classes: nil,
+          root_element_classes: nil,
           root_element_html_class: root_element_html_class,
           additional_classes: nil,
           html_class: nil
@@ -115,7 +115,7 @@ class ComponentClassListsTest < Minitest::Test
           tailwind_merger: nil,
           component_name: nil,
           root_element_attributes_classes: nil,
-          element_classes: nil,
+          root_element_classes: nil,
           root_element_html_class: root_element_html_class,
           additional_classes: nil,
           html_class: nil
@@ -149,7 +149,7 @@ class ComponentClassListsTest < Minitest::Test
         "test-component"
       end
 
-      def element_classes
+      def root_element_classes
         "element-class"
       end
     end

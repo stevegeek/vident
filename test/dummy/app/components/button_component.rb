@@ -40,7 +40,7 @@ class ButtonComponent < Vident::ViewComponent::Base
     }
   end
 
-  def element_classes
+  def root_element_classes
     base_classes = "btn"
     case @style
     when :primary

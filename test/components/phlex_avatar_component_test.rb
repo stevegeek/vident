@@ -96,7 +96,7 @@ class PhlexAvatarComponentTest < Minitest::Test
       border: false
     )
     expected_classes = ["w-12 h-12", "rounded-full", ""]
-    assert_equal expected_classes, component.send(:element_classes)
+    assert_equal expected_classes, component.send(:root_element_classes)
 
     # Test with border
     component_with_border = Phlex::AvatarComponent.new(
@@ -106,7 +106,7 @@ class PhlexAvatarComponentTest < Minitest::Test
       border: true
     )
     expected_classes_with_border = ["w-14 h-14", "rounded-md", "border"]
-    assert_equal expected_classes_with_border, component_with_border.send(:element_classes)
+    assert_equal expected_classes_with_border, component_with_border.send(:root_element_classes)
   end
 
   def test_default_html_options_for_image_avatar
@@ -207,13 +207,13 @@ class PhlexAvatarComponentTest < Minitest::Test
   end
 
   def test_different_border_values_in_element_classes
-    # Test that @border is used directly (not through predicate) in element_classes
+    # Test that @border is used directly (not through predicate) in root_element_classes
     component_with_border = Phlex::AvatarComponent.new(initials: "JD", border: true)
-    element_classes = component_with_border.send(:element_classes)
+    element_classes = component_with_border.send(:root_element_classes)
     assert_includes element_classes, "border"
 
     component_without_border = Phlex::AvatarComponent.new(initials: "JD", border: false)
-    element_classes = component_without_border.send(:element_classes)
+    element_classes = component_without_border.send(:root_element_classes)
     assert_includes element_classes, ""
     refute_includes element_classes, "border"
   end
