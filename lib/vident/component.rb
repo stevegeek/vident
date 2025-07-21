@@ -16,6 +16,13 @@ module Vident
       prop :html_options, Hash, default: -> { {} }
     end
 
+    class_methods do
+      # Returns the names of the properties defined in the component class.
+      def prop_names
+        literal_properties.properties_index.keys.map(&:to_sym)
+      end
+    end
+
     include StimulusComponent
     include ComponentClassLists
     include ComponentAttributeResolver
@@ -49,6 +56,12 @@ module Vident
     # Generate a unique ID for a component, can be overridden as required. Makes it easier to setup things like ARIA
     # attributes which require elements to reference by ID. Note this overrides the `id` accessor
     def id = @id.presence || random_id
+
+
+    # Return the names of the properties defined in the component class.
+    def prop_names
+      self.class.prop_names
+    end
 
     private
 

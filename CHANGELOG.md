@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.0.0.alpha3] - 2025-07-21
+
+### Breaking
+- `element_classes` is now `root_element_classes` to make more consistent with the other root element methods.
+
+### Added
+
+-`.prop_names` and `#prop_values` methods to `Vident::Component` to return the names and values of the component's properties.
 
 ## [1.0.0.alpha2] - 2025-07-08
 
