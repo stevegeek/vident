@@ -1,3 +1,130 @@
+# Vident Architecture Overview
+
+## Purpose
+
+Vident is a Ruby gem that enhances Rails view components with type-safe properties and seamless Stimulus.js integration. 
+It simplifies maintaining the server-side component and client-side interactivity by automatically generating 
+Stimulus data attributes from Ruby component definitions.
+
+## Core Architecture
+
+### Component System
+
+Vident provides base classes for two popular rendering engines:
+- `Vident::ViewComponent::Base` - For ViewComponent-based components
+- `Vident::Phlex::HTML` - For Phlex-based components
+
+Both inherit from `Vident::Component` which provides:
+- Type-safe property declarations via Literal gem
+- Stimulus.js integration via declarative DSL
+- Intelligent CSS class management
+- Component caching capabilities
+- Root element rendering helpers
+
+### Key Modules and Classes
+
+#### Component Core (`lib/vident/component.rb`)
+- Base component functionality
+- Property system integration
+- Stimulus component mixing
+- Class management
+
+#### Stimulus Integration (`lib/vident/stimulus_component.rb`)
+- Stimulus controller generation
+- Data attribute building
+- Event scoping
+- Outlet management
+
+#### Property System
+- Uses Literal gem for type checking
+- Supports default values, nullable types, unions
+- Creates getter methods and predicate methods for booleans
+- Validates property values at initialization
+
+### Data Flow
+
+1. **Component Definition**: Developer defines component class with properties and Stimulus configuration
+2. **Instantiation**: Component is instantiated with property values
+3. **Attribute Resolution**: Component resolves all attributes including Stimulus data attributes
+4. **Rendering**: Component renders HTML with all necessary attributes
+5. **Client-side**: Stimulus controllers automatically connect and initialize
+
+## Key Concepts
+
+### Properties
+Properties are typed attributes that define the component's interface:
+- Enforced at runtime via Literal gem
+- Support complex types (arrays, hashes, unions)
+- Can have defaults (static or dynamic via procs)
+- Built-in properties: `element_tag`, `id`, `classes`, `html_options`
+
+### Stimulus DSL
+Declarative configuration for Stimulus controllers:
+- **Controllers**: Auto-generated based on component class name
+- **Actions**: DOM events mapped to controller methods
+- **Targets**: DOM element references
+- **Values**: Data passed to controller
+- **Classes**: CSS classes for different states
+- **Outlets**: References to other Stimulus controllers
+
+### Root Element
+Special helper that renders the component's outermost HTML element:
+- Configurable tag name
+- Merges all CSS classes intelligently
+- Includes all Stimulus data attributes
+- Supports custom HTML attributes
+
+### Class Management
+Intelligent merging of CSS classes from multiple sources:
+- Component-defined classes
+- Classes passed at render time
+- Stimulus class definitions
+- Tailwind CSS conflict resolution (when available)
+
+## Component Lifecycle
+
+1. **Initialization**
+   - Properties validated and set
+   - `after_component_initialize` hook called
+   - Stimulus configuration evaluated
+
+2. **Attribute Resolution**
+   - `root_element_attributes` method called
+   - Stimulus attributes generated
+   - CSS classes merged
+   - HTML options combined
+
+3. **Rendering**
+   - Template rendered (ERB for ViewComponent, Ruby for Phlex)
+   - Root element helper injects all attributes
+   - Child components rendered if present
+
+4. **Client-side Connection**
+   - Stimulus finds elements with data-controller
+   - Controllers instantiated
+   - Values, targets, and actions connected
+
+## Integration Points
+
+### Stimulus Integration
+- Generates standard Stimulus data attributes
+- Compatible with stimulus-rails gem
+- Supports sidecar controller files
+
+### CSS Framework Integration
+- Built-in Tailwind CSS class merging
+- Maintains class order precedence
+
+## Performance Considerations
+
+- Supports fragment caching via `Vident::Caching`
+
+## Extensibility
+
+- Custom base classes for shared behavior
+- Pluggable class merging strategies
+- Hookable lifecycle methods
+
 # Vident LLM Reference
 
 Rails component library for building interactive, type-safe components with Stimulus.js integration. Supports ViewComponent and Phlex rendering engines.
@@ -26,7 +153,7 @@ gem "vident-phlex"           # Phlex support
 # Type-safe properties using Literal gem
 prop :text, String, default: "Click me"
 prop :url, _Nilable(String)
-prop :style, Symbol, in: [:primary, :secondary], default: :primary
+prop :style, _Union(:primary, :secondary), default: :primary
 prop :enabled, _Boolean, default: false
 prop :items, _Array(String), default: -> { [] }
 prop :count, Integer, default: 0

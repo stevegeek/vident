@@ -71,7 +71,7 @@ class ButtonComponent < Vident::ViewComponent::Base
   # Define typed properties
   prop :text, String, default: "Click me"
   prop :url, _Nilable(String)
-  prop :style, Symbol, in: [:primary, :secondary], default: :primary
+  prop :style, _Union(:primary, :secondary), default: :primary
   prop :clicked_count, Integer, default: 0
   
   # Configure Stimulus integration
