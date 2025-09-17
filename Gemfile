@@ -7,7 +7,6 @@ gemspec name: "vident"
 gem "view_component", ">= 2.74.1", "< 4"
 gem "phlex", ">= 1.5.0", "< 2"
 gem "phlex-rails", ">= 0.8.1", "< 2"
-gem "better_html", ">= 2.0.0", "< 3"
 gem "tailwind_merge", ">= 0.5.2", "< 1"
 gem "dry-struct", ">= 1.5.0", "< 2"
 

@@ -19,7 +19,6 @@ And then optional extra features:
 - `vident-typed-minitest`: Minitest integration for typed Vident components
 - `vident-typed-phlex`: Phlex integration for typed Vident components
 - `vident-typed-view_component`: ViewComponent integration for typed Vident
-- `vident-better_html`: Better HTML integration for Vident
 
 ## Directory Structure
 
@@ -30,12 +29,6 @@ vident/
 ├── lib/                       # All gem code
 │   ├── vident.rb              # Core entry point
 │   ├── vident-phlex.rb        # Gem entry points
-│   ├── vident-better_html.rb
-│   ├── vident/                # Shared code
-│       ├── base.rb
-│       ├── phlex/             # Phlex integration
-│       ├── better_html/       # Better HTML integration
-│       └── ...
 ├── test/                      # All tests
 │   ├── vident/                # Core tests
 │   ├── vident-phlex/          # Tests for each gem
@@ -651,52 +644,6 @@ Or install it yourself as:
 ```bash
 $ gem install vident-view_component
 ```
-
----
-
-## gem: vident-better_html
-
-# Vident::BetterHtml
-Short description and motivation.
-
-### Usage
-How to use my plugin.
-
-```ruby
-BetterHtml.config = BetterHtml::Config.new(YAML.load(File.read(".better-html.yml")))
-
-BetterHtml.configure do |config|
-  config.template_exclusion_filter = proc { |filename| !filename.start_with?(Rails.root.to_s) }
-end
-# ViewComponent needs to do this hack to work in certain cases
-# see https://github.com/Shopify/better-html/pull/98
-class BetterHtml::HtmlAttributes
-  alias_method :to_s_without_html_safe, :to_s
-
-  def to_s
-    to_s_without_html_safe.html_safe
-  end
-end
-```
-
-### Installation
-Add this line to your application's Gemfile:
-
-```ruby
-gem "vident-better_html"
-```
-
-And then execute:
-```bash
-$ bundle
-```
-
-Or install it yourself as:
-```bash
-$ gem install vident-better_html
-```
-
----
 
 ## gem: vident-phlex
 
