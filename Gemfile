@@ -3,7 +3,7 @@ source "https://rubygems.org"
 gem "rails", "~> #{ENV["RAILS_VERSION"] || "8"}"
 
 # External dependencies with specific versions for development
-gem "view_component", "4.0.0.rc2" # ">= 4.0.0", "< 5"
+gem "view_component", "~> 4.1"
 gem "phlex-rails", ">= 0.8.1", "< 3"
 gem "tailwind_merge", ">= 0.5.2", "< 2"
 

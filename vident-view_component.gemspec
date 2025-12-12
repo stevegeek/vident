@@ -31,5 +31,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency "railties", ">= 7.2", "< 9"
   spec.add_dependency "activesupport", ">= 7.2", "< 9"
   spec.add_dependency "vident", "~> #{Vident::VERSION}"
-  spec.add_dependency "view_component", "4.0.0.rc2" # ">= 4.0", "< 5"
+  spec.add_dependency "view_component", ">= 4.0", "< 5"
 end
