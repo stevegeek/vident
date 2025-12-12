@@ -34,6 +34,19 @@ module Vident
 
     # The view component's helpers for setting stimulus data-* attributes on this component.
 
+    def controller_attribute(*controllers_to_set)
+      {"data-controller" => controller_list(controllers_to_set)&.html_safe}
+    end
+
+    def target_attributes(*targets)
+      attrs = build_target_data_attributes(parse_targets(targets))
+      attrs.transform_keys { |dt| "data-#{dt}" }
+    end
+
+    def action_attribute(*actions_to_set)
+      {"data-action" => parse_actions(actions_to_set).join(" ").html_safe}
+    end
+
     # TODO: rename
     # Create a Stimulus action string, and returns it
     #   examples:
