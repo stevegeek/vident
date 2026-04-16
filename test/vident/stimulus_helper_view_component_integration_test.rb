@@ -210,6 +210,32 @@ class StimulusHelperViewComponentIntegrationTest < ViewComponent::TestCase
     assert page.has_css?("[data-controller]"), "Expected HTML to contain stimulus data attributes"
   end
 
+  def test_outlets_rendered_as_data_attributes
+    component = TestButtonComponent.new(text: "Outlet Test")
+
+    render_inline(component)
+
+    assert_match(/data-[\w-]+-modal-outlet="\.modal"/, rendered_content)
+  end
+
+  def test_outlets_with_string_identifier_rendered
+    outlet_host_class = Class.new(Vident::ViewComponent::Base) do
+      def self.name = "OutletStringKeyHostComponent"
+
+      stimulus do
+        outlets({"other-ns--sibling" => "[data-sibling]"})
+      end
+
+      def call
+        root_element { "" }
+      end
+    end
+
+    render_inline(outlet_host_class.new)
+
+    assert_match(/data-[\w-]+-other-ns--sibling-outlet="\[data-sibling\]"/, rendered_content)
+  end
+
   def test_multi_block_component_merging
     dsl_attrs = TestMultiBlockComponent.stimulus_dsl_attributes(TestMultiBlockComponent.new(name: "test"))
 

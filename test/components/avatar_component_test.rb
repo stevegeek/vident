@@ -183,3 +183,30 @@ class AvatarComponentTest < Minitest::Test
     assert ViewComponent::AvatarComponent.included_modules.include?(Vident::Caching)
   end
 end
+
+class AvatarComponentRenderTest < ViewComponent::TestCase
+  def test_renders_as_img_when_url_given
+    render_inline(ViewComponent::AvatarComponent.new(
+      initials: "JD",
+      url: "https://example.com/a.jpg"
+    ))
+
+    assert_selector "img[src='https://example.com/a.jpg']"
+    assert_selector "img.inline-block.object-contain"
+    assert_selector "img.view-component--avatar-component"
+    refute_match(%r{</img>}, rendered_content)
+  end
+
+  def test_renders_as_div_with_initials_when_no_url
+    render_inline(ViewComponent::AvatarComponent.new(initials: "JD"))
+
+    assert_selector "div.inline-flex.items-center.justify-center.bg-gray-500"
+    assert_selector "div > span", text: "JD"
+  end
+
+  def test_no_stimulus_controller_emitted
+    render_inline(ViewComponent::AvatarComponent.new(initials: "JD"))
+    refute_match(/data-controller/, rendered_content)
+    refute_selector "[data-controller]"
+  end
+end

@@ -233,3 +233,28 @@ class PhlexAvatarComponentTest < Minitest::Test
     assert_equal :div, text_attrs[:element_tag]
   end
 end
+
+class PhlexAvatarComponentRenderTest < Minitest::Test
+  def test_renders_as_img_when_url_given
+    output = Phlex::AvatarComponent.new(initials: "JD", url: "https://example.com/a.jpg").call
+
+    assert_match(/<img\b[^>]*src="https:\/\/example\.com\/a\.jpg"/, output)
+    assert_match(/class="[^"]*inline-block object-contain[^"]*"/, output)
+    assert_match(/class="[^"]*phlex--avatar-component[^"]*"/, output)
+    refute_match(%r{</img>}, output)
+    refute_match(/data-controller/, output)
+  end
+
+  def test_renders_as_div_with_initials_when_no_url
+    output = Phlex::AvatarComponent.new(initials: "AB").call
+
+    assert_match(/<div\b[^>]*class="[^"]*inline-flex[^"]*items-center[^"]*justify-center[^"]*bg-gray-500/, output)
+    assert_match(/<span\b[^>]*>AB<\/span>/, output)
+    refute_match(/data-controller/, output)
+  end
+
+  def test_no_stimulus_controller_emitted
+    output = Phlex::AvatarComponent.new(initials: "JD").call
+    refute_match(/data-controller/, output)
+  end
+end

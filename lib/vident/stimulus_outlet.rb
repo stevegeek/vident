@@ -67,8 +67,7 @@ module Vident
     end
 
     def parse_two_arguments(arg1, arg2)
-      if arg1.is_a?(Symbol) && arg2.is_a?(String)
-        # outlet name on implied controller + custom selector
+      if (arg1.is_a?(Symbol) || arg1.is_a?(String)) && arg2.is_a?(String)
         @controller = implied_controller_name
         @outlet_name = arg1.to_s.dasherize
         @selector = arg2

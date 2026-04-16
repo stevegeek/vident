@@ -222,6 +222,13 @@ class StimulusHelperPhlexIntegrationTest < ActionView::TestCase
     assert_match(/data-[^=]+-target="[^"]*toggleButton[^"]*"/, output)
   end
 
+  def test_phlex_outlets_rendered_as_data_attributes
+    component = TestCardComponent.new(title: "Outlet Test")
+    output = render component
+
+    assert_match(/data-[\w-]+-notification-outlet="\[data-controller='notification'\]"/, output)
+  end
+
   def test_phlex_multi_block_component_merging
     dsl_attrs = TestFormComponent.stimulus_dsl_attributes(TestFormComponent.new)
 
