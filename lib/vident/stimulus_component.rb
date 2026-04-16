@@ -49,7 +49,7 @@ module Vident
         end
       end
       prop :stimulus_actions, _Array(_Union(String, Symbol, Array, Hash, StimulusAction, StimulusActionCollection)), default: -> { [] }
-      prop :stimulus_targets, _Array(_Union(String, Symbol, Hash, StimulusTarget, StimulusTargetCollection)), default: -> { [] }
+      prop :stimulus_targets, _Array(_Union(String, Symbol, Array, Hash, StimulusTarget, StimulusTargetCollection)), default: -> { [] }
       prop :stimulus_outlets, _Array(_Union(String, Symbol, StimulusOutlet, StimulusOutletCollection)), default: -> { [] }
       prop :stimulus_outlet_host, _Nilable(Vident::Component) # A component that will host this component as an outlet
       prop :stimulus_values, _Union(_Hash(Symbol, _Any), StimulusValue, StimulusValueCollection), default: -> { {} } # TODO: instead of _Any, is it _Interface(:to_s)?

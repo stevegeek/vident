@@ -204,6 +204,50 @@ class TagHelperTest < Minitest::Test
     assert_nil result
   end
 
+  def test_tag_singular_stimulus_action_preserves_tuple
+    captured = {}
+    test_class = Class.new do
+      include Vident::TagHelper
+      define_method(:stimulus_controllers) { |*c| Vident::StimulusControllerCollection.new(c) }
+      define_method(:stimulus_targets) { |*| Vident::StimulusTargetCollection.new([]) }
+      define_method(:stimulus_actions) do |*actions|
+        captured[:actions] = actions
+        Vident::StimulusActionCollection.new([])
+      end
+      define_method(:stimulus_outlets) { |*| Vident::StimulusOutletCollection.new([]) }
+      define_method(:stimulus_values) { |_| Vident::StimulusValueCollection.new([]) }
+      define_method(:stimulus_classes) { |_| Vident::StimulusClassCollection.new([]) }
+      define_method(:generate_tag) { |*| nil }
+    end
+
+    component = test_class.new
+    component.tag(:button, stimulus_action: [:click, :greet])
+
+    assert_equal [[:click, :greet]], captured[:actions]
+  end
+
+  def test_tag_singular_stimulus_target_preserves_tuple
+    captured = {}
+    test_class = Class.new do
+      include Vident::TagHelper
+      define_method(:stimulus_controllers) { |*c| Vident::StimulusControllerCollection.new(c) }
+      define_method(:stimulus_targets) do |*targets|
+        captured[:targets] = targets
+        Vident::StimulusTargetCollection.new([])
+      end
+      define_method(:stimulus_actions) { |*| Vident::StimulusActionCollection.new([]) }
+      define_method(:stimulus_outlets) { |*| Vident::StimulusOutletCollection.new([]) }
+      define_method(:stimulus_values) { |_| Vident::StimulusValueCollection.new([]) }
+      define_method(:stimulus_classes) { |_| Vident::StimulusClassCollection.new([]) }
+      define_method(:generate_tag) { |*| nil }
+    end
+
+    component = test_class.new
+    component.tag(:div, stimulus_target: ["path/to/ctrl", :name])
+
+    assert_equal [["path/to/ctrl", :name]], captured[:targets]
+  end
+
   def test_generate_tag_not_implemented
     test_class = Class.new do
       include Vident::TagHelper

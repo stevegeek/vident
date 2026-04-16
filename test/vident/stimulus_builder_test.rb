@@ -152,6 +152,20 @@ class StimulusBuilderTest < ActiveSupport::TestCase
     assert_equal expected, @builder.instance_variable_get(:@outlets)
   end
 
+  def test_outlets_accepts_positional_hash_with_string_keys
+    @builder.outlets({"my-ns--modal" => "[data-modal]", "foo" => "[data-foo]"})
+
+    expected = {"my-ns--modal" => "[data-modal]", "foo" => "[data-foo]"}
+    assert_equal expected, @builder.instance_variable_get(:@outlets)
+  end
+
+  def test_outlets_mixes_positional_hash_and_kwargs
+    @builder.outlets({"my-ns--modal" => "[data-modal]"}, foo: "[data-foo]")
+
+    expected = {"my-ns--modal" => "[data-modal]", foo: "[data-foo]"}
+    assert_equal expected, @builder.instance_variable_get(:@outlets)
+  end
+
   def test_outlets_with_component_selector_patterns
     @builder.outlets(
       user_profile: "[data-controller='user-profile']",

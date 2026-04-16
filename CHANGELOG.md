@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
+## Unreleased
+
+### Fixed
+
+- `tag(...)` singular stimulus kwargs (e.g. `stimulus_action: [:click, :foo]`) no longer splat `[event, handler]` tuples into two bare handlers (#19).
+- `vident-view_component`'s `tag(...)` now emits void elements (`:input`, `:img`, `:br`, etc.) without a closing tag (#19).
+- `vident-view_component`'s `tag(...)` without a block no longer renders the options hash as element content (#19).
+- `stimulus_targets:` prop now accepts `Array` entries (e.g. `[[controller_path, :name]]`), matching `stimulus_actions:` (#20).
+- `stimulus do ... outlets(...)` DSL now accepts a positional `Hash`, allowing string keys (e.g. stimulus identifiers containing `--`) that cannot be Ruby kwarg keys (#21).
+
 ## [1.0.0.alpha4] - 2025-12-12
 
 - Update to `view_component` 4

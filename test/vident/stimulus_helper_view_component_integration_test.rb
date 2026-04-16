@@ -319,6 +319,20 @@ class StimulusHelperViewComponentIntegrationTest < ViewComponent::TestCase
     end
   end
 
+  def test_stimulus_targets_prop_accepts_array_entries
+    child_class = Class.new(Vident::ViewComponent::Base) do
+      def self.name = "StimulusTargetsArrayTestComponent"
+
+      def call
+        root_element { "" }
+      end
+    end
+
+    assert_nothing_raised do
+      child_class.new(stimulus_targets: [["path/to/controller", :name]])
+    end
+  end
+
   def test_dsl_with_no_props_still_works
     # Define a proper named class to avoid ViewComponent demodulize issues
     klass = Class.new(Vident::ViewComponent::Base) do

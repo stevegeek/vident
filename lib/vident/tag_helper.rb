@@ -54,7 +54,8 @@ module Vident
     end
 
     def tag_wrap_single_stimulus_attribute(plural, singular)
-      plural || (singular ? Array.wrap(singular) : nil)
+      return plural if plural
+      singular.nil? ? nil : [singular]
     end
 
     def generate_tag(tag_name, stimulus_data_attributes, options, &block)

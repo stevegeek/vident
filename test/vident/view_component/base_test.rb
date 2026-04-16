@@ -298,6 +298,34 @@ module Vident
         # Should concatenate multiple data attributes with spaces
         assert_includes result, "data-greeters--greeter-with-trigger-component-target=\"first second\""
       end
+
+      def test_tag_with_self_closing_element
+        component_class = Class.new(Vident::ViewComponent::Base) do
+          def self.name = "SelfClosingTagTestComponent"
+
+          def call
+            tag(:input, type: "text", stimulus_target: :name)
+          end
+        end
+
+        render_inline(component_class.new)
+        assert_match(/<input\b[^>]*>/, rendered_content)
+        refute_match(%r{</input>}, rendered_content)
+      end
+
+      def test_tag_without_block_applies_options_as_attributes
+        component_class = Class.new(Vident::ViewComponent::Base) do
+          def self.name = "BodylessTagTestComponent"
+
+          def call
+            tag(:div, class: "menu", stimulus_target: :container)
+          end
+        end
+
+        render_inline(component_class.new)
+        assert_match(/class="menu"/, rendered_content)
+        refute_match(/\{:?class/, rendered_content)
+      end
     end
   end
 end

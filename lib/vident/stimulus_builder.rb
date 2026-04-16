@@ -46,7 +46,8 @@ module Vident
       self
     end
 
-    def outlets(**outlet_mappings)
+    def outlets(positional = nil, **outlet_mappings)
+      @outlets.merge!(positional) if positional.is_a?(Hash)
       @outlets.merge!(outlet_mappings) unless outlet_mappings.empty?
       self
     end

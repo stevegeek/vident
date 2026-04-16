@@ -105,7 +105,13 @@ module Vident
       def generate_tag(tag_name, stimulus_data_attributes, options, &block)
         options[:data] ||= {}
         options[:data].merge!(stimulus_data_attributes)
-        view_context.content_tag(tag_name, options, &block)
+        if SELF_CLOSING_TAGS.include?(tag_name.to_sym)
+          view_context.tag(tag_name, options)
+        elsif block
+          view_context.content_tag(tag_name, view_context.capture(&block), options)
+        else
+          view_context.content_tag(tag_name, nil, options)
+        end
       end
 
       def escape_attribute_name_for_html(name)
