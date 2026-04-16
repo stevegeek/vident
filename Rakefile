@@ -38,37 +38,71 @@ task :unpack do
   puts "\nGems unpacked to #{inspect_dir}"
 end
 
-desc "Push all built gems to RubyGems"
-task :release do
-  # Get list of gem files
-  gem_files = Dir.glob("*.gem")
+GEM_COOP_HOST = ENV.fetch("GEM_COOP_HOST", "https://beta.gem.coop/@stephen")
 
+def push_gem(gem_file, host: nil, api_key: nil)
+  cmd = "gem push #{gem_file}"
+  cmd += " --host #{host}" if host
+  otp = ENV["OTP"] || ENV["GEM_HOST_OTP_CODE"]
+  cmd += " --otp #{otp}" if otp && !otp.empty?
+
+  env = {}
+  env["GEM_HOST_API_KEY"] = api_key if api_key
+
+  puts "\nPushing #{gem_file}#{host ? " to #{host}" : " to RubyGems"}..."
+  system(env, cmd)
+  if $?.success?
+    puts "Successfully pushed #{gem_file}"
+    true
+  else
+    puts "Failed to push #{gem_file}"
+    false
+  end
+end
+
+def require_env!(*names)
+  missing = names.reject { |n| ENV[n] && !ENV[n].empty? }
+  return if missing.empty?
+  raise "Required env var#{"s" if missing.size > 1} not set: #{missing.join(", ")}"
+end
+
+desc "Push all built gems to RubyGems and gem.coop"
+task :release do
+  require_env!("GEM_COOP_API_KEY", "OTP")
+
+  gem_files = Dir.glob("*.gem")
   if gem_files.empty?
     puts "No gem files found. Run 'rake build' first."
     exit 1
   end
 
-  # Ask for confirmation
-  puts "The following gems will be pushed to RubyGems:"
+  coop_key = ENV["GEM_COOP_API_KEY"]
+
+  puts "The following gems will be pushed to: RubyGems, #{GEM_COOP_HOST}"
   gem_files.each { |gem| puts "  - #{gem}" }
 
   print "\nAre you sure you want to continue? [y/N] "
   confirmation = $stdin.gets.chomp.downcase
 
-  if confirmation == "y"
-    # Push each gem
-    gem_files.each do |gem_file|
-      puts "\nPushing #{gem_file}..."
-      system "gem push #{gem_file}"
-
-      # Check if push was successful
-      if $?.success?
-        puts "Successfully pushed #{gem_file}"
-      else
-        puts "Failed to push #{gem_file}"
-      end
-    end
-  else
+  unless confirmation == "y"
     puts "Aborted."
+    exit 0
   end
+
+  gem_files.each { |gem_file| push_gem(gem_file) }
+  gem_files.each { |gem_file| push_gem(gem_file, host: GEM_COOP_HOST, api_key: coop_key) }
+end
+
+desc "Push all built gems to gem.coop only"
+task :"release:coop" do
+  require_env!("GEM_COOP_API_KEY")
+
+  gem_files = Dir.glob("*.gem")
+  if gem_files.empty?
+    puts "No gem files found. Run 'rake build' first."
+    exit 1
+  end
+
+  coop_key = ENV["GEM_COOP_API_KEY"]
+  gem_files.each { |gem_file| push_gem(gem_file, host: GEM_COOP_HOST, api_key: coop_key) }
 end
