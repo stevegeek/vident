@@ -27,7 +27,7 @@ module Vident
     include ComponentClassLists
     include ComponentAttributeResolver
 
-    include TagHelper
+    include ChildElementHelper
     include Tailwind
     include StimulusHelper
 

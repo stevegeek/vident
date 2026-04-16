@@ -93,7 +93,7 @@ class ButtonComponent < Vident::ViewComponent::Base
   def call
     root_element do |component|
       # Wire up targets etc
-      component.tag(:span, stimulus_target: :status) do
+      component.child_element(:span, stimulus_target: :status) do
         @text
       end
     end
@@ -483,13 +483,13 @@ or you can use tag helpers to generate HTML with Stimulus attributes:
   <% end %>
   <%= content_tag(:span, class: "...", data: {**greeter.stimulus_target(:output)}) %>
 
-  <%# OR use the vident tag helper  %>
+  <%# OR use the vident child_element helper  %>
 
-  <%= greeter.tag(:input, stimulus_target: :name, type: "text", class: "...") %>
-  <%= greeter.tag(:button, stimulus_action: [:click, :greet], class: "...") do %>
+  <%= greeter.child_element(:input, stimulus_target: :name, type: "text", class: "...") %>
+  <%= greeter.child_element(:button, stimulus_action: [:click, :greet], class: "...") do %>
     <%= @cta %>
   <% end %>
-  <%= greeter.tag(:span, stimulus_target: :output, class: "...") %>
+  <%= greeter.child_element(:span, stimulus_target: :output, class: "...") %>
 ```
 
 or in your Phlex templates:
@@ -498,7 +498,7 @@ or in your Phlex templates:
 root_element do |greeter|
   input(type: "text", data: {**greeter.stimulus_target(:name)}, class: %(...))
   trigger_or_default(greeter)
-  greeter.tag(:span, stimulus_target: :output, class: "ml-4 #{greeter.class_list_for_stimulus_classes(:pre_click)}") do
+  greeter.child_element(:span, stimulus_target: :output, class: "ml-4 #{greeter.class_list_for_stimulus_classes(:pre_click)}") do
     plain %( ... )
   end
 end

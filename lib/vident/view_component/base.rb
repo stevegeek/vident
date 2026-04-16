@@ -102,7 +102,7 @@ module Vident
 
       private
 
-      def generate_tag(tag_name, stimulus_data_attributes, options, &block)
+      def generate_child_element(tag_name, stimulus_data_attributes, options, &block)
         options[:data] ||= {}
         options[:data].merge!(stimulus_data_attributes)
         if SELF_CLOSING_TAGS.include?(tag_name.to_sym)

@@ -288,7 +288,7 @@ def view_template
   root do |component|
     div(data: component.stimulus_target(:name).to_h) { "Content" }
     button(data: {**component.stimulus_actions(:click)}) { "Click" }
-    component.tag(:span, stimulus_target: :output, class: "ml-4")
+    component.child_element(:span, stimulus_target: :output, class: "ml-4")
   end
 end
 ```

@@ -2,10 +2,10 @@
 
 require "test_helper"
 
-class TagHelperTest < Minitest::Test
-  def test_tag_with_stimulus_controllers
+class ChildElementHelperTest < Minitest::Test
+  def test_child_element_with_stimulus_controllers
     test_class = Class.new do
-      include Vident::TagHelper
+      include Vident::ChildElementHelper
 
       def self.name
         "TestComponent"
@@ -35,21 +35,21 @@ class TagHelperTest < Minitest::Test
         Vident::StimulusClassCollection.new(classes)
       end
 
-      def generate_tag(tag_name, stimulus_data_attributes, options, &block)
+      def generate_child_element(tag_name, stimulus_data_attributes, options, &block)
         {tag: tag_name, stimulus: stimulus_data_attributes, options: options}
       end
     end
 
     component = test_class.new
-    result = component.tag("div", stimulus_controllers: ["test-controller"])
+    result = component.child_element("div", stimulus_controllers: ["test-controller"])
     assert_equal "div", result[:tag]
     assert_instance_of Hash, result[:stimulus]
     assert_instance_of Hash, result[:options]
   end
 
-  def test_tag_with_single_stimulus_controller
+  def test_child_element_with_single_stimulus_controller
     test_class = Class.new do
-      include Vident::TagHelper
+      include Vident::ChildElementHelper
 
       def self.name
         "TestComponent"
@@ -79,19 +79,19 @@ class TagHelperTest < Minitest::Test
         Vident::StimulusClassCollection.new(classes)
       end
 
-      def generate_tag(tag_name, stimulus_data_attributes, options, &block)
+      def generate_child_element(tag_name, stimulus_data_attributes, options, &block)
         {tag: tag_name, stimulus: stimulus_data_attributes, options: options}
       end
     end
 
     component = test_class.new
-    result = component.tag("div", stimulus_controller: "test-controller")
+    result = component.child_element("div", stimulus_controller: "test-controller")
     assert_equal "div", result[:tag]
   end
 
-  def test_tag_attribute_must_be_collection_validation
+  def test_child_element_attribute_must_be_collection_validation
     test_class = Class.new do
-      include Vident::TagHelper
+      include Vident::ChildElementHelper
 
       def self.name
         "TestComponent"
@@ -121,24 +121,23 @@ class TagHelperTest < Minitest::Test
         Vident::StimulusClassCollection.new(classes)
       end
 
-      def generate_tag(tag_name, stimulus_data_attributes, options, &block)
+      def generate_child_element(tag_name, stimulus_data_attributes, options, &block)
         {tag: tag_name, stimulus: stimulus_data_attributes, options: options}
       end
     end
 
     component = test_class.new
 
-    # Test with invalid stimulus_controllers (should be enumerable)
     error = assert_raises(ArgumentError) do
-      component.tag("div", stimulus_controllers: "invalid")
+      component.child_element("div", stimulus_controllers: "invalid")
     end
     assert_includes error.message, "stimulus_controllers"
     assert_includes error.message, "must be an enumerable"
   end
 
-  def test_tag_with_simple_stimulus_attributes
+  def test_child_element_with_simple_stimulus_attributes
     test_class = Class.new do
-      include Vident::TagHelper
+      include Vident::ChildElementHelper
 
       def self.name
         "TestComponent"
@@ -168,21 +167,21 @@ class TagHelperTest < Minitest::Test
         Vident::StimulusClassCollection.new([])
       end
 
-      def generate_tag(tag_name, stimulus_data_attributes, options, &block)
+      def generate_child_element(tag_name, stimulus_data_attributes, options, &block)
         {tag: tag_name, stimulus: stimulus_data_attributes, options: options}
       end
     end
 
     component = test_class.new
-    result = component.tag("div", stimulus_controllers: ["test-controller"])
+    result = component.child_element("div", stimulus_controllers: ["test-controller"])
 
     assert_equal "div", result[:tag]
     assert_instance_of Hash, result[:stimulus]
   end
 
-  def test_tag_wrap_single_stimulus_attribute
+  def test_child_element_wrap_single_stimulus_attribute
     test_class = Class.new do
-      include Vident::TagHelper
+      include Vident::ChildElementHelper
 
       def self.name
         "TestComponent"
@@ -191,23 +190,20 @@ class TagHelperTest < Minitest::Test
 
     component = test_class.new
 
-    # Test with plural only
-    result = component.send(:tag_wrap_single_stimulus_attribute, ["item1", "item2"], nil)
+    result = component.send(:child_element_wrap_single_stimulus_attribute, ["item1", "item2"], nil)
     assert_equal ["item1", "item2"], result
 
-    # Test with singular only
-    result = component.send(:tag_wrap_single_stimulus_attribute, nil, "item")
+    result = component.send(:child_element_wrap_single_stimulus_attribute, nil, "item")
     assert_equal ["item"], result
 
-    # Test with both nil
-    result = component.send(:tag_wrap_single_stimulus_attribute, nil, nil)
+    result = component.send(:child_element_wrap_single_stimulus_attribute, nil, nil)
     assert_nil result
   end
 
-  def test_tag_singular_stimulus_action_preserves_tuple
+  def test_child_element_singular_stimulus_action_preserves_tuple
     captured = {}
     test_class = Class.new do
-      include Vident::TagHelper
+      include Vident::ChildElementHelper
       define_method(:stimulus_controllers) { |*c| Vident::StimulusControllerCollection.new(c) }
       define_method(:stimulus_targets) { |*| Vident::StimulusTargetCollection.new([]) }
       define_method(:stimulus_actions) do |*actions|
@@ -217,19 +213,19 @@ class TagHelperTest < Minitest::Test
       define_method(:stimulus_outlets) { |*| Vident::StimulusOutletCollection.new([]) }
       define_method(:stimulus_values) { |_| Vident::StimulusValueCollection.new([]) }
       define_method(:stimulus_classes) { |_| Vident::StimulusClassCollection.new([]) }
-      define_method(:generate_tag) { |*| nil }
+      define_method(:generate_child_element) { |*| nil }
     end
 
     component = test_class.new
-    component.tag(:button, stimulus_action: [:click, :greet])
+    component.child_element(:button, stimulus_action: [:click, :greet])
 
     assert_equal [[:click, :greet]], captured[:actions]
   end
 
-  def test_tag_singular_stimulus_target_preserves_tuple
+  def test_child_element_singular_stimulus_target_preserves_tuple
     captured = {}
     test_class = Class.new do
-      include Vident::TagHelper
+      include Vident::ChildElementHelper
       define_method(:stimulus_controllers) { |*c| Vident::StimulusControllerCollection.new(c) }
       define_method(:stimulus_targets) do |*targets|
         captured[:targets] = targets
@@ -239,18 +235,18 @@ class TagHelperTest < Minitest::Test
       define_method(:stimulus_outlets) { |*| Vident::StimulusOutletCollection.new([]) }
       define_method(:stimulus_values) { |_| Vident::StimulusValueCollection.new([]) }
       define_method(:stimulus_classes) { |_| Vident::StimulusClassCollection.new([]) }
-      define_method(:generate_tag) { |*| nil }
+      define_method(:generate_child_element) { |*| nil }
     end
 
     component = test_class.new
-    component.tag(:div, stimulus_target: ["path/to/ctrl", :name])
+    component.child_element(:div, stimulus_target: ["path/to/ctrl", :name])
 
     assert_equal [["path/to/ctrl", :name]], captured[:targets]
   end
 
-  def test_generate_tag_not_implemented
+  def test_generate_child_element_not_implemented
     test_class = Class.new do
-      include Vident::TagHelper
+      include Vident::ChildElementHelper
 
       def self.name
         "TestComponent"
@@ -260,7 +256,7 @@ class TagHelperTest < Minitest::Test
     component = test_class.new
 
     assert_raises(NoMethodError) do
-      component.send(:generate_tag, "div", {}, {})
+      component.send(:generate_child_element, "div", {}, {})
     end
   end
 end

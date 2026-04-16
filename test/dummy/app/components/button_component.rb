@@ -25,7 +25,7 @@ class ButtonComponent < Vident::ViewComponent::Base
   # Using the call method instead of ERB template
   def call
     root_element do |component|
-      component.tag(:span, stimulus_target: :status) do
+      component.child_element(:span, stimulus_target: :status) do
         @text
       end
     end

@@ -299,12 +299,12 @@ module Vident
         assert_includes result, "data-greeters--greeter-with-trigger-component-target=\"first second\""
       end
 
-      def test_tag_with_self_closing_element
+      def test_child_element_with_self_closing_element
         component_class = Class.new(Vident::ViewComponent::Base) do
-          def self.name = "SelfClosingTagTestComponent"
+          def self.name = "SelfClosingChildElementTestComponent"
 
           def call
-            tag(:input, type: "text", stimulus_target: :name)
+            child_element(:input, type: "text", stimulus_target: :name)
           end
         end
 
@@ -313,12 +313,12 @@ module Vident
         refute_match(%r{</input>}, rendered_content)
       end
 
-      def test_tag_without_block_applies_options_as_attributes
+      def test_child_element_without_block_applies_options_as_attributes
         component_class = Class.new(Vident::ViewComponent::Base) do
-          def self.name = "BodylessTagTestComponent"
+          def self.name = "BodylessChildElementTestComponent"
 
           def call
-            tag(:div, class: "menu", stimulus_target: :container)
+            child_element(:div, class: "menu", stimulus_target: :container)
           end
         end
 

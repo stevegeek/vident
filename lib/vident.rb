@@ -38,7 +38,7 @@ require "vident/stimulus_class_collection"
 require "vident/stimulus_attributes"
 require "vident/stimulus_data_attribute_builder"
 
-require "vident/tag_helper"
+require "vident/child_element_helper"
 require "vident/stable_id"
 require "vident/class_list_builder"
 

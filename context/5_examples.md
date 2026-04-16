@@ -60,7 +60,7 @@ end
       <%= form.label :advanced_mode, "Show advanced options" %>
     </div>
     
-    <%= component.tag(stimulus_targets: [:advanced_section]) do %> 
+    <%= component.child_element(stimulus_targets: [:advanced_section]) do %> 
          class="<%= @show_advanced ? 'block' : 'hidden' %> p-4 bg-gray-50 rounded mb-4">
       <!-- Advanced fields -->
       <%= form.label :preferences, class: "block text-sm font-medium text-gray-700" %>

@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
+## [1.0.0.beta2] - 2026-04-16
+
+### Breaking
+
+- Renamed the `tag(...)` helper to `child_element(...)` (and the internal `Vident::TagHelper` module to `Vident::ChildElementHelper`). The old name shadowed Rails' own `tag(name, options)` positional API, which breaks Rails helpers like `hidden_field_tag` and `image_tag` when called inside vident components. Rename any `component.tag(...)` calls to `component.child_element(...)`.
+
+### Fixed
+
+- `stimulus_outlet` parser now accepts `(String, String)` arguments so string-keyed outlets produced by the DSL actually render.
+
 ## [1.0.0.beta1] - 2026-04-16
 
 ### Fixed

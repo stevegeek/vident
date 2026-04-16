@@ -5,8 +5,8 @@
   <% if trigger? %>
     <%= trigger %>
   <% end %>
-  <!-- you can also use the `tag` helper to render targets -->
-  <%= greeter.tag(:span, stimulus_target: :output, class: "ml-4 #{greeter.class_list_for_stimulus_classes(:pre_click)}") do %>
+  <!-- you can also use the `child_element` helper to render targets -->
+  <%= greeter.child_element(:span, stimulus_target: :output, class: "ml-4 #{greeter.class_list_for_stimulus_classes(:pre_click)}") do %>
     ...
   <% end %>
 <% end %>

@@ -51,7 +51,7 @@ module Vident
         end
       end
 
-      def generate_tag(tag_type, stimulus_data_attributes, options, &block)
+      def generate_child_element(tag_type, stimulus_data_attributes, options, &block)
         options[:data] ||= {}
         options[:data].merge!(stimulus_data_attributes)
         check_valid_html_tag!(tag_type)
