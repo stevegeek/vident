@@ -34,6 +34,13 @@ class StimulusAttributesTest < Minitest::Test
     assert_instance_of Vident::StimulusControllerCollection, result
   end
 
+  def test_stimulus_controllers_accepts_symbol_path
+    result = @component.stimulus_controllers(:my_controller, :"admin/users")
+    assert_instance_of Vident::StimulusControllerCollection, result
+    names = result.to_a.map(&:name)
+    assert_equal ["my-controller", "admin--users"], names
+  end
+
   def test_stimulus_action_basic
     result = @component.stimulus_action(:click)
     assert_instance_of Vident::StimulusAction, result
@@ -92,6 +99,47 @@ class StimulusAttributesTest < Minitest::Test
   def test_stimulus_values_empty
     result = @component.stimulus_values
     assert_instance_of Vident::StimulusValueCollection, result
+  end
+
+  def test_stimulus_values_accepts_array_form_for_cross_controller
+    result = @component.stimulus_values(
+      ["path/to/other", :initial_content, "hello"],
+      ["path/to/other", :content_href, "/foo"]
+    )
+    assert_instance_of Vident::StimulusValueCollection, result
+    data = result.to_h
+    assert_equal "hello", data["path--to--other-initial-content-value"]
+    assert_equal "/foo", data["path--to--other-content-href-value"]
+  end
+
+  def test_stimulus_values_accepts_prebuilt_collection_pass_through
+    collection = @component.stimulus_values(url: "https://example.com")
+    result = @component.stimulus_values(collection)
+    assert_same collection, result
+  end
+
+  def test_stimulus_values_accepts_prebuilt_value_instance
+    value = @component.stimulus_value(:url, "https://example.com")
+    result = @component.stimulus_values(value)
+    assert_instance_of Vident::StimulusValueCollection, result
+    assert_equal({"test-controller-url-value" => "https://example.com"}, result.to_h)
+  end
+
+  def test_stimulus_classes_accepts_array_form_for_cross_controller
+    result = @component.stimulus_classes(
+      ["path/to/other", :loading, "spinner"],
+      ["path/to/other", :error, "text-red-500"]
+    )
+    assert_instance_of Vident::StimulusClassCollection, result
+    data = result.to_h
+    assert_equal "spinner", data["path--to--other-loading-class"]
+    assert_equal "text-red-500", data["path--to--other-error-class"]
+  end
+
+  def test_stimulus_classes_accepts_prebuilt_collection_pass_through
+    collection = @component.stimulus_classes(loading: "spinner")
+    result = @component.stimulus_classes(collection)
+    assert_same collection, result
   end
 
   def test_stimulus_class_basic

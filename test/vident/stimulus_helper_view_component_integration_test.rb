@@ -204,6 +204,54 @@ class StimulusHelperViewComponentIntegrationTest < ViewComponent::TestCase
     assert_equal "opacity-50 cursor-wait", data_attrs[loading_class_key]
   end
 
+  def test_cross_controller_stimulus_values_via_collection_prop
+    component_class = Class.new(::Vident::ViewComponent::Base) do
+      def self.name = "CrossControllerValuesComponent"
+
+      def call
+        root_element { "x" }
+      end
+    end
+
+    component = component_class.new(
+      stimulus_controllers: ["other_ui/modal_button"],
+      stimulus_values: component_class.new.stimulus_values(
+        ["other_ui/modal_button", :initial_content, "hi"],
+        ["other_ui/modal_button", :content_href, "/foo"],
+        ["other_ui/modal_button", :close_on_overlay_click, false]
+      )
+    )
+    component.send(:prepare_component_attributes)
+    data_attrs = component.send(:stimulus_data_attributes)
+
+    assert_equal "hi", data_attrs["other-ui--modal-button-initial-content-value"]
+    assert_equal "/foo", data_attrs["other-ui--modal-button-content-href-value"]
+    assert_equal "false", data_attrs["other-ui--modal-button-close-on-overlay-click-value"]
+  end
+
+  def test_cross_controller_stimulus_values_via_array_prop
+    component_class = Class.new(::Vident::ViewComponent::Base) do
+      def self.name = "CrossControllerArrayValuesComponent"
+
+      def call
+        root_element { "x" }
+      end
+    end
+
+    component = component_class.new(
+      stimulus_controllers: ["other_ui/modal_button"],
+      stimulus_values: [
+        ["other_ui/modal_button", :initial_content, "hi"],
+        ["other_ui/modal_button", :content_href, "/foo"]
+      ]
+    )
+    component.send(:prepare_component_attributes)
+    data_attrs = component.send(:stimulus_data_attributes)
+
+    assert_equal "hi", data_attrs["other-ui--modal-button-initial-content-value"]
+    assert_equal "/foo", data_attrs["other-ui--modal-button-content-href-value"]
+  end
+
   def test_stimulus_null_sentinel_emits_null_string_nil_omits_attribute
     component = TestNullableValuesComponent.new(flag: false)
     component.send(:prepare_component_attributes)

@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 - `stimulus_controllers:` prop and the `stimulus_controllers(...)` helper now accept Symbol paths (e.g. `:my_controller`, `:"admin/users"`) instead of raising `NoMethodError: undefined method 'split' for an instance of Symbol` (#15).
+- `stimulus_values:` and `stimulus_classes:` props now accept cross-controller entries. The type unions include `Array` (matching `stimulus_actions:`/`stimulus_targets:`), and the collection parsers pass through pre-built `StimulusValue`/`StimulusValueCollection` (and class equivalents) instead of re-wrapping them into the single-value constructor and raising `ArgumentError: Invalid number of arguments` (#23).
 
 ## [1.0.0.beta2] - 2026-04-16
 

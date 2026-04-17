@@ -129,13 +129,21 @@ module Vident
     def stimulus_values(*values)
       return StimulusValueCollection.new if values.empty? || values.all?(&:blank?)
 
+      # Single pre-built Collection: pass through unchanged
+      return values.first if values.length == 1 && values.first.is_a?(StimulusValueCollection)
+
       converted_values = []
 
       values.each do |value|
-        if value.is_a?(Hash)
+        case value
+        when StimulusValue
+          converted_values << value
+        when StimulusValueCollection
+          converted_values.concat(value.to_a)
+        when Hash
           # Hash format: {name: value, other_name: other_value} - expands to multiple values
           value.each { |name, val| converted_values << stimulus_value(name, val) }
-        elsif value.is_a?(Array)
+        when Array
           # Array format: [controller, name, value] or [name, value] - splat into stimulus_value
           converted_values << stimulus_value(*value)
         else
@@ -159,13 +167,21 @@ module Vident
     def stimulus_classes(*classes)
       return StimulusClassCollection.new if classes.empty? || classes.all?(&:blank?)
 
+      # Single pre-built Collection: pass through unchanged
+      return classes.first if classes.length == 1 && classes.first.is_a?(StimulusClassCollection)
+
       converted_classes = []
 
       classes.each do |cls|
-        if cls.is_a?(Hash)
+        case cls
+        when StimulusClass
+          converted_classes << cls
+        when StimulusClassCollection
+          converted_classes.concat(cls.to_a)
+        when Hash
           # Hash format: {loading: "spinner active", error: "text-red-500"} - expands to multiple classes
           cls.each { |name, class_list| converted_classes << stimulus_class(name, class_list) }
-        elsif cls.is_a?(Array)
+        when Array
           # Array format: [controller, name, classes] or [name, classes] - splat into stimulus_class
           converted_classes << stimulus_class(*cls)
         else
@@ -215,7 +231,7 @@ module Vident
     end
 
     def add_stimulus_values(values)
-      s_values = stimulus_values(values)
+      s_values = stimulus_values(*Array.wrap(values))
       @stimulus_values_collection = if @stimulus_values_collection
         @stimulus_values_collection.merge(s_values)
       else
@@ -224,7 +240,7 @@ module Vident
     end
 
     def add_stimulus_classes(named_classes)
-      classes = stimulus_classes(named_classes)
+      classes = stimulus_classes(*Array.wrap(named_classes))
       @stimulus_classes_collection = if @stimulus_classes_collection
         @stimulus_classes_collection.merge(classes)
       else
