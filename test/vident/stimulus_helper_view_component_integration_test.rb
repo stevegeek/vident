@@ -40,6 +40,22 @@ class StimulusHelperViewComponentIntegrationTest < ViewComponent::TestCase
     end
   end
 
+  # Test ViewComponent exercising nil-vs-StimulusNull value emission
+  class TestNullableValuesComponent < Vident::ViewComponent::Base
+    prop :flag, _Boolean, default: false
+
+    stimulus do
+      values explicit_null: Vident::StimulusNull,
+        static_nil: nil,
+        dynamic_null: -> { Vident::StimulusNull },
+        dynamic_nil: -> { @flag ? "on" : nil }
+    end
+
+    def call
+      root_element { "Nullable" }
+    end
+  end
+
   # Test ViewComponent with multiple stimulus blocks
   class TestMultiBlockComponent < Vident::ViewComponent::Base
     prop :name, String
@@ -186,6 +202,26 @@ class StimulusHelperViewComponentIntegrationTest < ViewComponent::TestCase
     loading_class_key = data_attrs.keys.find { |k| k.include?("loading-class") }
     assert loading_class_key
     assert_equal "opacity-50 cursor-wait", data_attrs[loading_class_key]
+  end
+
+  def test_stimulus_null_sentinel_emits_null_string_nil_omits_attribute
+    component = TestNullableValuesComponent.new(flag: false)
+    component.send(:prepare_component_attributes)
+    data_attrs = component.send(:stimulus_data_attributes)
+
+    explicit_null_key = data_attrs.keys.find { |k| k.include?("explicit-null-value") }
+    dynamic_null_key = data_attrs.keys.find { |k| k.include?("dynamic-null-value") }
+    static_nil_key = data_attrs.keys.find { |k| k.include?("static-nil-value") }
+    dynamic_nil_key = data_attrs.keys.find { |k| k.include?("dynamic-nil-value") }
+
+    assert explicit_null_key, "StimulusNull sentinel should emit its data attribute"
+    assert_equal "null", data_attrs[explicit_null_key]
+
+    assert dynamic_null_key, "proc returning StimulusNull should emit its data attribute"
+    assert_equal "null", data_attrs[dynamic_null_key]
+
+    refute static_nil_key, "static nil value should be omitted from data attributes"
+    refute dynamic_nil_key, "proc returning nil should be omitted from data attributes"
   end
 
   def test_html_rendering_with_dsl

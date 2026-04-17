@@ -376,9 +376,7 @@ class StimulusHelperTest < ActiveSupport::TestCase
     end
 
     dsl_attrs = @component_class.stimulus_dsl_attributes(@component)
-    # Values allow nil from procs
-    assert_equal({nil_value: nil, false_value: false}, dsl_attrs[:stimulus_values])
-    # Classes exclude nil from procs (nil is not valid for classes)
+    assert_equal({false_value: false}, dsl_attrs[:stimulus_values])
     assert_equal({false_class: false}, dsl_attrs[:stimulus_classes])
   end
 
@@ -429,8 +427,36 @@ class StimulusHelperTest < ActiveSupport::TestCase
     end
 
     dsl_attrs = @component_class.stimulus_dsl_attributes(@component)
-    expected = {explicit_nil: nil, empty_string: "", zero: 0, false_value: false}
+    expected = {empty_string: "", zero: 0, false_value: false}
     assert_equal expected, dsl_attrs[:stimulus_values]
+  end
+
+  def test_stimulus_null_sentinel_is_preserved_and_serializes_to_null_string
+    @component_class.stimulus do
+      values config: Vident::StimulusNull,
+        dynamic_config: -> { Vident::StimulusNull }
+    end
+
+    dsl_attrs = @component_class.stimulus_dsl_attributes(@component)
+    assert_equal Vident::StimulusNull, dsl_attrs[:stimulus_values][:config]
+    assert_equal Vident::StimulusNull, dsl_attrs[:stimulus_values][:dynamic_config]
+    assert_equal "null", Vident::StimulusNull.to_s
+  end
+
+  def test_conditional_nil_value_idiom_is_filtered
+    @component_class.class_eval do
+      def initialize(**props)
+        @start_shown = props[:start_shown]
+      end
+    end
+    component = @component_class.new(start_shown: false)
+
+    @component_class.stimulus do
+      values show_initial: -> { @start_shown || nil }
+    end
+
+    dsl_attrs = @component_class.stimulus_dsl_attributes(component)
+    refute dsl_attrs[:stimulus_values]&.key?(:show_initial), "nil-returning proc should not emit the value entry"
   end
 
   def test_complex_data_types_in_values

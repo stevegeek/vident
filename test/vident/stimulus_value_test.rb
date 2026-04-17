@@ -48,6 +48,13 @@ module Vident
       assert_equal '{"key":"value"}', value.value
     end
 
+    def test_two_arguments_with_symbol_and_stimulus_null_sentinel
+      value = StimulusValue.new(:config, Vident::StimulusNull, implied_controller: @implied_controller)
+      assert_equal "null", value.to_s
+      assert_equal "null", value.data_attribute_value
+      assert_equal "foo--my-controller-config-value", value.data_attribute_name
+    end
+
     def test_three_arguments_with_controller_path
       value = StimulusValue.new("path/to/controller", :url, "https://example.com", implied_controller: @implied_controller)
       assert_equal "https://example.com", value.to_s

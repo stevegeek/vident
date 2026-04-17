@@ -56,7 +56,7 @@ module Vident
       attrs = {}
       attrs[:stimulus_actions] = resolve_attributes_filtering_nil(@actions, component_instance) unless @actions.empty?
       attrs[:stimulus_targets] = resolve_attributes_filtering_nil(@targets, component_instance) unless @targets.empty?
-      attrs[:stimulus_values] = resolve_hash_values_allowing_nil(@values, component_instance) unless @values.empty?
+      attrs[:stimulus_values] = resolve_hash_values_filtering_nil(@values, component_instance) unless @values.empty?
       attrs[:stimulus_values_from_props] = @values_from_props.dup unless @values_from_props.empty?
       attrs[:stimulus_classes] = resolve_hash_classes_filtering_nil(@classes, component_instance) unless @classes.empty?
       attrs[:stimulus_outlets] = @outlets.dup unless @outlets.empty?
@@ -112,9 +112,18 @@ module Vident
       result
     end
 
-    # For values - allow nil values from procs and static (will become "null" in JavaScript)
-    def resolve_hash_values_allowing_nil(hash, component_instance)
-      hash.transform_values { |value| callable?(value) ? component_instance.instance_exec(&value) : value }
+    # For values - filter out nil values from procs AND static.
+    # A nil value would serialize to an empty string data attribute, which Stimulus's
+    # Boolean value parser interprets as true (it checks only for "0"/"false"), so the
+    # idiom `-> { flag? || nil }` would silently flip Boolean values on. Dropping the
+    # entry keeps the data attribute off the element entirely.
+    def resolve_hash_values_filtering_nil(hash, component_instance)
+      result = {}
+      hash.each do |key, value|
+        resolved = callable?(value) ? component_instance.instance_exec(&value) : value
+        result[key] = resolved unless resolved.nil?
+      end
+      result
     end
 
     # For classes - filter out nil values from procs AND static

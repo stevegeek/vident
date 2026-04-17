@@ -6,11 +6,21 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
+## [Unreleased]
+
+### Breaking
+
+- `nil` stimulus values (static or returned from a proc) are now filtered out of the rendered data attributes instead of being serialized to an empty string. The previous behaviour silently turned Boolean-typed Stimulus values on, because Stimulus parses empty strings as `true`. To explicitly emit the JS `null` literal (for Object/Array values), return the new `Vident::StimulusNull` sentinel (#24).
+
+### Added
+
+- `Vident::StimulusNull` sentinel. Assign or return it from a value proc to emit `data-...-value="null"`, which Stimulus's Object/Array parser reads as JSON `null`.
+
 ## [1.0.0.beta2] - 2026-04-16
 
 ### Breaking
 
-- Renamed the `tag(...)` helper to `child_element(...)` (and the internal `Vident::TagHelper` module to `Vident::ChildElementHelper`). The old name shadowed Rails' own `tag(name, options)` positional API, which breaks Rails helpers like `hidden_field_tag` and `image_tag` when called inside vident components. Rename any `component.tag(...)` calls to `component.child_element(...)`.
+- Renamed the `tag(...)` helper to `child_element(...)` (and the internal `Vident::TagHelper` module to `Vident::ChildElementHelper`). The old name shadowed Rails' own `tag(name, options)` positional API, which breaks Rails helpers like `hidden_field_tag` and `image_tag` when called inside vident components (#22). Rename any `component.tag(...)` calls to `component.child_element(...)`.
 
 ### Fixed
 

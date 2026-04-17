@@ -19,6 +19,7 @@ require "literal"
 require "vident/version"
 require "vident/tailwind"
 
+require "vident/stimulus_null"
 require "vident/stimulus_attribute_base"
 require "vident/stimulus_controller"
 require "vident/stimulus_action"
