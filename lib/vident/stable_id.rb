@@ -1,38 +1,69 @@
 # frozen_string_literal: true
 
-begin
-  # Introduced in Ruby 3.1
-  require "random/formatter"
-rescue LoadError
-  # to support Ruby 3.0
-  require "securerandom"
-end
+require "random/formatter"
+require "digest/md5"
 
 module Vident
   class StableId
-    class << self
-      def set_current_sequence_generator
-        ::Thread.current[:vident_number_sequence_generator] = id_sequence_generator
+    class GeneratorNotSetError < StandardError; end
+
+    class StrategyNotConfiguredError < StandardError; end
+
+    RANDOM_FALLBACK = ->(generator) do
+      return Random.hex(16) unless generator
+      generator.next.join("-")
+    end
+
+    STRICT = ->(generator) do
+      unless generator
+        raise GeneratorNotSetError,
+          "No Vident::StableId sequence generator is set on the current thread. " \
+          "Call Vident::StableId.set_current_sequence_generator(seed: ...) in a " \
+          "before_action (or wrap the render in StableId.with_sequence_generator)."
       end
-      alias_method :new_current_sequence_generator, :set_current_sequence_generator
+      generator.next.join("-")
+    end
+
+    class << self
+      # Callable(generator_or_nil) -> String. Starts nil; host app must configure it.
+      attr_accessor :strategy
+
+      def set_current_sequence_generator(seed:)
+        ::Thread.current[:vident_number_sequence_generator] = id_sequence_generator(seed)
+      end
 
       def clear_current_sequence_generator
         ::Thread.current[:vident_number_sequence_generator] = nil
       end
 
+      def with_sequence_generator(seed:)
+        previous = ::Thread.current[:vident_number_sequence_generator]
+        set_current_sequence_generator(seed: seed)
+        yield
+      ensure
+        ::Thread.current[:vident_number_sequence_generator] = previous
+      end
+
       def next_id_in_sequence
-        generator = ::Thread.current[:vident_number_sequence_generator]
-        # When no generator exists, use a random value. This means we loose the stability of the ID sequence but
-        # at least generate unique IDs for the current render.
-        return Random.hex(16) unless generator
-        generator.next.join("-")
+        unless @strategy
+          raise StrategyNotConfiguredError,
+            "Vident::StableId.strategy is not configured. Run " \
+            "`bin/rails generate vident:install`, or set it manually in an " \
+            "initializer (e.g. `Vident::StableId.strategy = Vident::StableId::STRICT`)."
+        end
+        @strategy.call(::Thread.current[:vident_number_sequence_generator])
       end
 
       private
 
-      def id_sequence_generator
-        number_generator = Random.new(42)
+      def id_sequence_generator(seed)
+        raise ArgumentError, "seed: cannot be nil" if seed.nil?
+        number_generator = Random.new(coerce_seed(seed))
         Enumerator.produce { number_generator.hex(16) }.with_index
+      end
+
+      def coerce_seed(seed)
+        Digest::MD5.hexdigest(seed.to_s).to_i(16)
       end
     end
   end

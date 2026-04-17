@@ -57,7 +57,6 @@ module Vident
     # attributes which require elements to reference by ID. Note this overrides the `id` accessor
     def id = @id.presence || random_id
 
-
     # Return the names of the properties defined in the component class.
     def prop_names
       self.class.prop_names

@@ -15,7 +15,7 @@ module Vident
       extra = root_element_attributes
       @html_options = (extra[:html_options] || {}).merge(@html_options) if extra.key?(:html_options)
       @root_element_attributes_classes = extra[:classes]
-      @root_element_attributes_id = (extra[:id] || id)
+      @root_element_attributes_id = extra[:id] || id
       @element_tag = extra[:element_tag] if extra.key?(:element_tag)
 
       add_stimulus_controllers(extra[:stimulus_controllers]) if extra.key?(:stimulus_controllers)

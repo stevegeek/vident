@@ -162,7 +162,7 @@ class StimulusBuilderTest < ActiveSupport::TestCase
   def test_outlets_mixes_positional_hash_and_kwargs
     @builder.outlets({"my-ns--modal" => "[data-modal]"}, foo: "[data-foo]")
 
-    expected = {"my-ns--modal" => "[data-modal]", foo: "[data-foo]"}
+    expected = {"my-ns--modal" => "[data-modal]", :foo => "[data-foo]"}
     assert_equal expected, @builder.instance_variable_get(:@outlets)
   end
 

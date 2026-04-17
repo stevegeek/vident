@@ -197,9 +197,9 @@ module Vident
     end
 
     def test_resolve_root_element_attributes_before_render_with_root_element_html_options
-      root_html_options = { 
+      root_html_options = {
         class: "test-class",
-        data: { test: "value" }
+        data: {test: "value"}
       }
       options = @component.send(:resolve_root_element_attributes_before_render, root_html_options)
       expected = {
@@ -211,12 +211,12 @@ module Vident
     end
 
     def test_resolve_root_element_attributes_before_render_with_html_options_prop
-      component = @test_component_class.new(html_options: { 
+      component = @test_component_class.new(html_options: {
         class: "prop-class",
-        data: { prop: "value" }
+        data: {prop: "value"}
       })
       options = component.send(:resolve_root_element_attributes_before_render)
-      
+
       expected = {
         data: component.send(:stimulus_data_attributes).merge(prop: "value"),
         class: "test-component prop-class",
@@ -226,18 +226,18 @@ module Vident
     end
 
     def test_resolve_root_element_attributes_before_render_precedence_order
-      component = @test_component_class.new(html_options: { 
+      component = @test_component_class.new(html_options: {
         class: "highest-precedence",
-        data: { prop: "highest" }
+        data: {prop: "highest"}
       })
-      
-      root_html_options = { 
+
+      root_html_options = {
         class: "mid-precedence",
-        data: { root: "mid", prop: "mid" }
+        data: {root: "mid", prop: "mid"}
       }
-      
+
       options = component.send(:resolve_root_element_attributes_before_render, root_html_options)
-      
+
       expected = {
         data: component.send(:stimulus_data_attributes).merge(root: "mid", prop: "highest"),
         class: "test-component highest-precedence",
@@ -249,7 +249,7 @@ module Vident
     def test_resolve_root_element_attributes_before_render_with_id
       component = @test_component_class.new(id: "test-id")
       options = component.send(:resolve_root_element_attributes_before_render)
-      
+
       expected = {
         data: component.send(:stimulus_data_attributes),
         class: component.component_name,

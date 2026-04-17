@@ -11,10 +11,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Breaking
 
 - `nil` stimulus values (static or returned from a proc) are now filtered out of the rendered data attributes instead of being serialized to an empty string. The previous behaviour silently turned Boolean-typed Stimulus values on, because Stimulus parses empty strings as `true`. To explicitly emit the JS `null` literal (for Object/Array values), return the new `Vident::StimulusNull` sentinel (#24).
+- `Vident::StableId` now requires an explicit strategy and an explicit per-request seed (#14). Run `bin/rails generate vident:install` to create an initializer that picks `STRICT` outside tests and wires a `before_action` in `ApplicationController` seeding the generator from `request.fullpath`. `set_current_sequence_generator` now requires `seed:` (nil raises `ArgumentError`); calling `next_id_in_sequence` with no strategy configured raises `Vident::StableId::StrategyNotConfiguredError`; in `STRICT` mode, missing the per-request seeding raises `Vident::StableId::GeneratorNotSetError`. The previous hard-coded seed of `42` (which produced identical IDs across unrelated requests and caused DOM collisions when Ajax fragments were grafted into server-rendered pages) is gone, and the `new_current_sequence_generator` alias has been removed.
 
 ### Added
 
 - `Vident::StimulusNull` sentinel. Assign or return it from a value proc to emit `data-...-value="null"`, which Stimulus's Object/Array parser reads as JSON `null`.
+- `Vident::StableId.with_sequence_generator(seed:) { ... }` block helper for scoping a generator to a render outside the normal request flow (mailers, jobs, previews) (#14).
+- `bin/rails generate vident:install` installer that writes `config/initializers/vident.rb` and patches `ApplicationController` with the per-request seed hook (#14).
 
 ### Fixed
 

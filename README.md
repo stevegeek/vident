@@ -59,7 +59,10 @@ Then run:
 
 ```bash
 bundle install
+bin/rails generate vident:install
 ```
+
+The `vident:install` generator writes `config/initializers/vident.rb` and wires per-request ID seeding into `ApplicationController`. See [Element IDs and request-scoped seeding](#element-ids-and-request-scoped-seeding) for what it does and why.
 
 ## Quick Start
 
@@ -691,6 +694,62 @@ end
   <%= render component %>
 <% end %>
 ```
+
+### Element IDs and request-scoped seeding
+
+Every Vident component generates an element `id` at construction time (e.g. `button-component-abc123-0`). The IDs are produced by a deterministic sequence so the same render produces the same markup — which is what lets HTTP `ETag` caching return `304 Not Modified` for unchanged pages.
+
+Because the IDs are deterministic, **the sequence has to be keyed on something that identifies the logical content of the request**. If two unrelated renders share the same seed, the same sequence indices produce the same IDs, and Ajax-inserted fragments can collide with IDs already on the page.
+
+The `vident:install` generator wires this up for you. It writes `config/initializers/vident.rb`:
+
+```ruby
+# config/initializers/vident.rb
+Vident::StableId.strategy = if Rails.env.test?
+  Vident::StableId::RANDOM_FALLBACK
+else
+  Vident::StableId::STRICT
+end
+```
+
+and patches `ApplicationController`:
+
+```ruby
+class ApplicationController < ActionController::Base
+  before_action do
+    Vident::StableId.set_current_sequence_generator(seed: request.fullpath)
+  end
+  after_action do
+    Vident::StableId.clear_current_sequence_generator
+  end
+end
+```
+
+**Why `request.fullpath`?** It includes the query string, so `/items/1?page=2` and `/items/1?page=3` get different seeds and different IDs — which is what you want, because they are different pages from a caching perspective. Requests to the same fullpath get identical IDs, so `ETag` matches work unchanged.
+
+#### Strategies
+
+- `Vident::StableId::STRICT` (production/development default). Raises `Vident::StableId::GeneratorNotSetError` if a component renders on a thread that has no generator set. Use this in any environment where missing the `before_action` is a bug — the loud failure tells you immediately.
+- `Vident::StableId::RANDOM_FALLBACK` (test default). Emits a random hex id when no generator is set. Tests, ViewComponent previews, and ad-hoc renders work without any extra wiring. You can still call `set_current_sequence_generator(seed:)` when you want to assert on deterministic IDs.
+
+You can point `strategy` at any callable of your own, e.g. to log every generation or route through a different generator entirely.
+
+#### Rendering outside a request
+
+Mailers, jobs, previews, and scripts run outside the controller callback cycle, so there's no `before_action` to seed the generator. Under `STRICT` they will raise. Two options:
+
+1. **Wrap the render in a scoped generator:**
+   ```ruby
+   Vident::StableId.with_sequence_generator(seed: "daily-digest-#{Date.today}") do
+     render_component(DigestComponent.new(...))
+   end
+   ```
+   The block sets the generator, yields, and restores whatever was on the thread before (including `nil`) in an `ensure`.
+2. **Run in a context where `RANDOM_FALLBACK` is fine.** If you don't care about id stability for that particular render (no caching, no snapshot comparison), either swap the strategy for that block or just accept random IDs.
+
+#### The collision bug in earlier versions
+
+Before 1.0.0 `set_current_sequence_generator` hard-coded the seed to `42`, so every request that called it got the same deterministic sequence. When two independent renders shipped in one browser session — e.g. a server-rendered page and an Ajax fragment loaded into it — both started from index 0 and produced colliding `id` attributes. This surfaced as duplicate IDs in the DOM, broken `label[for=...]` associations, and Stimulus controllers attaching to the wrong element. Upgrading and running `bin/rails generate vident:install` seeds from `request.fullpath` instead, so each render gets its own sequence space.
 
 
 ## Testing
