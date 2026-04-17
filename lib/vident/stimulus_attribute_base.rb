@@ -47,7 +47,7 @@ module Vident
 
     # Convert a file path to a stimulus controller name
     def stimulize_path(path)
-      path.split("/").map { |p| p.to_s.dasherize }.join("--")
+      path.to_s.split("/").map { |p| p.dasherize }.join("--")
     end
 
     # Convert a Ruby 'snake case' string to a JavaScript camel case strings

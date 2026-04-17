@@ -33,9 +33,9 @@ module Vident
         @path = implied_controller_path
         @name = implied_controller_name
       when 1
-        # Single argument: controller path
-        @path = args[0]
-        @name = stimulize_path(args[0])
+        # Single argument: controller path (accept Symbol or String)
+        @path = args[0].to_s
+        @name = stimulize_path(@path)
       else
         raise ArgumentError, "Invalid number of arguments: #{args.size}. Expected 0 or 1 argument."
       end

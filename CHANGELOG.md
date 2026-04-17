@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - `Vident::StimulusNull` sentinel. Assign or return it from a value proc to emit `data-...-value="null"`, which Stimulus's Object/Array parser reads as JSON `null`.
 
+### Fixed
+
+- `stimulus_controllers:` prop and the `stimulus_controllers(...)` helper now accept Symbol paths (e.g. `:my_controller`, `:"admin/users"`) instead of raising `NoMethodError: undefined method 'split' for an instance of Symbol` (#15).
+
 ## [1.0.0.beta2] - 2026-04-16
 
 ### Breaking

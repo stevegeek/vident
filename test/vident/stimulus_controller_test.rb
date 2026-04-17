@@ -64,6 +64,13 @@ module Vident
       assert_equal "foo--my-controller", controller.name
     end
 
+    def test_symbol_controller_path
+      controller = StimulusController.new(:my_controller, implied_controller: @implied_controller_path)
+      assert_equal "my-controller", controller.to_s
+      assert_equal "my_controller", controller.path
+      assert_equal "my-controller", controller.name
+    end
+
     def test_invalid_number_of_arguments
       assert_raises(ArgumentError) do
         StimulusController.new("first", "second", implied_controller: @implied_controller_path)
