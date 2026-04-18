@@ -23,6 +23,7 @@ module Vident
       add_stimulus_targets(extra[:stimulus_targets]) if extra.key?(:stimulus_targets)
       add_stimulus_outlets(extra[:stimulus_outlets]) if extra.key?(:stimulus_outlets)
       add_stimulus_values(extra[:stimulus_values]) if extra.key?(:stimulus_values)
+      add_stimulus_params(extra[:stimulus_params]) if extra.key?(:stimulus_params)
       add_stimulus_classes(extra[:stimulus_classes]) if extra.key?(:stimulus_classes)
     end
 
@@ -72,6 +73,7 @@ module Vident
         add_stimulus_values(resolved_values) unless resolved_values.empty?
       end
 
+      add_stimulus_params(dsl_attrs[:stimulus_params]) if dsl_attrs[:stimulus_params]
       add_stimulus_classes(dsl_attrs[:stimulus_classes]) if dsl_attrs[:stimulus_classes]
     end
 
@@ -82,6 +84,7 @@ module Vident
       @stimulus_targets_collection = stimulus_targets(*Array.wrap(@stimulus_targets))
       @stimulus_outlets_collection = stimulus_outlets(*Array.wrap(@stimulus_outlets))
       @stimulus_values_collection = stimulus_values(*Array.wrap(@stimulus_values))
+      @stimulus_params_collection = stimulus_params(*Array.wrap(@stimulus_params))
       @stimulus_classes_collection = stimulus_classes(*Array.wrap(@stimulus_classes))
 
       @stimulus_outlet_host.add_stimulus_outlets(self) if @stimulus_outlet_host
@@ -95,6 +98,7 @@ module Vident
         targets: @stimulus_targets_collection,
         outlets: @stimulus_outlets_collection,
         values: @stimulus_values_collection,
+        params: @stimulus_params_collection,
         classes: @stimulus_classes_collection
       ).build
     end

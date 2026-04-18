@@ -92,6 +92,14 @@ module Vident
         to_data_attribute_string(**stimulus_value(...))
       end
 
+      def as_stimulus_params(...)
+        to_data_attribute_string(**stimulus_params(...))
+      end
+
+      def as_stimulus_param(...)
+        to_data_attribute_string(**stimulus_param(...))
+      end
+
       def as_stimulus_classes(...)
         to_data_attribute_string(**stimulus_classes(...))
       end

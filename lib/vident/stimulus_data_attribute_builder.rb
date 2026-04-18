@@ -5,12 +5,13 @@ module Vident
   # Handles merging multiple actions, targets, outlets, values, and classes
   # into the final data-* attributes needed for HTML elements
   class StimulusDataAttributeBuilder
-    def initialize(controllers: [], actions: [], targets: [], outlets: [], values: [], classes: [])
+    def initialize(controllers: [], actions: [], targets: [], outlets: [], values: [], params: [], classes: [])
       @controllers = Array(controllers)
       @actions = Array(actions)
       @targets = Array(targets)
       @outlets = Array(outlets)
       @values = Array(values)
+      @params = Array(params)
       @classes = Array(classes)
     end
 
@@ -22,6 +23,7 @@ module Vident
         **merged_targets,
         **merged_outlets,
         **merged_values,
+        **merged_params,
         **merged_classes
       }.transform_keys(&:to_s).compact
     end
@@ -75,6 +77,16 @@ module Vident
         StimulusValueCollection.merge(*@values).to_h
       else
         StimulusValueCollection.new(@values).to_h
+      end
+    end
+
+    def merged_params
+      return {} if @params.empty?
+
+      if @params.first.is_a?(StimulusParamCollection)
+        StimulusParamCollection.merge(*@params).to_h
+      else
+        StimulusParamCollection.new(@params).to_h
       end
     end
 

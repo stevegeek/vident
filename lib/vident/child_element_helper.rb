@@ -9,12 +9,14 @@ module Vident
       stimulus_actions: nil,
       stimulus_outlets: nil,
       stimulus_values: nil,
+      stimulus_params: nil,
       stimulus_classes: nil,
       stimulus_controller: nil,
       stimulus_target: nil,
       stimulus_action: nil,
       stimulus_outlet: nil,
       stimulus_value: nil,
+      stimulus_param: nil,
       stimulus_class: nil,
       **options,
       &block
@@ -24,6 +26,7 @@ module Vident
       child_element_attribute_must_be_collection!(stimulus_actions, "stimulus_actions")
       child_element_attribute_must_be_collection!(stimulus_outlets, "stimulus_outlets")
       child_element_attribute_must_be_collection!(stimulus_values, "stimulus_values")
+      child_element_attribute_must_be_collection!(stimulus_params, "stimulus_params")
       child_element_attribute_must_be_collection!(stimulus_classes, "stimulus_classes")
 
       stimulus_controllers_collection = send(:stimulus_controllers, *child_element_wrap_single_stimulus_attribute(stimulus_controllers, stimulus_controller))
@@ -31,6 +34,7 @@ module Vident
       stimulus_actions_collection = send(:stimulus_actions, *child_element_wrap_single_stimulus_attribute(stimulus_actions, stimulus_action))
       stimulus_outlets_collection = send(:stimulus_outlets, *child_element_wrap_single_stimulus_attribute(stimulus_outlets, stimulus_outlet))
       stimulus_values_collection = send(:stimulus_values, stimulus_values || stimulus_value)
+      stimulus_params_collection = send(:stimulus_params, stimulus_params || stimulus_param)
       stimulus_classes_collection = send(:stimulus_classes, stimulus_classes || stimulus_class)
 
       stimulus_data_attributes = StimulusDataAttributeBuilder.new(
@@ -39,6 +43,7 @@ module Vident
         targets: stimulus_targets_collection,
         outlets: stimulus_outlets_collection,
         values: stimulus_values_collection,
+        params: stimulus_params_collection,
         classes: stimulus_classes_collection
       ).build
       generate_child_element(tag_name, stimulus_data_attributes, options, &block)

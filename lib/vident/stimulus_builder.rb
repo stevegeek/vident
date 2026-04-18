@@ -7,6 +7,7 @@ module Vident
       @targets = []
       @values = {}
       @values_from_props = []
+      @params = {}
       @classes = {}
       @outlets = {}
     end
@@ -16,6 +17,7 @@ module Vident
       @targets.concat(other_builder.targets_list)
       @values.merge!(other_builder.values_hash)
       @values_from_props.concat(other_builder.values_from_props_list)
+      @params.merge!(other_builder.params_hash)
       @classes.merge!(other_builder.classes_hash)
       @outlets.merge!(other_builder.outlets_hash)
       self
@@ -41,6 +43,11 @@ module Vident
       self
     end
 
+    def params(**param_hash)
+      @params.merge!(param_hash) unless param_hash.empty?
+      self
+    end
+
     def classes(**class_mappings)
       @classes.merge!(class_mappings)
       self
@@ -58,6 +65,7 @@ module Vident
       attrs[:stimulus_targets] = resolve_attributes_filtering_nil(@targets, component_instance) unless @targets.empty?
       attrs[:stimulus_values] = resolve_hash_values_filtering_nil(@values, component_instance) unless @values.empty?
       attrs[:stimulus_values_from_props] = @values_from_props.dup unless @values_from_props.empty?
+      attrs[:stimulus_params] = resolve_hash_values_filtering_nil(@params, component_instance) unless @params.empty?
       attrs[:stimulus_classes] = resolve_hash_classes_filtering_nil(@classes, component_instance) unless @classes.empty?
       attrs[:stimulus_outlets] = @outlets.dup unless @outlets.empty?
       attrs
@@ -84,6 +92,10 @@ module Vident
 
     def values_from_props_list
       @values_from_props
+    end
+
+    def params_hash
+      @params
     end
 
     def classes_hash

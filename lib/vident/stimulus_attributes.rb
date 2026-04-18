@@ -154,6 +154,42 @@ module Vident
       StimulusValueCollection.new(converted_values)
     end
 
+    # Parse inputs to create a StimulusParam instance representing a Stimulus action parameter
+    #   examples:
+    #   stimulus_param(:release_id, 42) => StimulusParam => {"current_controller-release-id-param" => "42"}
+    #   stimulus_param("path/to/current", :release_id, 42) => {"path--to--current-release-id-param" => "42"}
+    def stimulus_param(*args)
+      return args.first if args.length == 1 && args.first.is_a?(StimulusParam)
+      StimulusParam.new(*args, implied_controller:)
+    end
+
+    # Parse inputs to create a StimulusParamCollection instance representing multiple Stimulus params
+    def stimulus_params(*params)
+      return StimulusParamCollection.new if params.empty? || params.all?(&:blank?)
+
+      # Single pre-built Collection: pass through unchanged
+      return params.first if params.length == 1 && params.first.is_a?(StimulusParamCollection)
+
+      converted = []
+
+      params.each do |param|
+        case param
+        when StimulusParam
+          converted << param
+        when StimulusParamCollection
+          converted.concat(param.to_a)
+        when Hash
+          param.each { |name, val| converted << stimulus_param(name, val) }
+        when Array
+          converted << stimulus_param(*param)
+        else
+          converted << stimulus_param(param)
+        end
+      end
+
+      StimulusParamCollection.new(converted)
+    end
+
     # Parse inputs to create a StimulusClass instance representing a Stimulus class attribute
     #   examples:
     #   stimulus_class(:loading, "spinner active") => StimulusClass that converts to {"current_controller-loading-class" => "spinner active"}
@@ -236,6 +272,15 @@ module Vident
         @stimulus_values_collection.merge(s_values)
       else
         s_values
+      end
+    end
+
+    def add_stimulus_params(params)
+      s_params = stimulus_params(*Array.wrap(params))
+      @stimulus_params_collection = if @stimulus_params_collection
+        @stimulus_params_collection.merge(s_params)
+      else
+        s_params
       end
     end
 
