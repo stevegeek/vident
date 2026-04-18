@@ -2,14 +2,53 @@
 
 module Vident
   class StimulusAction < StimulusAttributeBase
-    attr_reader :event, :controller, :action
+    # Valid event-option modifiers (Stimulus action descriptor syntax).
+    # See https://stimulus.hotwired.dev/reference/actions for semantics.
+    VALID_OPTIONS = [:once, :prevent, :stop, :passive, :"!passive", :capture, :self].freeze
+
+    # Typed descriptor for a single Stimulus action. Used as a ready-made input
+    # to `stimulus_action(...)` and `stimulus_actions(...)` when the caller
+    # wants modifiers (`:once`, `:prevent`, `@window`, keyboard filters) that
+    # the plain Array form can't express.
+    #
+    #   Vident::StimulusAction::Descriptor.new(
+    #     event:      :click,
+    #     method:     :submit,
+    #     options:    [:once, :prevent],
+    #   )
+    #
+    # Hash input (`{event: :click, method: :submit, options: [:once]}`) is
+    # desugared into a Descriptor internally, so both shapes are equivalent.
+    class Descriptor < ::Literal::Data
+      prop :method, _Union(Symbol, String)
+      prop :event, _Nilable(_Union(Symbol, String)), default: nil
+      prop :controller, _Nilable(String), default: nil
+      prop :options, _Array(Symbol), default: -> { [] }
+      prop :keyboard, _Nilable(String), default: nil
+      prop :window, _Boolean, default: false
+    end
+
+    attr_reader :event, :controller, :action, :options, :keyboard, :window
+
+    def initialize(*args, implied_controller: nil)
+      @options = []
+      @keyboard = nil
+      @window = false
+      super
+    end
 
     def to_s
-      if @event
-        "#{@event}->#{@controller}##{@action}"
-      else
-        "#{@controller}##{@action}"
-      end
+      head =
+        if @event
+          ev = @event.to_s
+          ev = "#{ev}.#{@keyboard}" if @keyboard
+          ev = "#{ev}#{@options.map { |o| ":#{o}" }.join}" if @options.any?
+          ev = "#{ev}@window" if @window
+          "#{ev}->"
+        else
+          ""
+        end
+      "#{head}#{@controller}##{@action}"
     end
 
     def data_attribute_name
@@ -38,27 +77,31 @@ module Vident
     end
 
     def parse_single_argument(arg)
-      if arg.is_a?(Symbol)
-        # 1 symbol arg, name of method on implied controller
+      case arg
+      when Descriptor
+        apply_descriptor(arg)
+      when Hash
+        apply_descriptor(Descriptor.new(**arg))
+      when Symbol
+        # Method name on implied controller.
         @event = nil
         @controller = implied_controller_name
         @action = js_name(arg)
-      elsif arg.is_a?(String)
-        # 1 string arg, fully qualified action - parse it
+      when String
         parse_qualified_action_string(arg)
       else
-        raise ArgumentError, "Invalid 'action' argument types (1): #{arg.class}"
+        raise ArgumentError, "Invalid 'action' argument type (1): #{arg.class}"
       end
     end
 
     def parse_two_arguments(part1, part2)
       if part1.is_a?(Symbol) && part2.is_a?(Symbol)
-        # 2 symbol args = event + action
+        # event + method
         @event = part1.to_s
         @controller = implied_controller_name
         @action = js_name(part2)
       elsif part1.is_a?(String) && part2.is_a?(Symbol)
-        # 1 string arg, 1 symbol = controller + action
+        # controller + method
         @event = nil
         @controller = stimulize_path(part1)
         @action = js_name(part2)
@@ -69,7 +112,7 @@ module Vident
 
     def parse_three_arguments(part1, part2, part3)
       if part1.is_a?(Symbol) && part2.is_a?(String) && part3.is_a?(Symbol)
-        # 1 symbol, 1 string, 1 symbol = event + controller + action
+        # event + controller + method
         @event = part1.to_s
         @controller = stimulize_path(part2)
         @action = js_name(part3)
@@ -78,16 +121,29 @@ module Vident
       end
     end
 
+    def apply_descriptor(d)
+      invalid = d.options - VALID_OPTIONS
+      unless invalid.empty?
+        raise ArgumentError,
+          "Invalid action option(s) #{invalid.inspect}. Valid: #{VALID_OPTIONS.inspect}"
+      end
+
+      @event = d.event&.to_s
+      @controller = d.controller ? stimulize_path(d.controller) : implied_controller_name
+      @action = d.method.is_a?(Symbol) ? js_name(d.method) : d.method.to_s
+      @options = d.options
+      @keyboard = d.keyboard
+      @window = d.window
+    end
+
     def parse_qualified_action_string(action_string)
       if action_string.include?("->")
-        # Has event: "click->controller#action"
         event_part, controller_action = action_string.split("->", 2)
         @event = event_part
         controller_part, action_part = controller_action.split("#", 2)
         @controller = controller_part
         @action = action_part
       else
-        # No event: "controller#action"
         @event = nil
         controller_part, action_part = action_string.split("#", 2)
         @controller = controller_part
