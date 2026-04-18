@@ -50,6 +50,14 @@ class ExamplesView < ApplicationView
               }
             )
           end
+
+          h3(class: "text-md font-bold") do
+            "Inheritance, Symbol-form controllers, and Vident::Tailwind merging in one example"
+          end
+          code(class: "block bg-gray-100") do
+            %(render PhlexGreeters::InheritedGreeterComponent.new(cta: "Shout", classes: "bg-blue-600 text-white"))
+          end
+          render PhlexGreeters::InheritedGreeterComponent.new(cta: "Shout", classes: "bg-blue-600 text-white")
         end
         h2(class: "text-xl pt-6") { "Rendering the AvatarComponent" }
         section(class: "space-y-16") do

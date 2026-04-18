@@ -7,10 +7,24 @@ module Vident
     class InstallGenerator < ::Rails::Generators::Base
       source_root File.expand_path("templates", __dir__)
 
-      desc "Install Vident: writes a StableId strategy initializer and wires a per-request seed into ApplicationController."
+      desc "Install Vident: writes a StableId strategy initializer, wires a per-request seed into ApplicationController, and copies the Vident Claude Code skill to .claude/skills/vident/."
+
+      # Path to the gem's ./skills directory, resolved relative to this file.
+      SKILL_SOURCE = File.expand_path("../../../../skills/vident/SKILL.md", __dir__)
 
       def create_initializer
         template "vident.rb", "config/initializers/vident.rb"
+      end
+
+      def install_claude_skill
+        destination = ".claude/skills/vident/SKILL.md"
+        absolute = File.expand_path(destination, destination_root)
+        if File.exist?(absolute)
+          say_status :exist, destination, :blue
+        elsif File.exist?(SKILL_SOURCE)
+          empty_directory(File.dirname(destination))
+          copy_file(SKILL_SOURCE, destination)
+        end
       end
 
       SEED_MARKER = "Vident::StableId.set_current_sequence_generator"

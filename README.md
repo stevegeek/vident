@@ -62,7 +62,7 @@ bundle install
 bin/rails generate vident:install
 ```
 
-The `vident:install` generator writes `config/initializers/vident.rb` and wires per-request ID seeding into `ApplicationController`. See [Element IDs and request-scoped seeding](#element-ids-and-request-scoped-seeding) for what it does and why.
+The `vident:install` generator writes `config/initializers/vident.rb`, wires per-request ID seeding into `ApplicationController`, and (if you use Claude Code) drops a Vident skill into `.claude/skills/vident/SKILL.md` so the model has first-party guidance on the gem's conventions. See [Element IDs and request-scoped seeding](#element-ids-and-request-scoped-seeding) for the initializer rationale, and [Claude Code skill](#claude-code-skill) for the skill.
 
 ## Quick Start
 
@@ -418,6 +418,13 @@ stimulus do
 end
 ```
 
+**Nil values.** Returning `nil` from a value proc (or setting a static `nil`) omits the data attribute entirely, so Stimulus uses its per-type default. Don't rely on `nil` becoming empty-string — that silently reads as `true` for Boolean values. If you genuinely need to emit a JS `null` (only meaningful for Object/Array-typed Stimulus values), return the `Vident::StimulusNull` sentinel, which serializes to the literal string `"null"` for JSON.parse.
+
+```ruby
+values current_user_id: -> { @user&.id },          # nil → attribute omitted
+       config: -> { @user ? @config : Vident::StimulusNull }  # nil object → JSON null
+```
+
 ### Scoped Custom Events
 
 Vident provides helper methods to generate scoped event names for dispatching custom events that are unique to your component:
@@ -477,6 +484,8 @@ class CustomComponent < Vident::ViewComponent::Base
 end
 ```
 
+All stimulus props accept Symbol paths as well as Strings (e.g. `stimulus_controllers: [:custom, :"admin/users"]`). `stimulus_values:` and `stimulus_classes:` additionally accept Array entries (for cross-controller: `[["admin/users", :name, "value"]]`) and pre-built `StimulusValue`/`StimulusValueCollection` / `StimulusClass`/`StimulusClassCollection` instances, so you can compose attribute sets outside the component and pass them in.
+
 or you can use tag helpers to generate HTML with Stimulus attributes:
 
 ```erb
@@ -524,36 +533,71 @@ or directly in the ViewComponent template (eg with ERB) using the `as_stimulus_*
 
 ### Stimulus Helpers in Templates
 
-Vident provides helper methods for generating Stimulus attributes:
+Inline helpers emit pre-built `data-*` fragments you can drop into any tag. Both singular and plural forms exist; pass one or many arguments accordingly.
 
 ```erb
 <%= render root do |component| %>
-  <!-- Create a target -->
-  <div <%= component.as_target(:content) %>>
+  <div <%= component.as_stimulus_target(:content) %>>
     Content here
   </div>
-  
-  <!-- Create an action -->
-  <button <%= component.as_action(:click, :toggle) %>>
-    Toggle
-  </button>
-  
-  <!-- Use the tag helper -->
-  <%= component.tag :div, stimulus_target: :output, class: "mt-4" do %>
+
+  <button <%= component.as_stimulus_action(:click, :toggle) %>>Toggle</button>
+
+  <input <%= component.as_stimulus_targets(:input, :field) %>
+         <%= component.as_stimulus_actions([:input, :validate], [:change, :save]) %>>
+
+  <%# Or build a whole element with the child_element helper: %>
+  <%= component.child_element(:div, stimulus_target: :output, class: "mt-4") do %>
     Output here
   <% end %>
-  
-  <!-- Multiple targets/actions -->
-  <input <%= component.as_targets(:input, :field) %> 
-         <%= component.as_actions([:input, :validate], [:change, :save]) %>>
 <% end %>
 ```
 
+Parallel helpers exist for every attribute kind: `as_stimulus_controller(s)`, `as_stimulus_value(s)`, `as_stimulus_class(es)`, `as_stimulus_outlet(s)`.
+
 ### Stimulus Outlets
 
-Connect components via Stimulus outlets:
+[Stimulus outlets](https://stimulus.hotwired.dev/reference/outlets) let one controller hold references to other controllers matched by a CSS selector. Vident has a few forms for declaring them.
 
+**On the component's root element** — via the DSL:
 
+```ruby
+class DashboardComponent < Vident::ViewComponent::Base
+  stimulus do
+    # kwarg form: outlet name is the implied controller's identifier
+    outlets modal: ".modal", user_status: ".online-user"
+
+    # positional-hash form: required when the outlet identifier contains "--"
+    # (e.g. cross-namespace controllers) because Ruby kwarg keys can't have dashes
+    outlets({"admin--users" => ".admin-users"})
+  end
+end
+```
+
+Or via the `stimulus_outlets:` prop / `root_element_attributes`:
+
+```ruby
+stimulus_outlets: [
+  [:modal, ".modal"],                     # [name, selector] on implied controller
+  ["admin/users", :row, ".user-row"],     # [controller_path, name, selector] for cross-controller
+  :user_status,                           # single symbol → auto-selector (see below)
+  other_component                         # component instance → reuses its stimulus_identifier + id
+]
+```
+
+**Auto-generated selectors.** Pass just a name (symbol or string) and the selector becomes `[data-controller~=<name>]`. Pass a component instance and the selector additionally scopes to the component's id (`#<id> [data-controller~=...]`), which is what lets you target a specific instance rather than every matching controller on the page.
+
+**Self-registration via `stimulus_outlet_host`.** A built-in prop on every Vident component. When set to another component, the child registers itself as an outlet on that host at initialization — the host doesn't need to know about the child in its DSL:
+
+```ruby
+render DashboardComponent.new do |dashboard|
+  render ModalComponent.new(stimulus_outlet_host: dashboard)
+end
+```
+
+The modal now appears on the dashboard's root element as `data-dashboard-component-modal-component-outlet="#<modal-id>"` without the dashboard declaring it upfront.
+
+**On child elements** — `child_element` accepts `stimulus_outlet:` (singular) and `stimulus_outlets:` (plural / Enumerable) exactly like the target/action kwargs, so a nested `<div>` can carry its own outlet declarations.
 
 
 ### Stimulus Controller Naming
@@ -589,7 +633,7 @@ end
 <% end %>
 ```
 
-This creates a nested component that once clicked triggers the parent components `handleTrigger` action.
+This creates a nested component that once clicked triggers the parent components `handleTrigger` action. The same pattern works for cross-controller `stimulus_values:`, `stimulus_classes:`, and `stimulus_outlets:` — build the entries with the parent's helpers (`parent.stimulus_value(...)`, etc.) and pass them down.
 
 ## Other Features
 
@@ -750,6 +794,12 @@ Mailers, jobs, previews, and scripts run outside the controller callback cycle, 
 #### The collision bug in earlier versions
 
 Before 1.0.0 `set_current_sequence_generator` hard-coded the seed to `42`, so every request that called it got the same deterministic sequence. When two independent renders shipped in one browser session — e.g. a server-rendered page and an Ajax fragment loaded into it — both started from index 0 and produced colliding `id` attributes. This surfaced as duplicate IDs in the DOM, broken `label[for=...]` associations, and Stimulus controllers attaching to the wrong element. Upgrading and running `bin/rails generate vident:install` seeds from `request.fullpath` instead, so each render gets its own sequence space.
+
+### Claude Code skill
+
+Vident ships a [Claude Code](https://docs.claude.com/claude-code) skill at `skills/vident/SKILL.md` that teaches the model the gem's conventions: the `stimulus do` DSL, `child_element`, outlets (including `stimulus_outlet_host` self-registration), the `nil` / `Vident::StimulusNull` value rules, the per-request StableId setup, and the Ruby↔JS dispatch handshake. It covers the foot-guns ahead of time so the model doesn't repeat them.
+
+`bin/rails generate vident:install` copies the file into `.claude/skills/vident/SKILL.md` of the host app (skipped if already present). Claude Code picks it up automatically via skill discovery; no further wiring needed. If you want to update the skill later, delete the file and re-run the generator.
 
 
 ## Testing

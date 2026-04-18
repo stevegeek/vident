@@ -13,10 +13,11 @@ module Vident
 
     private
 
-    # Get or create a class list builder instance
-    # Automatically detects if Tailwind module is included and TailwindMerge gem is available
+    # Not memoised: the per-thread TailwindMerger is the only expensive piece
+    # and it's already cached; the builder itself just copies a few ivars.
+    # Memoising here would latch the first caller's `root_element_html_class:`.
     def class_list_builder(root_element_html_class = nil)
-      @class_list_builder ||= ClassListBuilder.new(
+      ClassListBuilder.new(
         tailwind_merger:,
         component_name:,
         root_element_attributes_classes: @root_element_attributes_classes,

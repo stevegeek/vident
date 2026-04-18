@@ -128,6 +128,43 @@ class ComponentClassListsTest < Minitest::Test
     assert_equal "", result
   end
 
+  def test_class_list_builder_is_not_memoised_across_calls
+    # Regression: the real `class_list_builder` must NOT cache its result with
+    # ||=, because that would latch the first caller's `root_element_html_class`
+    # (typically nil when coming from `class_list_for_stimulus_classes`) and
+    # then silently drop the `class:` argument a later `root_element(class: …)`
+    # passes to `render_classes`.
+    test_class = Class.new do
+      include Vident::ComponentClassLists
+
+      def self.name = "TestComponent"
+      def tailwind_merger = nil
+      def component_name = "test-component"
+      def root_element_classes = nil
+
+      def initialize
+        @classes = nil
+        @html_options = nil
+        @root_element_attributes_classes = nil
+        @stimulus_classes_collection = [create_stimulus_class("active", "bg-green-500")]
+      end
+
+      def create_stimulus_class(name, value)
+        obj = Object.new
+        obj.define_singleton_method(:class_name) { name }
+        obj.define_singleton_method(:to_s) { value }
+        obj
+      end
+    end
+
+    component = test_class.new
+    # First call with no extra class — this is what primed the bug.
+    component.class_list_for_stimulus_classes("active")
+    # Second call with an extra class must include it.
+    result = component.render_classes("inline-extra")
+    assert_includes result, "inline-extra"
+  end
+
   def test_class_list_builder_initialization_with_classes
     test_class = Class.new do
       include Vident::ComponentClassLists

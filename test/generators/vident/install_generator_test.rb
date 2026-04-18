@@ -38,6 +38,25 @@ class Vident::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_copies_claude_skill
+    run_generator
+    assert_file ".claude/skills/vident/SKILL.md" do |contents|
+      assert_match(/^---$/, contents)
+      assert_match(/^name: Vident$/, contents)
+      assert_match(/stimulus do/, contents)
+    end
+  end
+
+  def test_skipping_skill_when_already_installed
+    FileUtils.mkdir_p(File.join(destination_root, ".claude/skills/vident"))
+    existing = File.join(destination_root, ".claude/skills/vident/SKILL.md")
+    File.write(existing, "pre-existing skill content\n")
+
+    run_generator
+
+    assert_equal "pre-existing skill content\n", File.read(existing)
+  end
+
   def test_running_generator_twice_does_not_duplicate_controller_hook
     controller_path = File.join(destination_root, "app/controllers/application_controller.rb")
     FileUtils.mkdir_p(File.dirname(controller_path))

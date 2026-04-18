@@ -18,11 +18,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `Vident::StimulusNull` sentinel. Assign or return it from a value proc to emit `data-...-value="null"`, which Stimulus's Object/Array parser reads as JSON `null`.
 - `Vident::StableId.with_sequence_generator(seed:) { ... }` block helper for scoping a generator to a render outside the normal request flow (mailers, jobs, previews) (#14).
 - `bin/rails generate vident:install` installer that writes `config/initializers/vident.rb` and patches `ApplicationController` with the per-request seed hook (#14).
+- Claude Code skill at `skills/vident/SKILL.md` shipped with the gem. The install generator drops it into `.claude/skills/vident/SKILL.md` in the host app so Claude Code picks up the gem's conventions automatically.
 
 ### Fixed
 
 - `stimulus_controllers:` prop and the `stimulus_controllers(...)` helper now accept Symbol paths (e.g. `:my_controller`, `:"admin/users"`) instead of raising `NoMethodError: undefined method 'split' for an instance of Symbol` (#15).
 - `stimulus_values:` and `stimulus_classes:` props now accept cross-controller entries. The type unions include `Array` (matching `stimulus_actions:`/`stimulus_targets:`), and the collection parsers pass through pre-built `StimulusValue`/`StimulusValueCollection` (and class equivalents) instead of re-wrapping them into the single-value constructor and raising `ArgumentError: Invalid number of arguments` (#23).
+- `Vident::ComponentClassLists#class_list_builder` no longer memoises the `ClassListBuilder` instance. The first caller's `root_element_html_class:` was previously latched into the cached builder, which silently dropped the `class:` argument passed to a later `root_element(class: …)` whenever `class_list_for_stimulus_classes(:name)` ran first. The underlying `TailwindMerge::Merger` is still thread-cached, so the re-construction cost is negligible.
 
 ## [1.0.0.beta2] - 2026-04-16
 

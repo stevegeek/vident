@@ -34,7 +34,7 @@ Gem::Specification.new do |spec|
 
     # Only include files relevant to this gem
     all_files = files.select do |f|
-      f.start_with?("lib/")
+      f.start_with?("lib/", "skills/")
     end
 
     # Exclude files from other gemspecs
