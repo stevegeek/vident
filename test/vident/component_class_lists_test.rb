@@ -62,70 +62,88 @@ class ComponentClassListsTest < Minitest::Test
     test_class = Class.new do
       include Vident::ComponentClassLists
 
-      def self.name
-        "TestComponent"
-      end
+      def self.name = "TestComponent"
+      def tailwind_merger = nil
 
       def initialize
         @stimulus_classes_collection = [
-          create_stimulus_class("active", "bg-green-500"),
-          create_stimulus_class("inactive", "bg-gray-300")
+          make_sc("active", "bg-green-500"),
+          make_sc("inactive", "bg-gray-300")
         ]
       end
 
-      def create_stimulus_class(name, value)
+      def make_sc(name, value)
         obj = Object.new
         obj.define_singleton_method(:class_name) { name }
         obj.define_singleton_method(:to_s) { value }
         obj
       end
-
-      def class_list_builder(root_element_html_class = nil)
-        @class_list_builder ||= Vident::ClassListBuilder.new(
-          tailwind_merger: nil,
-          component_name: nil,
-          root_element_attributes_classes: nil,
-          root_element_classes: nil,
-          root_element_html_class: root_element_html_class,
-          additional_classes: nil,
-          html_class: nil
-        )
-      end
     end
 
     component = test_class.new
-    result = component.class_list_for_stimulus_classes("active")
-    assert_equal "bg-green-500", result
+    assert_equal "bg-green-500", component.class_list_for_stimulus_classes("active")
   end
 
   def test_class_list_for_stimulus_classes_returns_empty_string_when_no_match
     test_class = Class.new do
       include Vident::ComponentClassLists
 
-      def self.name
-        "TestComponent"
-      end
+      def self.name = "TestComponent"
+      def tailwind_merger = nil
 
       def initialize
         @stimulus_classes_collection = []
       end
+    end
 
-      def class_list_builder(root_element_html_class = nil)
-        @class_list_builder ||= Vident::ClassListBuilder.new(
-          tailwind_merger: nil,
-          component_name: nil,
-          root_element_attributes_classes: nil,
-          root_element_classes: nil,
-          root_element_html_class: root_element_html_class,
-          additional_classes: nil,
-          html_class: nil
-        )
+    component = test_class.new
+    assert_equal "", component.class_list_for_stimulus_classes("nonexistent")
+  end
+
+  def test_class_list_for_stimulus_classes_returns_empty_string_when_no_collection
+    test_class = Class.new do
+      include Vident::ComponentClassLists
+
+      def self.name = "TestComponent"
+      def tailwind_merger = nil
+
+      def initialize
+        @stimulus_classes_collection = nil
+      end
+    end
+
+    assert_equal "", test_class.new.class_list_for_stimulus_classes("active")
+  end
+
+  def test_class_list_for_stimulus_classes_does_not_leak_root_element_classes
+    test_class = Class.new do
+      include Vident::ComponentClassLists
+
+      def self.name = "TestComponent"
+      def tailwind_merger = nil
+      def component_name = "test-component"
+      def root_element_classes = "root-bg text-xl"
+
+      def initialize
+        @classes = nil
+        @html_options = nil
+        @root_element_attributes_classes = nil
+        @stimulus_classes_collection = [make_sc("loading", "spinner")]
+      end
+
+      def make_sc(name, value)
+        obj = Object.new
+        obj.define_singleton_method(:class_name) { name }
+        obj.define_singleton_method(:to_s) { value }
+        obj
       end
     end
 
     component = test_class.new
-    result = component.class_list_for_stimulus_classes("nonexistent")
-    assert_equal "", result
+    result = component.class_list_for_stimulus_classes("loading")
+    assert_equal "spinner", result
+    refute_includes result, "root-bg"
+    refute_includes result, "text-xl"
   end
 
   def test_class_list_builder_is_not_memoised_across_calls
