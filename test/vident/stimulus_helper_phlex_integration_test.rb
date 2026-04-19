@@ -398,6 +398,43 @@ class StimulusHelperPhlexIntegrationTest < ActionView::TestCase
     assert_equal 1, button_matches
   end
 
+  def test_phlex_root_element_without_block_renders_void_tag
+    # Covers the no-block branch of Vident::Phlex::HTML#root_element.
+    component_class = Class.new(Vident::Phlex::HTML) do
+      def self.name = "VoidRootComponent"
+
+      def root_element_attributes
+        {element_tag: :input, html_options: {type: "text", name: "q"}}
+      end
+
+      def view_template
+        root_element
+      end
+    end
+
+    output = render component_class.new
+    assert_match(/<input\b[^>]*type="text"[^>]*>/, output)
+    assert_match(/<input\b[^>]*name="q"[^>]*>/, output)
+  end
+
+  def test_phlex_root_element_rejects_unknown_html_tag
+    component_class = Class.new(Vident::Phlex::HTML) do
+      def self.name = "InvalidTagComponent"
+
+      def root_element_attributes
+        {element_tag: :bogus_tag}
+      end
+
+      def view_template
+        root_element { "x" }
+      end
+    end
+
+    assert_raises(ArgumentError, /Unsupported HTML tag name/) do
+      render component_class.new
+    end
+  end
+
   def test_phlex_conditional_content_with_dsl
     # Test with loading = true
     loading_component = TestCardComponent.new(title: "Loading Test", loading: true)

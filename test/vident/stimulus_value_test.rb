@@ -100,5 +100,11 @@ module Vident
         StimulusValue.new(123, "value", implied_controller: @implied_controller)
       end
     end
+
+    def test_invalid_three_argument_types
+      assert_raises(ArgumentError, /Invalid argument types/) do
+        StimulusValue.new(:not_a_string, :name, "value", implied_controller: @implied_controller)
+      end
+    end
   end
 end

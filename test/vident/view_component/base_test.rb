@@ -248,6 +248,31 @@ module Vident
         assert_equal "data-greeters--greeter-with-trigger-component-container-outlet=\"[data-role=&#39;container&#39;]\"", result
       end
 
+      # as_stimulus_param tests
+      def test_as_stimulus_param_basic
+        result = @component.as_stimulus_param(:session_id, "abc123")
+        assert_instance_of ActiveSupport::SafeBuffer, result
+        assert_equal "data-greeters--greeter-with-trigger-component-session-id-param=\"abc123\"", result
+      end
+
+      def test_as_stimulus_params_hash_format
+        result = @component.as_stimulus_params(session_id: "abc123", user_id: 7)
+        assert_instance_of ActiveSupport::SafeBuffer, result
+        expected = "data-greeters--greeter-with-trigger-component-session-id-param=\"abc123\" data-greeters--greeter-with-trigger-component-user-id-param=\"7\""
+        assert_equal expected, result
+      end
+
+      # template_path fallback when no sidecar template is on disk
+      def test_template_path_falls_back_to_html_erb_when_no_file_exists
+        component_class = Class.new(Vident::ViewComponent::Base) do
+          def self.name = "MissingTemplateComponent"
+          def self.virtual_path = "app/components/missing_template_component"
+        end
+        path = component_class.template_path
+        assert path.end_with?("missing_template_component.html.erb")
+        refute File.exist?(path)
+      end
+
       # Edge cases and error handling
       def test_as_methods_with_nil_values
         result = @component.as_stimulus_value(:optional, nil)

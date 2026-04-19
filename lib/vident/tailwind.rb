@@ -16,8 +16,6 @@ module Vident
     # Check if TailwindMerge gem is available
     def tailwind_merge_available?
       defined?(::TailwindMerge::Merger) && ::TailwindMerge::Merger.respond_to?(:new)
-    rescue NameError
-      false
     end
   end
 end

@@ -48,5 +48,19 @@ module Vident
       assert_equal({"action" => "foo--my-controller#myAction"}, action.to_h)
       assert_equal({"foo--my-controller-target" => "myTarget"}, target.to_h)
     end
+
+    def test_implied_controller_path_delegates_to_controller
+      action = StimulusAction.new(:my_action, implied_controller: @implied_controller)
+      assert_equal @implied_controller_path, action.send(:implied_controller_path)
+    end
+
+    def test_implied_controller_path_raises_when_missing
+      sentinel = Class.new(StimulusAttributeBase) do
+        private def parse_arguments(*); end
+      end.new(implied_controller: nil)
+      assert_raises(ArgumentError, /implied_controller is required/) do
+        sentinel.send(:implied_controller_path)
+      end
+    end
   end
 end

@@ -87,6 +87,20 @@ module Vident
       assert_equal "[data-controller~=chat--widget]", outlet.selector
     end
 
+    def test_component_responding_to_implied_controller_name_fallback
+      # Object quacks like a RootComponent (implied_controller_name) without a
+      # stimulus_identifier — covers the second responds_to? branch.
+      root_like = Object.new
+      def root_like.implied_controller_name
+        "drawer--panel"
+      end
+
+      outlet = StimulusOutlet.new(root_like, implied_controller: @implied_controller)
+      assert_equal "[data-controller~=drawer--panel]", outlet.to_s
+      assert_equal "drawer--panel", outlet.outlet_name
+      assert_equal "foo--my-controller-drawer--panel-outlet", outlet.data_attribute_name
+    end
+
     def test_to_h
       outlet = StimulusOutlet.new(:user_status, ".online-user", implied_controller: @implied_controller)
       expected_hash = {"foo--my-controller-user-status-outlet" => ".online-user"}
@@ -118,6 +132,12 @@ module Vident
 
       assert_raises(ArgumentError) do
         StimulusOutlet.new(:outlet_name, 123, implied_controller: @implied_controller)
+      end
+    end
+
+    def test_invalid_three_argument_types
+      assert_raises(ArgumentError, /Invalid argument types/) do
+        StimulusOutlet.new(:not_a_string, :outlet_name, ".selector", implied_controller: @implied_controller)
       end
     end
   end

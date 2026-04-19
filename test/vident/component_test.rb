@@ -263,5 +263,33 @@ module Vident
       assert_equal all_props, @test_component_class.prop_names
       assert_equal all_props, @test_component_class.new.prop_names
     end
+
+    def test_root_element_must_be_implemented_by_subclass
+      bare_class = Class.new do
+        include Vident::Component
+        def self.name = "BareComponent"
+      end
+      component = bare_class.new
+      assert_raises(NoMethodError, /must implement the `root_element` method/) do
+        component.send(:root_element)
+      end
+    end
+
+    def test_root_aliases_to_root_element
+      received = nil
+      aliased_class = Class.new do
+        include Vident::Component
+        def self.name = "AliasedComponent"
+        define_method(:root_element) { |*args, **kwargs| received = [args, kwargs] }
+      end
+      component = aliased_class.new
+      component.send(:root, :arg, foo: :bar)
+      assert_equal [[:arg], {foo: :bar}], received
+    end
+
+    def test_outlet_id_combines_identifier_and_id
+      component = @test_component_class.new(id: "widget-1")
+      assert_equal ["test-component", "#widget-1"], component.outlet_id
+    end
   end
 end

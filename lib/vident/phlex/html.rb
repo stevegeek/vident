@@ -29,15 +29,11 @@ module Vident
       def root_element(**overrides, &block)
         tag_type = root_element_tag_type
         check_valid_html_tag!(tag_type)
-        # Evaluate before generating the outer tag options to ensure DSL methods are executed
+        # Evaluate block first so DSL methods run before outer tag options are computed.
         if block_given?
           content = capture(self, &block).html_safe
           options = resolve_root_element_attributes_before_render(overrides)
-          if content
-            send(tag_type, **options) { content }
-          else
-            send(tag_type, **options)
-          end
+          send(tag_type, **options) { content }
         else
           send(tag_type, **resolve_root_element_attributes_before_render(overrides))
         end

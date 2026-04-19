@@ -83,6 +83,12 @@ module Vident
       end
     end
 
+    def test_invalid_three_argument_types
+      assert_raises(ArgumentError, /Invalid 'action' argument types \(3\)/) do
+        StimulusAction.new(:click, :not_a_string_path, :target, implied_controller: @implied_controller)
+      end
+    end
+
     def test_descriptor_with_options
       descriptor = StimulusAction::Descriptor.new(
         event: :click,

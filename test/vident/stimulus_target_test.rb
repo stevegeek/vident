@@ -59,5 +59,11 @@ module Vident
         StimulusTarget.new(123, :target, implied_controller: @implied_controller)
       end
     end
+
+    def test_invalid_single_argument_type
+      assert_raises(ArgumentError, /Invalid argument type/) do
+        StimulusTarget.new(123, implied_controller: @implied_controller)
+      end
+    end
   end
 end

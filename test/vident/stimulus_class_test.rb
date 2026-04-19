@@ -93,5 +93,11 @@ module Vident
         StimulusClass.new(:loading, 123, implied_controller: @implied_controller)
       end
     end
+
+    def test_invalid_three_argument_types
+      assert_raises(ArgumentError, /Invalid argument types/) do
+        StimulusClass.new(:not_a_string, :loading, "spinner", implied_controller: @implied_controller)
+      end
+    end
   end
 end

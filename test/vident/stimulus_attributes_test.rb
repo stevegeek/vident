@@ -125,6 +125,16 @@ class StimulusAttributesTest < Minitest::Test
     assert_equal({"test-controller-url-value" => "https://example.com"}, result.to_h)
   end
 
+  def test_stimulus_values_splats_prebuilt_collection_among_other_args
+    # Covers the `when collection_class then converted.concat(arg.to_a)` branch:
+    # a pre-built collection mixed in with other inputs must be flattened.
+    existing = @component.stimulus_values(url: "https://example.com")
+    result = @component.stimulus_values(existing, count: 5)
+    assert_instance_of Vident::StimulusValueCollection, result
+    assert_equal "https://example.com", result.to_h["test-controller-url-value"]
+    assert_equal "5", result.to_h["test-controller-count-value"]
+  end
+
   def test_stimulus_classes_accepts_array_form_for_cross_controller
     result = @component.stimulus_classes(
       ["path/to/other", :loading, "spinner"],

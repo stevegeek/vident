@@ -7,6 +7,24 @@ Rails.application.load_tasks
 
 task default: :test
 
+require "rake/testtask"
+
+# In-process unit-test runner for SimpleCov. `rake test` spawns `rails test` as
+# a subprocess (see Rails::TestUnit::Runner.run_from_rake), so coverage started
+# in the parent never sees the lib files and the child's report gets overwritten.
+# This task loads test_helper once in this process — SimpleCov there captures
+# everything.
+task :_enable_coverage do
+  ENV["COVERAGE"] ||= "1"
+end
+Rake::TestTask.new(:_coverage_run) do |t|
+  t.libs << "test"
+  t.test_files = FileList["test/vident/**/*_test.rb", "test/components/**/*_test.rb"]
+  t.warning = false
+end
+desc "Run unit tests in-process with SimpleCov enabled"
+task coverage: [:_enable_coverage, :_coverage_run]
+
 desc "Build all gems"
 task :build do
   # Remove any existing gem files
