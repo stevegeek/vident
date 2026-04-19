@@ -21,14 +21,13 @@ export default class extends Controller {
     })
   }
 
-  promote() {
+  // event.params.kind comes from the button's stimulus_params (see the Ruby
+  // side). Stimulus auto-reads `data-<controller>-<name>-param` attributes on
+  // the action's element into event.params.<camelName>.
+  apply(event) {
+    const kind = event.params.kind  // "promote" | "cancel"
     this.#disable()
-    this.dispatch("promoted", { detail: this.#payload(), target: window })
-  }
-
-  cancel() {
-    this.#disable()
-    this.dispatch("cancelled", { detail: this.#payload(), target: window })
+    this.dispatch(`${kind}d`, { detail: this.#payload(), target: window })
   }
 
   setVisible(show) {

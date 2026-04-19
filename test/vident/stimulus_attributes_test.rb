@@ -163,6 +163,24 @@ class StimulusAttributesTest < Minitest::Test
     assert_instance_of Vident::StimulusControllerCollection, collection
   end
 
+  def test_add_stimulus_controllers_accepts_single_controller_instance
+    controller = Vident::StimulusController.new("pre_built", implied_controller: "test_controller")
+    @component.add_stimulus_controllers(controller)
+    collection = @component.instance_variable_get(:@stimulus_controllers_collection)
+    assert_instance_of Vident::StimulusControllerCollection, collection
+    assert_equal "pre-built", collection.to_h[:controller]
+  end
+
+  def test_add_stimulus_controllers_accepts_prebuilt_collection
+    collection = Vident::StimulusControllerCollection.new([
+      Vident::StimulusController.new("one", implied_controller: "test_controller"),
+      Vident::StimulusController.new("two", implied_controller: "test_controller")
+    ])
+    @component.add_stimulus_controllers(collection)
+    result = @component.instance_variable_get(:@stimulus_controllers_collection)
+    assert_equal "one two", result.to_h[:controller]
+  end
+
   def test_add_stimulus_actions
     @component.add_stimulus_actions("new_action")
     collection = @component.instance_variable_get(:@stimulus_actions_collection)

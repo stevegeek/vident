@@ -2,6 +2,9 @@
 
 module Vident
   module ChildElementHelper
+    # Explicit kwargs (14 of them, 1 plural + 1 singular per primitive) are the
+    # public API — keep them so call-sites get typo-checking and IDE support.
+    # The body is registry-driven via `Stimulus::PRIMITIVES`.
     def child_element(
       tag_name,
       stimulus_controllers: nil,
@@ -21,32 +24,25 @@ module Vident
       **options,
       &block
     )
-      child_element_attribute_must_be_collection!(stimulus_controllers, "stimulus_controllers")
-      child_element_attribute_must_be_collection!(stimulus_targets, "stimulus_targets")
-      child_element_attribute_must_be_collection!(stimulus_actions, "stimulus_actions")
-      child_element_attribute_must_be_collection!(stimulus_outlets, "stimulus_outlets")
-      child_element_attribute_must_be_collection!(stimulus_values, "stimulus_values")
-      child_element_attribute_must_be_collection!(stimulus_params, "stimulus_params")
-      child_element_attribute_must_be_collection!(stimulus_classes, "stimulus_classes")
+      inputs = {
+        controllers: [stimulus_controllers, stimulus_controller],
+        actions: [stimulus_actions, stimulus_action],
+        targets: [stimulus_targets, stimulus_target],
+        outlets: [stimulus_outlets, stimulus_outlet],
+        values: [stimulus_values, stimulus_value],
+        params: [stimulus_params, stimulus_param],
+        classes: [stimulus_classes, stimulus_class]
+      }
 
-      stimulus_controllers_collection = send(:stimulus_controllers, *child_element_wrap_single_stimulus_attribute(stimulus_controllers, stimulus_controller))
-      stimulus_targets_collection = send(:stimulus_targets, *child_element_wrap_single_stimulus_attribute(stimulus_targets, stimulus_target))
-      stimulus_actions_collection = send(:stimulus_actions, *child_element_wrap_single_stimulus_attribute(stimulus_actions, stimulus_action))
-      stimulus_outlets_collection = send(:stimulus_outlets, *child_element_wrap_single_stimulus_attribute(stimulus_outlets, stimulus_outlet))
-      stimulus_values_collection = send(:stimulus_values, stimulus_values || stimulus_value)
-      stimulus_params_collection = send(:stimulus_params, stimulus_params || stimulus_param)
-      stimulus_classes_collection = send(:stimulus_classes, stimulus_classes || stimulus_class)
+      collections = Stimulus::PRIMITIVES.to_h do |primitive|
+        plural, singular = inputs.fetch(primitive.name)
+        child_element_attribute_must_be_collection!(plural, primitive.key.to_s)
+        args = primitive.keyed? ? [plural || singular] : child_element_wrap_single_stimulus_attribute(plural, singular)
+        [primitive.name, send(primitive.key, *Array.wrap(args))]
+      end
 
-      stimulus_data_attributes = StimulusDataAttributeBuilder.new(
-        controllers: stimulus_controllers_collection,
-        actions: stimulus_actions_collection,
-        targets: stimulus_targets_collection,
-        outlets: stimulus_outlets_collection,
-        values: stimulus_values_collection,
-        params: stimulus_params_collection,
-        classes: stimulus_classes_collection
-      ).build
-      generate_child_element(tag_name, stimulus_data_attributes, options, &block)
+      data_attrs = StimulusDataAttributeBuilder.new(**collections).build
+      generate_child_element(tag_name, data_attrs, options, &block)
     end
 
     private

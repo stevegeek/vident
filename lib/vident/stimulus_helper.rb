@@ -47,28 +47,20 @@ module Vident
 
       protected
 
-      def stimulus_dsl_builder
-        @stimulus_builder
-      end
+      def stimulus_dsl_builder = @stimulus_builder
     end
 
     # Instance method to get DSL attributes for this component instance
-    def stimulus_dsl_attributes
-      self.class.stimulus_dsl_attributes(self)
-    end
+    def stimulus_dsl_attributes = self.class.stimulus_dsl_attributes(self)
 
     # Instance method to resolve prop-mapped values at runtime
     def resolve_values_from_props(prop_names)
       return {} if prop_names.empty?
 
-      resolved = {}
-      prop_names.each do |name|
+      prop_names.each_with_object({}) do |name, resolved|
         # Map from instance variable if it exists
-        if instance_variable_defined?("@#{name}")
-          resolved[name] = instance_variable_get("@#{name}")
-        end
+        resolved[name] = instance_variable_get("@#{name}") if instance_variable_defined?("@#{name}")
       end
-      resolved
     end
   end
 end

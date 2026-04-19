@@ -9,78 +9,78 @@ class StimulusBuilderTest < ActiveSupport::TestCase
   end
 
   def test_initial_state
-    assert_equal [], @builder.instance_variable_get(:@actions)
-    assert_equal [], @builder.instance_variable_get(:@targets)
-    assert_equal({}, @builder.instance_variable_get(:@values))
-    assert_equal({}, @builder.instance_variable_get(:@classes))
-    assert_equal({}, @builder.instance_variable_get(:@outlets))
+    assert_equal [], @builder.send(:entries_for, :actions)
+    assert_equal [], @builder.send(:entries_for, :targets)
+    assert_equal({}, @builder.send(:entries_for, :values))
+    assert_equal({}, @builder.send(:entries_for, :classes))
+    assert_equal({}, @builder.send(:entries_for, :outlets))
   end
 
   def test_actions_with_symbols
     @builder.actions(:click, :submit, :toggle)
-    assert_equal [:click, :submit, :toggle], @builder.instance_variable_get(:@actions)
+    assert_equal [:click, :submit, :toggle], @builder.send(:entries_for, :actions)
   end
 
   def test_actions_with_strings
     @builder.actions("click", "submit", "toggle")
-    assert_equal ["click", "submit", "toggle"], @builder.instance_variable_get(:@actions)
+    assert_equal ["click", "submit", "toggle"], @builder.send(:entries_for, :actions)
   end
 
   def test_actions_with_mixed_types
     @builder.actions(:click, "submit", :toggle)
-    assert_equal [:click, "submit", :toggle], @builder.instance_variable_get(:@actions)
+    assert_equal [:click, "submit", :toggle], @builder.send(:entries_for, :actions)
   end
 
   def test_actions_called_multiple_times
     @builder.actions(:click, :submit)
     @builder.actions(:toggle, :focus)
-    assert_equal [:click, :submit, :toggle, :focus], @builder.instance_variable_get(:@actions)
+    assert_equal [:click, :submit, :toggle, :focus], @builder.send(:entries_for, :actions)
   end
 
   def test_actions_with_no_arguments
     @builder.actions
-    assert_equal [], @builder.instance_variable_get(:@actions)
+    assert_equal [], @builder.send(:entries_for, :actions)
   end
 
   def test_targets_with_symbols
     @builder.targets(:button, :form, :input)
-    assert_equal [:button, :form, :input], @builder.instance_variable_get(:@targets)
+    assert_equal [:button, :form, :input], @builder.send(:entries_for, :targets)
   end
 
   def test_targets_with_strings
     @builder.targets("button", "form", "input")
-    assert_equal ["button", "form", "input"], @builder.instance_variable_get(:@targets)
+    assert_equal ["button", "form", "input"], @builder.send(:entries_for, :targets)
   end
 
   def test_targets_called_multiple_times
     @builder.targets(:button, :form)
     @builder.targets(:input, :textarea)
-    assert_equal [:button, :form, :input, :textarea], @builder.instance_variable_get(:@targets)
+    assert_equal [:button, :form, :input, :textarea], @builder.send(:entries_for, :targets)
   end
 
   def test_targets_with_no_arguments
     @builder.targets
-    assert_equal [], @builder.instance_variable_get(:@targets)
+    assert_equal [], @builder.send(:entries_for, :targets)
   end
 
   def test_values_from_props_with_symbols
     @builder.values_from_props(:name, :count, :active)
     expected = [:name, :count, :active]
-    assert_equal expected, @builder.instance_variable_get(:@values_from_props)
+    assert_equal expected, @builder.send(:values_from_props_list)
   end
 
   def test_values_with_hash
     @builder.values(name: "default", count: 0, active: true)
     expected = {name: "default", count: 0, active: true}
-    assert_equal expected, @builder.instance_variable_get(:@values)
+    assert_equal expected, @builder.send(:entries_for, :values)
   end
 
   def test_values_with_mixed_static_and_from_props
     @builder.values_from_props(:auto_mapped, :another_auto_mapped)
     @builder.values(explicit: "value")
 
-    assert_equal([:auto_mapped, :another_auto_mapped], @builder.instance_variable_get(:@values_from_props))
-    assert_equal({explicit: "value"}, @builder.instance_variable_get(:@values))
+    assert_equal([:auto_mapped, :another_auto_mapped], @builder.send(:values_from_props_list))
+    assert_equal({explicit: "value"}, @builder.send(:entries_for, :values))
   end
 
   def test_values_hash_overwrites_existing_keys
@@ -88,18 +88,18 @@ class StimulusBuilderTest < ActiveSupport::TestCase
     @builder.values(name: "second", count: 1)
 
     expected = {name: "second", count: 1}
-    assert_equal expected, @builder.instance_variable_get(:@values)
+    assert_equal expected, @builder.send(:entries_for, :values)
   end
 
   def test_values_with_no_arguments
     @builder.values
-    assert_equal({}, @builder.instance_variable_get(:@values))
+    assert_equal({}, @builder.send(:entries_for, :values))
   end
 
   def test_classes_with_hash
     @builder.classes(loading: "opacity-50", active: "bg-blue-500")
     expected = {loading: "opacity-50", active: "bg-blue-500"}
-    assert_equal expected, @builder.instance_variable_get(:@classes)
+    assert_equal expected, @builder.send(:entries_for, :classes)
   end
 
   def test_classes_called_multiple_times
@@ -107,7 +107,7 @@ class StimulusBuilderTest < ActiveSupport::TestCase
     @builder.classes(active: "bg-blue-500", disabled: "cursor-not-allowed")
 
     expected = {loading: "opacity-50", active: "bg-blue-500", disabled: "cursor-not-allowed"}
-    assert_equal expected, @builder.instance_variable_get(:@classes)
+    assert_equal expected, @builder.send(:entries_for, :classes)
   end
 
   def test_classes_overwrites_existing_keys
@@ -115,25 +115,25 @@ class StimulusBuilderTest < ActiveSupport::TestCase
     @builder.classes(loading: "second-class")
 
     expected = {loading: "second-class"}
-    assert_equal expected, @builder.instance_variable_get(:@classes)
+    assert_equal expected, @builder.send(:entries_for, :classes)
   end
 
   def test_classes_with_string_values
     @builder.classes(loading: "opacity-50 cursor-wait", error: "text-red-500 border-red-500")
     expected = {loading: "opacity-50 cursor-wait", error: "text-red-500 border-red-500"}
-    assert_equal expected, @builder.instance_variable_get(:@classes)
+    assert_equal expected, @builder.send(:entries_for, :classes)
   end
 
   def test_classes_with_array_values
     @builder.classes(loading: ["opacity-50", "cursor-wait"], error: ["text-red-500", "border-red-500"])
     expected = {loading: ["opacity-50", "cursor-wait"], error: ["text-red-500", "border-red-500"]}
-    assert_equal expected, @builder.instance_variable_get(:@classes)
+    assert_equal expected, @builder.send(:entries_for, :classes)
   end
 
   def test_outlets_with_hash
     @builder.outlets(modal: ".modal", tooltip: ".tooltip")
     expected = {modal: ".modal", tooltip: ".tooltip"}
-    assert_equal expected, @builder.instance_variable_get(:@outlets)
+    assert_equal expected, @builder.send(:entries_for, :outlets)
   end
 
   def test_outlets_called_multiple_times
@@ -141,7 +141,7 @@ class StimulusBuilderTest < ActiveSupport::TestCase
     @builder.outlets(tooltip: ".tooltip", dropdown: ".dropdown")
 
     expected = {modal: ".modal", tooltip: ".tooltip", dropdown: ".dropdown"}
-    assert_equal expected, @builder.instance_variable_get(:@outlets)
+    assert_equal expected, @builder.send(:entries_for, :outlets)
   end
 
   def test_outlets_with_second_call_overwrites_key
@@ -149,21 +149,21 @@ class StimulusBuilderTest < ActiveSupport::TestCase
     @builder.outlets(modal: ".second-modal")
 
     expected = {modal: ".second-modal"}
-    assert_equal expected, @builder.instance_variable_get(:@outlets)
+    assert_equal expected, @builder.send(:entries_for, :outlets)
   end
 
   def test_outlets_accepts_positional_hash_with_string_keys
     @builder.outlets({"my-ns--modal" => "[data-modal]", "foo" => "[data-foo]"})
 
     expected = {"my-ns--modal" => "[data-modal]", "foo" => "[data-foo]"}
-    assert_equal expected, @builder.instance_variable_get(:@outlets)
+    assert_equal expected, @builder.send(:entries_for, :outlets)
   end
 
   def test_outlets_mixes_positional_hash_and_kwargs
     @builder.outlets({"my-ns--modal" => "[data-modal]"}, foo: "[data-foo]")
 
     expected = {"my-ns--modal" => "[data-modal]", :foo => "[data-foo]"}
-    assert_equal expected, @builder.instance_variable_get(:@outlets)
+    assert_equal expected, @builder.send(:entries_for, :outlets)
   end
 
   def test_outlets_with_component_selector_patterns
@@ -178,7 +178,7 @@ class StimulusBuilderTest < ActiveSupport::TestCase
       notification: "#notification-area",
       sidebar: ".sidebar-container"
     }
-    assert_equal expected, @builder.instance_variable_get(:@outlets)
+    assert_equal expected, @builder.send(:entries_for, :outlets)
   end
 
   def test_all_methods_chained
@@ -190,11 +190,11 @@ class StimulusBuilderTest < ActiveSupport::TestCase
       .outlets(modal: ".modal")
 
     assert_equal @builder, result
-    assert_equal [:click, :submit], @builder.instance_variable_get(:@actions)
-    assert_equal [:button, :form], @builder.instance_variable_get(:@targets)
-    assert_equal([:name, :count], @builder.instance_variable_get(:@values_from_props))
-    assert_equal({loading: "opacity-50"}, @builder.instance_variable_get(:@classes))
-    assert_equal({modal: ".modal"}, @builder.instance_variable_get(:@outlets))
+    assert_equal [:click, :submit], @builder.send(:entries_for, :actions)
+    assert_equal [:button, :form], @builder.send(:entries_for, :targets)
+    assert_equal([:name, :count], @builder.send(:values_from_props_list))
+    assert_equal({loading: "opacity-50"}, @builder.send(:entries_for, :classes))
+    assert_equal({modal: ".modal"}, @builder.send(:entries_for, :outlets))
   end
 
   def test_to_attributes_method_returns_complete_attributes
@@ -225,6 +225,24 @@ class StimulusBuilderTest < ActiveSupport::TestCase
     expected = {}
 
     assert_equal expected, result
+  end
+
+  def test_procs_returning_nil_drop_their_entry
+    # Nil-returning procs must not land in the resolved attribute hashes —
+    # Stimulus's Boolean value parser reads the resulting empty-string data
+    # attribute as `true`, silently flipping the value on. Covers the
+    # invariant documented in StimulusBuilder#resolve_hash_filtering_nil.
+    @builder.actions(-> { nil }, :present_action)
+    @builder.targets(-> { nil }, :present_target)
+    @builder.values(sometimes: -> { nil }, always: -> { "value" })
+    @builder.classes(sometimes: -> { nil }, always: "base")
+
+    result = @builder.to_attributes(@mock_component)
+
+    assert_equal [:present_action], result[:stimulus_actions]
+    assert_equal [:present_target], result[:stimulus_targets]
+    assert_equal({always: "value"}, result[:stimulus_values])
+    assert_equal({always: "base"}, result[:stimulus_classes])
   end
 
   def test_to_attributes_method_filters_empty_collections

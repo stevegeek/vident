@@ -9,17 +9,11 @@ module Vident
       super(*args, implied_controller: implied_controller)
     end
 
-    def to_s
-      @selector
-    end
+    def to_s = @selector
 
-    def data_attribute_name
-      "#{@controller}-#{@outlet_name}-outlet"
-    end
+    def data_attribute_name = "#{@controller}-#{@outlet_name}-outlet"
 
-    def data_attribute_value
-      @selector
-    end
+    def data_attribute_value = @selector
 
     private
 

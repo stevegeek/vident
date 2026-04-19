@@ -5,11 +5,7 @@ module Vident
     def to_h
       return {} if items.empty?
 
-      merged = {}
-      items.each do |css_class|
-        merged.merge!(css_class.to_h)
-      end
-      merged
+      items.each_with_object({}) { |css_class, merged| merged.merge!(css_class.to_h) }
     end
   end
 end

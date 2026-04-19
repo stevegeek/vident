@@ -38,6 +38,10 @@ require "vident/stimulus_value_collection"
 require "vident/stimulus_param_collection"
 require "vident/stimulus_class_collection"
 
+require "vident/stimulus/primitive"
+require "vident/stimulus/naming"
+require "vident/stimulus"
+
 require "vident/stimulus_attributes"
 require "vident/stimulus_data_attribute_builder"
 

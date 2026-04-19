@@ -4,17 +4,11 @@ module Vident
   class StimulusClass < StimulusAttributeBase
     attr_reader :controller, :class_name, :css_classes
 
-    def to_s
-      @css_classes.join(" ")
-    end
+    def to_s = @css_classes.join(" ")
 
-    def data_attribute_name
-      "#{@controller}-#{@class_name}-class"
-    end
+    def data_attribute_name = "#{@controller}-#{@class_name}-class"
 
-    def data_attribute_value
-      to_s
-    end
+    def data_attribute_value = to_s
 
     private
 

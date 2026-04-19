@@ -2,6 +2,8 @@
 
 module Vident
   module ComponentAttributeResolver
+    include Stimulus::Naming
+
     private
 
     # Prepare attributes set at initialization, which will later be merged together before rendering.
@@ -18,13 +20,9 @@ module Vident
       @root_element_attributes_id = extra[:id] || id
       @element_tag = extra[:element_tag] if extra.key?(:element_tag)
 
-      add_stimulus_controllers(extra[:stimulus_controllers]) if extra.key?(:stimulus_controllers)
-      add_stimulus_actions(extra[:stimulus_actions]) if extra.key?(:stimulus_actions)
-      add_stimulus_targets(extra[:stimulus_targets]) if extra.key?(:stimulus_targets)
-      add_stimulus_outlets(extra[:stimulus_outlets]) if extra.key?(:stimulus_outlets)
-      add_stimulus_values(extra[:stimulus_values]) if extra.key?(:stimulus_values)
-      add_stimulus_params(extra[:stimulus_params]) if extra.key?(:stimulus_params)
-      add_stimulus_classes(extra[:stimulus_classes]) if extra.key?(:stimulus_classes)
+      Stimulus::PRIMITIVES.each do |primitive|
+        send(mutator_method(primitive), extra[primitive.key]) if extra.key?(primitive.key)
+      end
     end
 
     def resolve_root_element_attributes_before_render(root_element_html_options = nil)
@@ -53,54 +51,37 @@ module Vident
       final_attributes.merge!(other_html_options.except(:data))
     end
 
-    # Add stimulus attributes from DSL declarations using existing add_* methods
+    # Run every DSL attribute through its `add_stimulus_*` mutator. `values_from_props`
+    # is a sidecar on values, resolved at instance render time.
     def add_stimulus_attributes_from_dsl
       dsl_attrs = self.class.stimulus_dsl_attributes(self)
       return if dsl_attrs.empty?
 
-      # Use existing add_* methods to integrate DSL attributes
-      add_stimulus_controllers(dsl_attrs[:stimulus_controllers]) if dsl_attrs[:stimulus_controllers]
-      add_stimulus_actions(dsl_attrs[:stimulus_actions]) if dsl_attrs[:stimulus_actions]
-      add_stimulus_targets(dsl_attrs[:stimulus_targets]) if dsl_attrs[:stimulus_targets]
-      add_stimulus_outlets(dsl_attrs[:stimulus_outlets]) if dsl_attrs[:stimulus_outlets]
+      Stimulus::PRIMITIVES.each do |primitive|
+        value = dsl_attrs[primitive.key]
+        send(mutator_method(primitive), value) if value
+      end
 
-      # Add static values (now includes resolved proc values)
-      add_stimulus_values(dsl_attrs[:stimulus_values]) if dsl_attrs[:stimulus_values]
-
-      # Resolve and add values from props
       if dsl_attrs[:stimulus_values_from_props]
         resolved_values = resolve_values_from_props(dsl_attrs[:stimulus_values_from_props])
         add_stimulus_values(resolved_values) unless resolved_values.empty?
       end
-
-      add_stimulus_params(dsl_attrs[:stimulus_params]) if dsl_attrs[:stimulus_params]
-      add_stimulus_classes(dsl_attrs[:stimulus_classes]) if dsl_attrs[:stimulus_classes]
     end
 
-    # Prepare stimulus collections and implied controller path from the given attributes, called after initialization
-    def prepare_stimulus_collections # Convert raw attributes to stimulus attribute collections
-      @stimulus_controllers_collection = stimulus_controllers(*Array.wrap(@stimulus_controllers))
-      @stimulus_actions_collection = stimulus_actions(*Array.wrap(@stimulus_actions))
-      @stimulus_targets_collection = stimulus_targets(*Array.wrap(@stimulus_targets))
-      @stimulus_outlets_collection = stimulus_outlets(*Array.wrap(@stimulus_outlets))
-      @stimulus_values_collection = stimulus_values(*Array.wrap(@stimulus_values))
-      @stimulus_params_collection = stimulus_params(*Array.wrap(@stimulus_params))
-      @stimulus_classes_collection = stimulus_classes(*Array.wrap(@stimulus_classes))
+    # Seed the collection ivars from each prop's raw value.
+    def prepare_stimulus_collections
+      Stimulus::PRIMITIVES.each do |primitive|
+        raw = instance_variable_get(prop_ivar(primitive))
+        collection = send(primitive.key, *Array.wrap(raw))
+        instance_variable_set(collection_ivar(primitive), collection)
+      end
 
       @stimulus_outlet_host.add_stimulus_outlets(self) if @stimulus_outlet_host
     end
 
-    # Build stimulus data attributes using collection splat
     def stimulus_data_attributes
-      StimulusDataAttributeBuilder.new(
-        controllers: @stimulus_controllers_collection,
-        actions: @stimulus_actions_collection,
-        targets: @stimulus_targets_collection,
-        outlets: @stimulus_outlets_collection,
-        values: @stimulus_values_collection,
-        params: @stimulus_params_collection,
-        classes: @stimulus_classes_collection
-      ).build
+      collections = Stimulus::PRIMITIVES.to_h { |primitive| [primitive.name, instance_variable_get(collection_ivar(primitive))] }
+      StimulusDataAttributeBuilder.new(**collections).build
     end
   end
 end

@@ -53,18 +53,26 @@ module Dashboard
         p(class: "mt-3 text-xs uppercase tracking-wide text-gray-500") { @status.to_s }
 
         div(class: "mt-3 flex gap-2") do
+          # Demo of Stimulus params: one `apply` handler for both buttons, with
+          # `stimulus_params: { kind: ... }` on the element so the handler reads
+          # `event.params.kind` to tell which button fired. In a real app you'd
+          # probably just keep separate `promote` / `cancel` handlers — this
+          # intentional "one dispatch switch" shape is a bit RPC-ish and is here
+          # to show what the params feature looks like, not to recommend it.
           card.child_element(
             :button,
-            stimulus_action: [:click, :promote],
+            stimulus_action: [:click, :apply],
             stimulus_target: :promote_button,
+            stimulus_params: {kind: "promote"},
             type: "button",
             class: "flex-1 rounded bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           ) { "Promote" }
 
           card.child_element(
             :button,
-            stimulus_action: [:click, :cancel],
+            stimulus_action: [:click, :apply],
             stimulus_target: :cancel_button,
+            stimulus_params: {kind: "cancel"},
             type: "button",
             class: "flex-1 rounded border border-red-500 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
           ) { "Cancel" }

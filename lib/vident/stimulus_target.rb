@@ -4,19 +4,13 @@ module Vident
   class StimulusTarget < StimulusAttributeBase
     attr_reader :controller, :name
 
-    def to_s
-      @name
-    end
+    def to_s = @name
 
     # Returns the data attribute name for this target
-    def data_attribute_name
-      "#{@controller}-target"
-    end
+    def data_attribute_name = "#{@controller}-target"
 
     # Returns the target name value for the data attribute
-    def data_attribute_value
-      @name
-    end
+    def data_attribute_value = @name
 
     private
 
@@ -33,14 +27,10 @@ module Vident
 
     def parse_single_argument(arg)
       @controller = implied_controller_name
-      if arg.is_a?(Symbol)
-        # 1 symbol arg, name of target on implied controller
-        @name = js_name(arg)
-      elsif arg.is_a?(String)
-        # 1 string arg, assume it's a target name on implied controller
-        @name = arg
-      else
-        raise ArgumentError, "Invalid argument type: #{arg.class}"
+      @name = case arg
+      when Symbol then js_name(arg)  # name of target on implied controller
+      when String then arg           # target name on implied controller
+      else raise ArgumentError, "Invalid argument type: #{arg.class}"
       end
     end
 

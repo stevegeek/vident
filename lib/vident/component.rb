@@ -41,9 +41,7 @@ module Vident
 
     # Properties/attributes passed to the "root" element of the component. You normally override this method to
     # return a hash of attributes that should be applied to the root element of your component.
-    def root_element_attributes
-      {}
-    end
+    def root_element_attributes = {}
 
     # Create a new component instance with optional overrides for properties.
     def clone(overrides = {}) = self.class.new(**to_h.merge(**overrides))
@@ -58,9 +56,7 @@ module Vident
     def id = @id.presence || random_id
 
     # Return the names of the properties defined in the component class.
-    def prop_names
-      self.class.prop_names
-    end
+    def prop_names = self.class.prop_names
 
     private
 
@@ -78,9 +74,7 @@ module Vident
       root_element(...)
     end
 
-    def root_element_tag_type
-      @element_tag.presence&.to_sym || :div
-    end
+    def root_element_tag_type = @element_tag.presence&.to_sym || :div
 
     # Generate a random ID for the component, which is used to ensure uniqueness in the DOM.
     def random_id

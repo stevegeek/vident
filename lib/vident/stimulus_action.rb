@@ -2,23 +2,12 @@
 
 module Vident
   class StimulusAction < StimulusAttributeBase
-    # Valid event-option modifiers (Stimulus action descriptor syntax).
-    # See https://stimulus.hotwired.dev/reference/actions for semantics.
+    # https://stimulus.hotwired.dev/reference/actions#options
     VALID_OPTIONS = [:once, :prevent, :stop, :passive, :"!passive", :capture, :self].freeze
 
-    # Typed descriptor for a single Stimulus action. Used as a ready-made input
-    # to `stimulus_action(...)` and `stimulus_actions(...)` when the caller
-    # wants modifiers (`:once`, `:prevent`, `@window`, keyboard filters) that
-    # the plain Array form can't express.
-    #
-    #   Vident::StimulusAction::Descriptor.new(
-    #     event:      :click,
-    #     method:     :submit,
-    #     options:    [:once, :prevent],
-    #   )
-    #
-    # Hash input (`{event: :click, method: :submit, options: [:once]}`) is
-    # desugared into a Descriptor internally, so both shapes are equivalent.
+    # Typed descriptor for modifiers (`:once`/`:prevent`/etc., keyboard filter,
+    # `@window`) that the plain Array form can't express. Hash input to the
+    # parsers (`{event:, method:, ...}`) is desugared into one of these.
     class Descriptor < ::Literal::Data
       prop :method, _Union(Symbol, String)
       prop :event, _Nilable(_Union(Symbol, String)), default: nil
@@ -51,13 +40,9 @@ module Vident
       "#{head}#{@controller}##{@action}"
     end
 
-    def data_attribute_name
-      "action"
-    end
+    def data_attribute_name = "action"
 
-    def data_attribute_value
-      to_s
-    end
+    def data_attribute_value = to_s
 
     private
 
@@ -78,30 +63,24 @@ module Vident
 
     def parse_single_argument(arg)
       case arg
-      when Descriptor
-        apply_descriptor(arg)
-      when Hash
-        apply_descriptor(Descriptor.new(**arg))
+      when Descriptor then apply_descriptor(arg)
+      when Hash then apply_descriptor(Descriptor.new(**arg))
       when Symbol
-        # Method name on implied controller.
         @event = nil
         @controller = implied_controller_name
         @action = js_name(arg)
-      when String
-        parse_qualified_action_string(arg)
-      else
-        raise ArgumentError, "Invalid 'action' argument type (1): #{arg.class}"
+      when String then parse_qualified_action_string(arg)
+      else raise ArgumentError, "Invalid 'action' argument type (1): #{arg.class}"
       end
     end
 
+    # (:event, :method) or ("controller/path", :method)
     def parse_two_arguments(part1, part2)
       if part1.is_a?(Symbol) && part2.is_a?(Symbol)
-        # event + method
         @event = part1.to_s
         @controller = implied_controller_name
         @action = js_name(part2)
       elsif part1.is_a?(String) && part2.is_a?(Symbol)
-        # controller + method
         @event = nil
         @controller = stimulize_path(part1)
         @action = js_name(part2)
@@ -110,9 +89,9 @@ module Vident
       end
     end
 
+    # (:event, "controller/path", :method)
     def parse_three_arguments(part1, part2, part3)
       if part1.is_a?(Symbol) && part2.is_a?(String) && part3.is_a?(Symbol)
-        # event + controller + method
         @event = part1.to_s
         @controller = stimulize_path(part2)
         @action = js_name(part3)

@@ -8,12 +8,8 @@ module Vident
       merged = {}
       items.each do |target|
         target.to_h.each do |key, value|
-          merged[key] = if merged.key?(key)
-            # Merge space-separated values for same target attribute
-            "#{merged[key]} #{value}"
-          else
-            value
-          end
+          # Merge space-separated values for same target attribute
+          merged[key] = merged.key?(key) ? "#{merged[key]} #{value}" : value
         end
       end
       merged

@@ -35,6 +35,10 @@ class ChildElementHelperTest < Minitest::Test
         Vident::StimulusClassCollection.new(classes)
       end
 
+      def stimulus_params(*params)
+        Vident::StimulusParamCollection.new(params)
+      end
+
       def generate_child_element(tag_name, stimulus_data_attributes, options, &block)
         {tag: tag_name, stimulus: stimulus_data_attributes, options: options}
       end
@@ -79,6 +83,10 @@ class ChildElementHelperTest < Minitest::Test
         Vident::StimulusClassCollection.new(classes)
       end
 
+      def stimulus_params(*params)
+        Vident::StimulusParamCollection.new(params)
+      end
+
       def generate_child_element(tag_name, stimulus_data_attributes, options, &block)
         {tag: tag_name, stimulus: stimulus_data_attributes, options: options}
       end
@@ -119,6 +127,10 @@ class ChildElementHelperTest < Minitest::Test
 
       def stimulus_classes(classes)
         Vident::StimulusClassCollection.new(classes)
+      end
+
+      def stimulus_params(*params)
+        Vident::StimulusParamCollection.new(params)
       end
 
       def generate_child_element(tag_name, stimulus_data_attributes, options, &block)
@@ -167,6 +179,10 @@ class ChildElementHelperTest < Minitest::Test
         Vident::StimulusClassCollection.new([])
       end
 
+      def stimulus_params(*params)
+        Vident::StimulusParamCollection.new([])
+      end
+
       def generate_child_element(tag_name, stimulus_data_attributes, options, &block)
         {tag: tag_name, stimulus: stimulus_data_attributes, options: options}
       end
@@ -213,6 +229,7 @@ class ChildElementHelperTest < Minitest::Test
       define_method(:stimulus_outlets) { |*| Vident::StimulusOutletCollection.new([]) }
       define_method(:stimulus_values) { |_| Vident::StimulusValueCollection.new([]) }
       define_method(:stimulus_classes) { |_| Vident::StimulusClassCollection.new([]) }
+      define_method(:stimulus_params) { |*| Vident::StimulusParamCollection.new([]) }
       define_method(:generate_child_element) { |*| nil }
     end
 
@@ -235,6 +252,7 @@ class ChildElementHelperTest < Minitest::Test
       define_method(:stimulus_outlets) { |*| Vident::StimulusOutletCollection.new([]) }
       define_method(:stimulus_values) { |_| Vident::StimulusValueCollection.new([]) }
       define_method(:stimulus_classes) { |_| Vident::StimulusClassCollection.new([]) }
+      define_method(:stimulus_params) { |*| Vident::StimulusParamCollection.new([]) }
       define_method(:generate_child_element) { |*| nil }
     end
 

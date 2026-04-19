@@ -355,9 +355,24 @@ class ToggleComponent < Vident::ViewComponent::Base
     classes expanded: "block",
             collapsed: "hidden",
             transitioning: "opacity-50"
+
+    # Action parameters (element-scoped; readable as event.params.* in JS)
+    params item_id: -> { @item.id }, kind: "inline"
   end
 end
 ```
+
+**Action modifiers** — the Array form `[:click, :method]` handles the common case. For Stimulus's modifier syntax (`:once`/`:prevent`/`:stop`/`:passive`/`:"!passive"`/`:capture`/`:self`, keyboard filters, `@window`), pass a Hash or a `Vident::StimulusAction::Descriptor`:
+
+```ruby
+actions({event: :click,   method: :submit, options: [:once, :prevent]})
+actions({event: :keydown, method: :on_key, keyboard: "ctrl+a"})
+actions({event: :resize,  method: :on_resize, window: true})
+# or, if you want a typed, passable object:
+actions Vident::StimulusAction::Descriptor.new(event: :click, method: :save, options: [:prevent])
+```
+
+Unknown option symbols raise `ArgumentError` at attribute construction, not at render.
 
 ### Dynamic Values and Classes with Procs
 
@@ -424,6 +439,36 @@ end
 values current_user_id: -> { @user&.id },          # nil → attribute omitted
        config: -> { @user ? @config : Vident::StimulusNull }  # nil object → JSON null
 ```
+
+### Action Parameters
+
+Stimulus action parameters — `data-<controller>-<name>-param="value"` — are read inside an action handler as `event.params.<name>` (auto-typecast to Number / String / Object / Boolean). Params are **element-scoped**: every action attached to the same element sees the same params.
+
+Vident mirrors the `values` entry points:
+
+```ruby
+# In the DSL (component root element)
+stimulus do
+  actions [:click, :promote]
+  params release_id: -> { @release_id }, kind: "promote"
+end
+
+# As a prop at render time
+render MyComponent.new(stimulus_params: { release_id: 42 })
+
+# Cross-controller (Array form) — both as a prop and in the DSL
+stimulus_params: [
+  [:release_id, 42],                # implied-release-id-param="42"
+  ["other/ctrl", :scope, "full"],   # other--ctrl-scope-param="full"
+]
+
+# On a child element (co-located with the action it informs)
+card.child_element(:button,
+  stimulus_action: [:click, :promote],
+  stimulus_params: { release_id: @release_id })
+```
+
+Inline helpers: `as_stimulus_param(:name, value)` / `as_stimulus_params({name: value, ...})`.
 
 ### Scoped Custom Events
 

@@ -82,5 +82,71 @@ module Vident
         StimulusAction.new(:click, 123, implied_controller: @implied_controller)
       end
     end
+
+    def test_descriptor_with_options
+      descriptor = StimulusAction::Descriptor.new(
+        event: :click,
+        method: :submit,
+        options: [:once, :prevent]
+      )
+      action = StimulusAction.new(descriptor, implied_controller: @implied_controller)
+      assert_equal "click:once:prevent->foo--my-controller#submit", action.to_s
+      assert_equal [:once, :prevent], action.options
+    end
+
+    def test_descriptor_with_keyboard_filter
+      descriptor = StimulusAction::Descriptor.new(event: :keydown, method: :handle_key, keyboard: "ctrl+a")
+      action = StimulusAction.new(descriptor, implied_controller: @implied_controller)
+      assert_equal "keydown.ctrl+a->foo--my-controller#handleKey", action.to_s
+    end
+
+    def test_descriptor_with_window_target
+      descriptor = StimulusAction::Descriptor.new(event: :resize, method: :on_resize, window: true)
+      action = StimulusAction.new(descriptor, implied_controller: @implied_controller)
+      assert_equal "resize@window->foo--my-controller#onResize", action.to_s
+      assert action.window
+    end
+
+    def test_descriptor_with_cross_controller
+      descriptor = StimulusAction::Descriptor.new(
+        event: :click,
+        method: :show,
+        controller: "dialog/modal",
+        options: [:prevent]
+      )
+      action = StimulusAction.new(descriptor, implied_controller: @implied_controller)
+      assert_equal "click:prevent->dialog--modal#show", action.to_s
+      assert_equal "dialog--modal", action.controller
+    end
+
+    def test_descriptor_without_event
+      descriptor = StimulusAction::Descriptor.new(method: :submit)
+      action = StimulusAction.new(descriptor, implied_controller: @implied_controller)
+      assert_equal "foo--my-controller#submit", action.to_s
+      assert_nil action.event
+    end
+
+    def test_descriptor_rejects_invalid_option
+      descriptor = StimulusAction::Descriptor.new(event: :click, method: :x, options: [:bogus])
+      assert_raises(ArgumentError, /Invalid action option/) do
+        StimulusAction.new(descriptor, implied_controller: @implied_controller)
+      end
+    end
+
+    def test_hash_form_is_sugar_for_descriptor
+      action = StimulusAction.new(
+        {event: :click, method: :submit, options: [:once, :prevent]},
+        implied_controller: @implied_controller
+      )
+      assert_equal "click:once:prevent->foo--my-controller#submit", action.to_s
+    end
+
+    def test_hash_form_combined_modifiers
+      action = StimulusAction.new(
+        {event: :keydown, method: :on_key, keyboard: "esc", options: [:prevent], window: true},
+        implied_controller: @implied_controller
+      )
+      assert_equal "keydown.esc:prevent@window->foo--my-controller#onKey", action.to_s
+    end
   end
 end

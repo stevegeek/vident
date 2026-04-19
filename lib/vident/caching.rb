@@ -77,17 +77,11 @@ module Vident
     end
 
     # Component modified time which is combined with other cache key attributes to generate cache key for an instance
-    def component_modified_time
-      self.class.component_modified_time
-    end
+    def component_modified_time = self.class.component_modified_time
 
-    def cacheable?
-      respond_to? :cache_key
-    end
+    def cacheable? = respond_to?(:cache_key)
 
-    def cache_key_modifier
-      ENV["RAILS_CACHE_ID"]
-    end
+    def cache_key_modifier = ENV["RAILS_CACHE_ID"]
 
     def cache_keys_for_sources(key_attributes)
       sources = key_attributes.flat_map { |n| n.is_a?(Proc) ? instance_eval(&n) : send(n) }

@@ -210,8 +210,75 @@ class StimulusCollectionMergingTest < Minitest::Test
     merged = Vident::StimulusControllerCollection.merge(collection1, collection2, collection3)
     assert_instance_of Vident::StimulusControllerCollection, merged
 
-    result = merged.to_h
-    assert_instance_of Hash, result
-    refute_empty result
+    assert_equal "controller1 controller2 controller3", merged.to_h[:controller]
+  end
+
+  # Content-preservation assertions. The rest of this file's tests prove the
+  # merged collection has the right *type* and is non-empty; these prove the
+  # actual items from both sides survive the merge, so a silent item-drop in
+  # StimulusCollectionBase#merge can't pass unnoticed.
+
+  def test_merged_controllers_contain_items_from_both_sides
+    c1 = Vident::StimulusController.new("alpha")
+    c2 = Vident::StimulusController.new("beta")
+    merged = Vident::StimulusControllerCollection.new([c1]).merge(Vident::StimulusControllerCollection.new([c2]))
+    assert_equal "alpha beta", merged.to_h[:controller]
+  end
+
+  def test_merged_values_contain_items_from_both_sides
+    ctrl = Vident::StimulusController.new("foo")
+    v1 = Vident::StimulusValue.new(:url, "https://a.test", implied_controller: ctrl)
+    v2 = Vident::StimulusValue.new(:count, 7, implied_controller: ctrl)
+    merged = Vident::StimulusValueCollection.new([v1]).merge(Vident::StimulusValueCollection.new([v2]))
+    h = merged.to_h
+    assert_equal "https://a.test", h["foo-url-value"]
+    assert_equal "7", h["foo-count-value"]
+  end
+
+  def test_merged_actions_contain_items_from_both_sides
+    ctrl = Vident::StimulusController.new("foo")
+    a1 = Vident::StimulusAction.new(:click, :open, implied_controller: ctrl)
+    a2 = Vident::StimulusAction.new(:submit, :save, implied_controller: ctrl)
+    merged = Vident::StimulusActionCollection.new([a1]).merge(Vident::StimulusActionCollection.new([a2]))
+    assert_equal "click->foo#open submit->foo#save", merged.to_h[:action]
+  end
+
+  def test_merged_targets_contain_items_from_both_sides
+    ctrl = Vident::StimulusController.new("foo")
+    t1 = Vident::StimulusTarget.new(:body, implied_controller: ctrl)
+    t2 = Vident::StimulusTarget.new(:footer, implied_controller: ctrl)
+    merged = Vident::StimulusTargetCollection.new([t1]).merge(Vident::StimulusTargetCollection.new([t2]))
+    # Target names space-join under the single foo-target key.
+    assert_equal "body footer", merged.to_h["foo-target"]
+  end
+
+  def test_merged_classes_contain_items_from_both_sides
+    ctrl = Vident::StimulusController.new("foo")
+    c1 = Vident::StimulusClass.new(:loading, "spinner", implied_controller: ctrl)
+    c2 = Vident::StimulusClass.new(:error, "text-red-500", implied_controller: ctrl)
+    merged = Vident::StimulusClassCollection.new([c1]).merge(Vident::StimulusClassCollection.new([c2]))
+    h = merged.to_h
+    assert_equal "spinner", h["foo-loading-class"]
+    assert_equal "text-red-500", h["foo-error-class"]
+  end
+
+  def test_merged_params_contain_items_from_both_sides
+    ctrl = Vident::StimulusController.new("foo")
+    p1 = Vident::StimulusParam.new(:kind, "promote", implied_controller: ctrl)
+    p2 = Vident::StimulusParam.new(:release_id, 1, implied_controller: ctrl)
+    merged = Vident::StimulusParamCollection.new([p1]).merge(Vident::StimulusParamCollection.new([p2]))
+    h = merged.to_h
+    assert_equal "promote", h["foo-kind-param"]
+    assert_equal "1", h["foo-release-id-param"]
+  end
+
+  def test_merged_outlets_contain_items_from_both_sides
+    ctrl = Vident::StimulusController.new("foo")
+    o1 = Vident::StimulusOutlet.new(:modal, ".modal", implied_controller: ctrl)
+    o2 = Vident::StimulusOutlet.new(:toast, ".toast", implied_controller: ctrl)
+    merged = Vident::StimulusOutletCollection.new([o1]).merge(Vident::StimulusOutletCollection.new([o2]))
+    h = merged.to_h
+    assert_equal ".modal", h["foo-modal-outlet"]
+    assert_equal ".toast", h["foo-toast-outlet"]
   end
 end

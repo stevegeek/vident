@@ -259,7 +259,7 @@ module Vident
     end
 
     def test_prop_names
-      all_props = [:stimulus_controllers, :stimulus_actions, :stimulus_targets, :stimulus_outlets, :stimulus_outlet_host, :stimulus_values, :stimulus_classes, :element_tag, :id, :classes, :html_options, :my_string]
+      all_props = [:stimulus_controllers, :stimulus_actions, :stimulus_targets, :stimulus_outlets, :stimulus_outlet_host, :stimulus_values, :stimulus_params, :stimulus_classes, :element_tag, :id, :classes, :html_options, :my_string]
       assert_equal all_props, @test_component_class.prop_names
       assert_equal all_props, @test_component_class.new.prop_names
     end

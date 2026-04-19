@@ -6,10 +6,10 @@ module Vident
 
     include StimulusAttributes
 
-    # Module utilities for working with Stimulus identifiers
-
+    # Thin back-compat alias; see `Vident::StimulusAttributeBase.stimulize_path`
+    # for the canonical implementation.
     def stimulus_identifier_from_path(path)
-      path.split("/").map { |p| p.to_s.dasherize }.join("--")
+      StimulusAttributeBase.stimulize_path(path)
     end
     module_function :stimulus_identifier_from_path
 
@@ -26,7 +26,7 @@ module Vident
       def stimulus_identifier_path = name&.underscore || "anonymous_component"
 
       # Stimulus controller identifier
-      def stimulus_identifier = ::Vident::StimulusComponent.stimulus_identifier_from_path(stimulus_identifier_path)
+      def stimulus_identifier = StimulusComponent.stimulus_identifier_from_path(stimulus_identifier_path)
 
       # The "name" of the component from its class name and namespace. This is used to generate an HTML class name
       # that can helps identify the component type in the DOM or for styling purposes.
@@ -48,7 +48,7 @@ module Vident
           []
         end
       end
-      prop :stimulus_actions, _Array(_Union(String, Symbol, Array, Hash, StimulusAction, StimulusActionCollection)), default: -> { [] }
+      prop :stimulus_actions, _Array(_Union(String, Symbol, Array, Hash, StimulusAction, StimulusAction::Descriptor, StimulusActionCollection)), default: -> { [] }
       prop :stimulus_targets, _Array(_Union(String, Symbol, Array, Hash, StimulusTarget, StimulusTargetCollection)), default: -> { [] }
       prop :stimulus_outlets, _Array(_Union(String, Symbol, StimulusOutlet, StimulusOutletCollection)), default: -> { [] }
       prop :stimulus_outlet_host, _Nilable(Vident::Component) # A component that will host this component as an outlet

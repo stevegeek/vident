@@ -15,21 +15,13 @@ module Vident
       raise NoMethodError, "Subclasses must implement to_h"
     end
 
-    def to_a
-      @items.dup
-    end
+    def to_a = @items.dup
 
-    def to_hash
-      to_h
-    end
+    def to_hash = to_h
 
-    def empty?
-      @items.empty?
-    end
+    def empty? = @items.empty?
 
-    def any?
-      !empty?
-    end
+    def any? = !empty?
 
     def merge(*other_collections)
       merged = self.class.new

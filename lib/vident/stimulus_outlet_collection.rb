@@ -5,11 +5,7 @@ module Vident
     def to_h
       return {} if items.empty?
 
-      merged = {}
-      items.each do |outlet|
-        merged.merge!(outlet.to_h)
-      end
-      merged
+      items.each_with_object({}) { |outlet, merged| merged.merge!(outlet.to_h) }
     end
   end
 end

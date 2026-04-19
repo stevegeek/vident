@@ -19,10 +19,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `Vident::StableId.with_sequence_generator(seed:) { ... }` block helper for scoping a generator to a render outside the normal request flow (mailers, jobs, previews) (#14).
 - `bin/rails generate vident:install` installer that writes `config/initializers/vident.rb` and patches `ApplicationController` with the per-request seed hook (#14).
 - Claude Code skill at `skills/vident/SKILL.md` shipped with the gem. The install generator drops it into `.claude/skills/vident/SKILL.md` in the host app so Claude Code picks up the gem's conventions automatically.
+- Action descriptor support. The `stimulus_actions:` prop, `stimulus do ... actions(...)` DSL, and `child_element(stimulus_action(s): ...)` now accept a `Hash` (`{event:, method:, controller:, options:, keyboard:, window:}`) or a typed `Vident::StimulusAction::Descriptor` instance, allowing the `:once`/`:prevent`/`:stop`/`:passive`/`:"!passive"`/`:capture`/`:self` event-option modifiers, `.ctrl+a`-style keyboard filters, and `@window` in a structured Ruby form rather than a hand-typed descriptor string.
+- Stimulus action parameters. New `Vident::StimulusParam` / `StimulusParamCollection`, a `stimulus_params:` prop, a `params` DSL entry (mirrors `values`), a `stimulus_params:`/`stimulus_param:` kwarg on `child_element`, and inline `as_stimulus_param(s)` helpers. Emits `data-<controller>-<name>-param` attributes readable via `event.params.<name>` in the JS controller; element-scoped to match Stimulus's own semantics.
+
+### Changed
+
+- Internal refactor: introduced a `Vident::Stimulus::PRIMITIVES` registry (`lib/vident/stimulus.rb`) as the single source of truth for the seven Stimulus primitive kinds (controllers, actions, targets, outlets, values, params, classes). `StimulusDataAttributeBuilder`, the seven `stimulus_<kind>s(...)` plural parsers, and the seven `add_stimulus_<kind>s(...)` mutators are now generated from that registry, so adding a future primitive is a one-line registry addition plus a Value/Collection class pair — no per-kind edits in the resolver, builder, child-element helper, or data-attribute builder. No user-visible API change.
+- `serialize_value` lives on `StimulusAttributeBase` and is shared across `StimulusValue` / `StimulusParam` (was duplicated).
+- `StimulusAttributeBase.stimulize_path` is the canonical path → identifier helper (`stimulus_identifier_from_path` on `StimulusComponent` now delegates); both accept Symbol input consistently.
+- `StimulusBuilder`'s two nil-filter methods collapsed into one `resolve_hash_filtering_nil`.
+- Uniform shape matrix across all seven plural parsers: every kind now consistently accepts pre-built `<Kind>` instances, pre-built `<Kind>Collection`s, Arrays, and (where meaningful) Hashes in its variadic input.
 
 ### Fixed
 
 - `stimulus_controllers:` prop and the `stimulus_controllers(...)` helper now accept Symbol paths (e.g. `:my_controller`, `:"admin/users"`) instead of raising `NoMethodError: undefined method 'split' for an instance of Symbol` (#15).
+- `Vident::StimulusController`'s `implied_controller_path` / `implied_controller_name` overrides now raise the same `ArgumentError` as the base when `implied_controller` is nil, instead of a confusing `NoMethodError`.
 - `stimulus_values:` and `stimulus_classes:` props now accept cross-controller entries. The type unions include `Array` (matching `stimulus_actions:`/`stimulus_targets:`), and the collection parsers pass through pre-built `StimulusValue`/`StimulusValueCollection` (and class equivalents) instead of re-wrapping them into the single-value constructor and raising `ArgumentError: Invalid number of arguments` (#23).
 - `Vident::ComponentClassLists#class_list_builder` no longer memoises the `ClassListBuilder` instance. The first caller's `root_element_html_class:` was previously latched into the cached builder, which silently dropped the `class:` argument passed to a later `root_element(class: …)` whenever `class_list_for_stimulus_classes(:name)` ran first. The underlying `TailwindMerge::Merger` is still thread-cached, so the re-construction cost is negligible.
 

@@ -1,7 +1,7 @@
 module Vident
   module ViewComponent
     class Base < ::ViewComponent::Base
-      include ::Vident::Component
+      include Vident::Component
 
       class << self
         def cache_component_modified_time

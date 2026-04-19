@@ -15,9 +15,13 @@ module Dashboard
       # below resolves it for the initial SSR render.
       classes state: "fixed right-0 top-0 h-full w-80 border-l bg-white p-6 shadow-xl transition-transform duration-200 translate-x-full"
 
-      # Listen on window for the card's scoped `selected` event, and handle a
-      # plain click on this component's own close button.
+      # Three action entries:
+      # 1. scoped window event from a card → opens the panel.
+      # 2. Hash form with keyboard filter + window target → Escape closes.
+      #    Expands to `keydown.esc@window->dashboard--detail-panel-component#close`.
+      # 3. plain `:close` — the close button's explicit click target.
       actions -> { [ReleaseCardComponent.stimulus_scoped_event_on_window(:selected), :handle_selected] },
+        {event: :keydown, method: :close, keyboard: "esc", window: true},
         :close
     end
 

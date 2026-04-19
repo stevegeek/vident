@@ -204,6 +204,71 @@ class StimulusHelperViewComponentIntegrationTest < ViewComponent::TestCase
     assert_equal "opacity-50 cursor-wait", data_attrs[loading_class_key]
   end
 
+  def test_action_descriptor_emits_full_descriptor_string
+    component_class = Class.new(::Vident::ViewComponent::Base) do
+      def self.name = "ActionDescriptorComponent"
+
+      def call
+        root_element { "x" }
+      end
+    end
+
+    descriptor = ::Vident::StimulusAction::Descriptor.new(
+      event: :keydown,
+      method: :handle_key,
+      keyboard: "ctrl+a",
+      options: [:prevent],
+      window: true
+    )
+    component = component_class.new(stimulus_actions: [descriptor])
+    component.send(:prepare_component_attributes)
+    data_attrs = component.send(:stimulus_data_attributes)
+
+    assert_equal "keydown.ctrl+a:prevent@window->action-descriptor-component#handleKey", data_attrs["action"]
+  end
+
+  def test_stimulus_params_dsl_and_child_element
+    component_class = Class.new(::Vident::ViewComponent::Base) do
+      def self.name = "ParamsDemoComponent"
+
+      stimulus do
+        actions [:click, :handle]
+        params release_id: -> { 42 }, kind: "promote"
+      end
+
+      def call
+        root_element { "" }
+      end
+    end
+
+    component = component_class.new
+    component.send(:prepare_component_attributes)
+    data_attrs = component.send(:stimulus_data_attributes)
+
+    release_key = data_attrs.keys.find { |k| k.include?("release-id-param") }
+    kind_key = data_attrs.keys.find { |k| k.include?("kind-param") }
+    assert release_key
+    assert_equal "42", data_attrs[release_key]
+    assert kind_key
+    assert_equal "promote", data_attrs[kind_key]
+  end
+
+  def test_hash_action_sugars_into_descriptor
+    component_class = Class.new(::Vident::ViewComponent::Base) do
+      def self.name = "HashActionComponent"
+
+      def call
+        root_element { "x" }
+      end
+    end
+
+    component = component_class.new(stimulus_actions: [{event: :click, method: :submit, options: [:once]}])
+    component.send(:prepare_component_attributes)
+    data_attrs = component.send(:stimulus_data_attributes)
+
+    assert_equal "click:once->hash-action-component#submit", data_attrs["action"]
+  end
+
   def test_cross_controller_stimulus_values_via_collection_prop
     component_class = Class.new(::Vident::ViewComponent::Base) do
       def self.name = "CrossControllerValuesComponent"

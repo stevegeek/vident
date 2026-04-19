@@ -5,11 +5,7 @@ module Vident
     def to_h
       return {} if items.empty?
 
-      merged = {}
-      items.each do |param|
-        merged.merge!(param.to_h)
-      end
-      merged
+      items.each_with_object({}) { |param, merged| merged.merge!(param.to_h) }
     end
   end
 end

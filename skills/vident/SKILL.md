@@ -66,7 +66,30 @@ Vident `actions` DSL entries (all of these work inside `stimulus do ... end`):
 | `[:click, :my_thing]`                       | `click->implied#myThing`                           |
 | `[:click, "other/ctrl", :my_thing]`         | `click->other--ctrl#myThing`                       |
 | `"click->other--ctrl#myThing"`              | pass-through, parsed into its parts                |
+| `{event: :click, method: :submit, options: [:once, :prevent]}` | `click:once:prevent->implied#submit` |
+| `Vident::StimulusAction::Descriptor.new(event: :click, method: :submit, options: [:once])` | same — typed data object, Hash is sugar |
 | `-> { [:click, :my_thing] if @editable }`   | proc, evaluated in component instance; `nil`/`false` returns drop the entry |
+
+**Modifiers via the Hash / Descriptor form.** Accepted keys on the hash (and the `Descriptor` data class):
+
+| Key          | Type              | Emits                                    |
+| ------------ | ----------------- | ---------------------------------------- |
+| `event:`     | Symbol / String   | prepends `event->`                       |
+| `method:`    | Symbol / String   | the `#method` part (required)            |
+| `controller:`| String path       | routes to another controller             |
+| `options:`   | `Array<Symbol>` from `:once`, `:prevent`, `:stop`, `:passive`, `:"!passive"`, `:capture`, `:self` | `:once:prevent…` suffix on event |
+| `keyboard:`  | String like `"ctrl+a"` | `.ctrl+a` suffix on event filter    |
+| `window:`    | Boolean           | `@window` suffix on event                |
+
+Unknown option symbols raise `ArgumentError`. Use the Hash form for the common case; use `Vident::StimulusAction::Descriptor.new(...)` when you want a typed, passable value object (reusable across components, shared helpers).
+
+```ruby
+actions({event: :keydown, method: :on_escape, keyboard: "esc", options: [:prevent]})
+# => keydown.esc:prevent->implied#onEscape
+
+actions({event: :click, method: :handle, controller: "dialog/open", window: true})
+# => click@window->dialog--open#handle
+```
 
 ```ruby
 stimulus do
@@ -248,9 +271,40 @@ Vident: **pure JS, no Ruby-side hook.** Write them in the paired `_controller.js
 
 ### 1.9 Action params
 
-Stimulus: `data-<identifier>-<name>-param="value"` surfaces on the action handler as `event.params.<name>`. Auto-typecast to Number/String/Object/Boolean.
+Stimulus: `data-<identifier>-<name>-param="value"` lives on an element. Any action handler whose event fires on or bubbles through that element reads the values as `event.params.<name>` (auto-typecast to Number/String/Object/Boolean).
 
-Vident: **no dedicated DSL entry.** Write the `data-...-param-...` attribute by hand (e.g. as a plain `data:` kwarg on `child_element`).
+Vident has three entry points, all mirroring `values`:
+
+**(a) `params(key: value, …)` in the DSL.** Static values or procs evaluated in the component instance:
+
+```ruby
+stimulus do
+  actions [:click, :promote]
+  params release_id: -> { @release_id }, kind: "promote"
+end
+# => data-implied-release-id-param="42" data-implied-kind-param="promote"
+```
+
+**(b) `stimulus_params:` prop / `child_element(stimulus_params: …)`.** The common "one button, one action, params for that action" case lives here — co-located with the `stimulus_action:` it informs:
+
+```ruby
+card.child_element(:button,
+  stimulus_action: [:click, :promote],
+  stimulus_params: { release_id: @release_id, kind: "promote" })
+```
+
+**(c) Array form on the prop for cross-controller:**
+
+```ruby
+stimulus_params: [
+  [:release_id, 42],              # implied-release-id-param="42"
+  ["other/ctrl", :scope, "full"], # other--ctrl-scope-param="full"
+]
+```
+
+**Element-scoped, not action-scoped.** In Stimulus, params live on the element, not on an individual action. Multiple actions on the same element share the same params. Vident's DSL matches this: `params` is a sibling of `actions`, not nested inside it.
+
+Inline helper (ERB): `as_stimulus_param(:release_id, 42)` / `as_stimulus_params({release_id: 42})`.
 
 ---
 
