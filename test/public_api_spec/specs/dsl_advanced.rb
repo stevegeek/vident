@@ -26,6 +26,7 @@ module Vident
       # ---- action: Descriptor typed value object -------------------------
 
       def test_action_from_descriptor_instance
+        skip_on_v2 "V2 folds the descriptor shape directly into Stimulus::Action (no separate Descriptor class)"
         klass = define_component(name: "ButtonComponent") do
           descriptor = ::Vident::StimulusAction::Descriptor.new(
             event: :click, method: :submit, options: [:once]
@@ -113,15 +114,8 @@ module Vident
         refute_match(/data-action=/, render(klass.new))
       end
 
-      # SPEC-NOTE (action vs value false-handling asymmetry): For actions
-      # specifically, the plural parser does `args.all?(&:blank?)` at
-      # stimulus_attributes.rb:43, and `false.blank?` is true — so a
-      # `false` action entry is silently dropped with no data-action
-      # emitted. For VALUES, `false` is preserved and stringifies to
-      # "false" (see serialization.rb). This asymmetry exists because
-      # actions go through the blank-check plural parser while values
-      # flow through a Hash-keyed path where `false` is a valid payload.
       def test_action_proc_returning_false_drops_silently
+        skip_on_v2 "V2 unifies drop rule — only nil drops, false reaches parser (and raises)"
         klass = define_component(name: "ButtonComponent") do
           stimulus { actions(-> { false }) }
         end

@@ -40,6 +40,7 @@ module Vident
       # (`stimulus_action(:click, :handle)`) or double-wrap
       # (`add_stimulus_actions([[:click, :handle]])`).
       def test_add_stimulus_actions_splats_array_argument_into_multiple_actions
+        skip_on_v2 "mutator splat gotcha — V2 treats Array as one entry (event+method pair)"
         klass = define_component(name: "ButtonComponent") do
           define_method(:after_component_initialize) { add_stimulus_actions([:click, :hover]) }
         end

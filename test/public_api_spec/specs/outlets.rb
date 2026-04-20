@@ -83,11 +83,7 @@ module Vident
       # ---- outlets DSL does NOT evaluate procs ---------------------------
 
       def test_outlets_dsl_proc_values_raise_not_silently_passed_through
-        # SPEC-NOTE (audit gap G13): outlets is the only DSL primitive
-        # that skips proc resolution (stimulus_builder.rb:91 returns
-        # entries.dup untouched). A proc value therefore reaches the
-        # parser, which rejects it — ArgumentError raised at `.new()`
-        # time. Vident 2.0 may either add proc support or raise earlier.
+        skip_on_v2 "V2 evaluates outlet procs like every other DSL primitive"
         klass = define_component(name: "PageComponent") do
           stimulus { outlets modal: -> { ".modal" } }
         end

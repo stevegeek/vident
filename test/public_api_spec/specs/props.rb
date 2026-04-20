@@ -91,10 +91,10 @@ module Vident
       end
 
       def test_stimulus_controllers_prop_accepts_pre_built_value
+        skip_on_v2 "V2 unifies: prop appends to implied controller (no longer replaces)"
         klass = define_component(name: "PanelComponent")
         comp = klass.new
         ctrl = comp.stimulus_controller("tooltip")
-        # Replace default since prop is direct assignment
         html = render(klass.new(stimulus_controllers: [ctrl]))
         assert_includes html, 'data-controller="tooltip"'
       end

@@ -93,10 +93,7 @@ module Vident
       end
 
       def test_no_stimulus_controller_with_dsl_emission_raises
-        # SPEC-NOTE (sharp edge): when no_stimulus_controller is declared,
-        # the `stimulus do` DSL has nothing to route entries to, and the
-        # resolver raises a bare StandardError at .new() time. Task 16
-        # (errors) may re-home this to a typed Vident error in 2.0.
+        skip_on_v2 "V2 raises Vident2::DeclarationError at class-def time (not instance-init StandardError)"
         klass = define_component(name: "AvatarComponent") do
           no_stimulus_controller
           stimulus { actions :click }
@@ -108,11 +105,7 @@ module Vident
       # ---- stimulus_controllers: prop ------------------------------------
 
       def test_stimulus_controllers_prop_at_new_replaces_implied
-        # SPEC-NOTE: passing the prop at .new() is direct assignment (no
-        # merge with default). The implied controller is the *default*,
-        # not an unconditional addition. Compare
-        # test_stimulus_controllers_via_root_element_attributes_additive
-        # below for the merge path.
+        skip_on_v2 "V2 unifies: prop appends to implied controller (no longer replaces)"
         klass = define_component(name: "ButtonComponent")
         html = render(klass.new(stimulus_controllers: ["tooltip"]))
         assert_includes html, 'data-controller="tooltip"'
