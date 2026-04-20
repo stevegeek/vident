@@ -1,7 +1,7 @@
 ---
 name: Vident
 description: This skill should be used when writing or editing Rails view components in a project that depends on `vident`, `vident-view_component`, or `vident-phlex` — i.e. any class inheriting from `Vident::ViewComponent::Base` or `Vident::Phlex::HTML`, any paired `*_component_controller.js` Stimulus file next to such a component, or the `stimulus_*` props / `stimulus do ... end` DSL / `child_element` / `root_element` / `class_list_for_stimulus_classes` / `Vident::StimulusNull` / `Vident::StableId` APIs. It also covers the `bin/rails generate vident:install` initializer and the per-request ID seeding it installs on `ApplicationController`.
-version: 0.1.0
+version: 0.2.0
 ---
 
 # Vident
@@ -9,6 +9,8 @@ version: 0.1.0
 Vident is a thin layer on top of ViewComponent / Phlex that gives a component three things Stimulus alone does not: **typed props** (via Literal), a **declarative Ruby DSL** that compiles down to the `data-*` attributes Stimulus expects, and **first-class outlets** including a host/child self-registration pattern. Every component also comes with a **stable, deterministic element id** system so HTML output is etag-stable across requests.
 
 A Vident component is always a class with props, a single `root_element`, and (optionally) a `stimulus do ... end` block that declares the controllers, actions, targets, values, classes and outlets its paired JavaScript file needs.
+
+> **Going deeper.** This file is the everyday reference. For end-to-end walkthroughs (dashboard, forms, slot-based parent/child wiring, ERB helper comparisons), read [`examples.md`](examples.md). For the exhaustive public-API spec (every signature, raise-condition, and argument shape), read [`api-reference.md`](api-reference.md).
 
 ---
 
@@ -553,6 +555,8 @@ Inside `<name>OutletConnected`, **do not iterate `this.<name>Outlets`**. Stimulu
 
 ## 8. Recipes
 
+One-liners per task. For worked end-to-end versions (dashboard with outlets, slot trigger, ERB variants) see [`examples.md`](examples.md).
+
 **Click handler on the root** — `stimulus do; actions [:click, :select]; end` + `select(event) {…}` in JS.
 
 **Click handler on a child button** — `card.child_element(:button, stimulus_action: [:click, :promote]) { "Promote" }`.
@@ -615,6 +619,8 @@ end
 ---
 
 ## 9. Key source files
+
+For the exhaustive public-API listing (every method signature, argument shape, and raise-condition, verified against current code), see [`api-reference.md`](api-reference.md). The files below are useful when you need to read the implementation itself.
 
 - `lib/vident/stimulus_builder.rb` — DSL evaluator.
 - `lib/vident/stimulus_attributes.rb` — parser for every `stimulus_*` input shape + `as_stimulus_*` helpers' backing.

@@ -19,7 +19,7 @@ task :_enable_coverage do
 end
 Rake::TestTask.new(:_coverage_run) do |t|
   t.libs << "test"
-  t.test_files = FileList["test/vident/**/*_test.rb", "test/components/**/*_test.rb"]
+  t.test_files = FileList["test/vident/**/*_test.rb", "test/components/**/*_test.rb", "test/public_api_spec/**/*_test.rb"]
   t.warning = false
 end
 desc "Run unit tests in-process with SimpleCov enabled"
