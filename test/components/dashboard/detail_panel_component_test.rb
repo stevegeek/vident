@@ -13,10 +13,10 @@ class DashboardDetailPanelComponentTest < Minitest::Test
 
   def test_renders_data_controller_with_dismissable_alias_stacked
     html = Dashboard::DetailPanelComponent.new.call
-    # `controller "dashboard_v2/dismissable", as: :dismissable` stacks a
+    # `controller "dashboard/dismissable", as: :dismissable` stacks a
     # second Stimulus controller onto the panel root. Both tokens appear
     # in `data-controller`, preserving declaration order.
-    assert_includes html, 'data-controller="dashboard--detail-panel-component dashboard-v2--dismissable"'
+    assert_includes html, 'data-controller="dashboard--detail-panel-component dashboard--dismissable"'
   end
 
   def test_release_value_is_stimulus_null_literal
@@ -50,10 +50,10 @@ class DashboardDetailPanelComponentTest < Minitest::Test
 
   def test_backspace_action_resolves_dismissable_alias
     # `.on_controller(:dismissable)` routes through the alias declared via
-    # `controller "dashboard_v2/dismissable", as: :dismissable` — the
+    # `controller "dashboard/dismissable", as: :dismissable` — the
     # emitted handler targets the dismissable token, not the implied panel.
     html = Dashboard::DetailPanelComponent.new.call
-    assert_includes html, "keydown.backspace@window->dashboard-v2--dismissable#close"
+    assert_includes html, "keydown.backspace@window->dashboard--dismissable#close"
     refute_includes html, "keydown.backspace@window->dashboard--detail-panel-component#close"
   end
 
@@ -61,7 +61,7 @@ class DashboardDetailPanelComponentTest < Minitest::Test
     # Exercises the kwargs shorthand `on: :dblclick, on_controller: :dismissable`
     # — same result as the fluent chain, but via hash options.
     html = Dashboard::DetailPanelComponent.new.call
-    assert_includes html, "dblclick->dashboard-v2--dismissable#close"
+    assert_includes html, "dblclick->dashboard--dismissable#close"
   end
 
   def test_body_target_child_element

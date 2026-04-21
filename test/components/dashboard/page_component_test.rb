@@ -54,7 +54,7 @@ class DashboardPageComponentTest < Minitest::Test
     assert_includes html, 'data-controller="dashboard--filter-bar-component"'
     # Detail panel stacks its implied controller with the `:dismissable` alias,
     # so its `data-controller` carries both tokens.
-    assert_includes html, 'data-controller="dashboard--detail-panel-component dashboard-v2--dismissable"'
+    assert_includes html, 'data-controller="dashboard--detail-panel-component dashboard--dismissable"'
     assert_includes html, 'data-controller="dashboard--toast-component"'
   end
 

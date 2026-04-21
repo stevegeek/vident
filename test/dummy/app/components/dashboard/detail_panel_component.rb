@@ -22,10 +22,10 @@ module Dashboard
 
       # Secondary controller stacked on the panel root, given a short alias
       # so later action entries can refer to it by `:dismissable` instead of
-      # the full path. Emits an extra `dashboard-v2--dismissable` token in
+      # the full path. Emits an extra `dashboard--dismissable` token in
       # `data-controller`, so Stimulus instantiates both controllers on the
       # same element.
-      controller "dashboard_v2/dismissable", as: :dismissable
+      controller "dashboard/dismissable", as: :dismissable
 
       # Four actions on the panel root. The first two target the implied
       # detail-panel controller; the last two target the :dismissable alias.
@@ -43,13 +43,13 @@ module Dashboard
       # 3. Backspace also closes, but via the :dismissable alias. The fluent
       #    `.on_controller(:dismissable)` routes the action through the alias
       #    declared above, so the emitted data-action is
-      #    `keydown.backspace@window->dashboard-v2--dismissable#close` instead
+      #    `keydown.backspace@window->dashboard--dismissable#close` instead
       #    of the implied controller.
       action(:close).on(:keydown).keyboard("backspace").window.on_controller(:dismissable)
 
       # 4. Kwargs form AND alias together: `on:` sets the event, `on_controller:`
       #    routes through the :dismissable alias. Emits
-      #    `dblclick->dashboard-v2--dismissable#close`. Equivalent to the
+      #    `dblclick->dashboard--dismissable#close`. Equivalent to the
       #    fluent chain `.on(:dblclick).on_controller(:dismissable)`.
       action :close, on: :dblclick, on_controller: :dismissable
 
