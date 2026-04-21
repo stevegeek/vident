@@ -125,7 +125,9 @@ module Vident
         klass = define_component(name: "ButtonComponent") do
           stimulus { actions(-> { false }) }
         end
-        assert_raises(::Vident2::ParseError) { klass.new }
+        # V2 defers proc resolution to render; the raise fires when the
+        # adapter's before_template / before_render runs the procs.
+        assert_raises(::Vident2::ParseError) { render(klass.new) }
       end
 
       # ---- V2 type references -----------------------------------------

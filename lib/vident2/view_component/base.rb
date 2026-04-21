@@ -43,6 +43,13 @@ module Vident2
 
       SELF_CLOSING_TAGS = Set[*%i[area base br col embed hr img input link meta param source track wbr]].freeze
 
+      # ViewComponent lifecycle hook: resolve stimulus DSL procs now that
+      # `@view_context` is set (so `helpers` works inside them).
+      def before_render
+        resolve_stimulus_attributes_at_render_time
+        super
+      end
+
       # Same block-capture-first ordering as the Phlex adapter. Children
       # instantiated inside the block can still mutate this instance's
       # Draft (outlet-host pattern) before we seal.

@@ -15,10 +15,9 @@ require_relative "stimulus/collection"
 require_relative "tailwind"
 
 module Vident2
-  # Composition root for Vident 2.0 components. Until the capability
-  # split lands, this module carries the whole surface directly: props,
-  # DSL receiver, singular/plural parsers, add_stimulus_* mutators, and
-  # the render pipeline glue.
+  # Composition root for Vident 2.0 components: props, DSL receiver,
+  # singular/plural parsers, add_stimulus_* mutators, and the render
+  # pipeline glue.
   module Component
     extend ActiveSupport::Concern
 
@@ -32,12 +31,9 @@ module Vident2
       prop :classes, _Union(String, _Array(String)), default: -> { [] }
       prop :html_options, Hash, default: -> { {} }
 
-      # Stimulus input props. Each maps onto a Draft via the Resolver at
-      # `after_initialize`. Union types mirror V1's (see
-      # lib/vident/stimulus_component.rb:44-57) so existing call sites
-      # keep working. The controller prop APPENDS to the implied
-      # controller (the Resolver always seeds the implied first unless
-      # the class opted out via `no_stimulus_controller`).
+      # Stimulus input props. Resolver folds these into the Draft at init.
+      # `stimulus_controllers:` APPENDS to the implied controller (which
+      # seeds first unless `no_stimulus_controller`).
       prop :stimulus_controllers,
         _Array(_Union(String, Symbol, ::Vident2::Stimulus::Controller)),
         default: -> { [] }
@@ -61,9 +57,8 @@ module Vident2
         _Union(_Hash(Symbol, _Any), Array, ::Vident2::Stimulus::ClassMap),
         default: -> { {} }
 
-      # Eager inheritance: start from parent's frozen Declarations so
-      # every subclass sees its ancestors' DSL effect without calling
-      # anything. `inherited` below then keeps the chain building.
+      # Eager inheritance: subclasses copy parent's frozen Declarations
+      # (see `inherited` below).
       @__vident2_declarations = ::Vident2::Internals::Declarations.empty
       @__vident2_no_stimulus_controller = false
     end
@@ -73,15 +68,13 @@ module Vident2
         literal_properties.properties_index.keys.map(&:to_sym)
       end
 
-      # Underscored class path: `Admin::UserCardComponent` → `admin/user_card_component`.
-      # Anonymous classes fall back to a stable placeholder so DSL/renderer
-      # code doesn't nil-crash in fixtures.
+      # `Admin::UserCardComponent` → `admin/user_card_component`.
+      # Anonymous classes return a stable placeholder.
       def stimulus_identifier_path
         name&.underscore || "anonymous_component"
       end
 
-      # Kebab-cased, `--`-separated identifier — the string that appears
-      # in `data-controller` and as the implicit class on the root.
+      # The `data-controller` / root-class form, e.g. `admin--user-card-component`.
       def stimulus_identifier
         stimulus_identifier_path.split("/").map(&:dasherize).join("--")
       end
@@ -90,15 +83,13 @@ module Vident2
         @component_name ||= stimulus_identifier
       end
 
-      # Frozen aggregate of everything the DSL declared on this class
-      # and its ancestors. Always non-nil (may be `Declarations.empty`).
+      # Frozen DSL aggregate (own + inherited). Always non-nil.
       def declarations
         @__vident2_declarations ||= ::Vident2::Internals::Declarations.empty
       end
 
-      # Suppresses the implied controller. A `stimulus do` block after
-      # this call with any entry raises `DeclarationError` — the
-      # resolver has no controller to route entries through.
+      # Suppresses the implied controller. A `stimulus do` block with
+      # entries after this call raises `DeclarationError`.
       def no_stimulus_controller
         if declarations.any?
           raise ::Vident2::DeclarationError,
@@ -113,10 +104,8 @@ module Vident2
         !@__vident2_no_stimulus_controller
       end
 
-      # Block receiver for `stimulus do ... end`. Runs the block against
-      # a fresh DSL instance, then merges the resulting Declarations
-      # into the class-level aggregate. Calling twice APPENDS (positional
-      # kinds) or LAST-WRITE-WINS (keyed kinds).
+      # `stimulus do ... end` block receiver. Second+ calls append
+      # (positional) or last-write-wins (keyed).
       def stimulus(&block)
         call_site = caller_locations(1, 1)&.first
         dsl = ::Vident2::Internals::DSL.new(caller_location: call_site)
@@ -133,8 +122,7 @@ module Vident2
         @__vident2_declarations = declarations.merge(fresh).freeze
       end
 
-      # Format a component-scoped Stimulus event for cross-component
-      # dispatch. Returns a Symbol (callable directly in `action` DSL).
+      # Component-scoped Stimulus event (Symbol, usable directly in `action` DSL).
       def stimulus_scoped_event(event)
         :"#{component_name}:#{event.to_s.camelize(:lower)}"
       end
@@ -158,72 +146,59 @@ module Vident2
     def component_name = self.class.component_name
     def stimulus_identifier = self.class.stimulus_identifier
 
-    # The underscored class path used to build the implied controller.
     private def default_controller_path = self.class.stimulus_identifier_path
 
     def stimulus_scoped_event(event) = self.class.stimulus_scoped_event(event)
     def stimulus_scoped_event_on_window(event) = self.class.stimulus_scoped_event_on_window(event)
 
-    # Auto-id format: "<component-name>-<stable-id>". Users can override
-    # via the `id:` prop at construction; blank string falls through to
-    # auto-generation (`.presence` is intentional, not `nil?`).
+    # Auto-id: `<component-name>-<stable-id>`. `.presence` is intentional
+    # — blank string falls through to auto-generation.
     def id
       return @id if @id.present?
       @__vident2_auto_id ||= "#{component_name}-#{::Vident::StableId.next_id_in_sequence}"
     end
 
-    # If connecting an outlet to a specific instance, use this pair.
-    # Memoised — the `"#<id>"` form is stable across calls.
+    # Stable `[identifier, "#<id>"]` pair for connecting an outlet to
+    # this instance.
     def outlet_id
       @outlet_id ||= [stimulus_identifier, "##{id}"]
     end
 
-    # Return a fresh instance with the current prop-hash merged with
-    # overrides. Literal-backed props expose `#to_h`; rely on that.
+    # Fresh instance with current props merged with overrides.
     def clone(overrides = {})
       self.class.new(**to_h.merge(overrides))
     end
 
-    # Custom inspect mirroring v1's format so tooling / specs that
-    # regex-match the output keep working. Default klass_name label is
-    # "Component" (kept for tooling / specs that regex-match output).
+    # Custom format kept for tooling / specs that regex-match output.
     def inspect(klass_name = "Component")
       attr_text = to_h.map { |k, v| "#{k}=#{v.inspect}" }.join(", ")
       "#<#{self.class.name}<Vident::#{klass_name}> #{attr_text}>"
     end
 
-    # Memoised view of `root_element_attributes`. Called by the Resolver
-    # at init and by `build_root_element_attributes` / `root_element_tag_type`
-    # at render — must return the same Hash across all sites, so the
-    # user's `root_element_attributes` override runs exactly once.
+    # Memoised `root_element_attributes`: the user's override runs exactly
+    # once (across Resolver + renderer reads).
     private def resolved_root_element_attributes
       return @__vident2_rea if defined?(@__vident2_rea)
       value = root_element_attributes
       @__vident2_rea = value.is_a?(Hash) ? value : {}
     end
 
-    # User override point: returns extra attributes to fold into the root
-    # element at render time. Returning a Hash with `stimulus_*:` keys
-    # APPENDS those into the Draft (same merge semantic as the props).
+    # User override: extra attrs for the root. `stimulus_*:` keys APPEND
+    # into the Draft (same as props).
     def root_element_attributes = {}
 
-    # User override point: instance-level extra classes for the root. One
-    # of four tiers in the cascade (see ClassListBuilder). Returning nil
-    # means "don't contribute"; any String / Array-of-String is folded in.
+    # User override: instance-level extra classes for the root (one tier
+    # of ClassListBuilder's cascade). Return nil for no contribution.
     def root_element_classes
       nil
     end
 
-    # User hook: runs after the Draft is built but before seal. May call
-    # `add_stimulus_*` to append entries conditionally.
+    # User hook: runs after the Draft is built but before seal.
     def after_component_initialize
     end
 
-    # Singular parsers `stimulus_<singular>(*args)` return a pre-built
-    # value object. Pre-built value input passes through unchanged.
-    # Method names (hardcoded for clarity over regex gymnastics):
-    #   stimulus_controller / _action / _target / _outlet /
-    #   _value / _param / _class
+    # Singular parsers return a pre-built value object; pre-built input
+    # passes through unchanged.
     SINGULAR_PARSERS = {
       controllers: :stimulus_controller,
       actions:     :stimulus_action,
@@ -242,13 +217,10 @@ module Vident2
       end
     end
 
-    # Plural parsers `stimulus_<plural>(*args)` return a Collection wrapper
-    # exposing `#to_h` (for splatting into a `data:` option).
-    #
-    # Input shapes: Symbol / String (bare names), Array (splatted as the
-    # singular parser's arg tuple), Hash (for keyed kinds: one pair each;
-    # for non-keyed kinds: a single descriptor), pre-built Value
-    # (pass-through), pre-built Collection (pass-through).
+    # Plural parsers return a Collection (exposes `#to_h` for `data:`
+    # splatting). Inputs: Symbol / String / Array (= singular parser's
+    # arg tuple) / Hash (keyed: one pair each) / pre-built Value or
+    # Collection (pass-through).
     PLURAL_PARSERS = {
       controllers: :stimulus_controllers,
       actions:     :stimulus_actions,
@@ -288,9 +260,8 @@ module Vident2
       end
     end
 
-    # Mutators `add_stimulus_<plural>(input)`. One call = one logical
-    # entry — Array input is the entry's argument tuple passed to the
-    # singular parser, NOT splatted across multiple mutator calls.
+    # Mutators. One call = one entry: Array input is the singular
+    # parser's arg tuple, NOT splatted across multiple mutator calls.
     MUTATOR_METHODS = {
       controllers: :add_stimulus_controllers,
       actions:     :add_stimulus_actions,
@@ -301,9 +272,7 @@ module Vident2
       class_maps:  :add_stimulus_classes
     }.freeze
 
-    # Maps an internal kind name to the `stimulus_<singular>` method /
-    # `stimulus_<singular>:` kwarg. Used by child_element's error paths
-    # and plural-vs-singular routing.
+    # Kind name → `stimulus_<singular>` suffix (used by child_element).
     SINGULAR_NAMES = {
       controllers: :controller,
       actions:     :action,
@@ -324,11 +293,10 @@ module Vident2
       end
     end
 
-    # SSR helper: resolves the component's declared ClassMap entries
-    # whose `name` matches `names` into a space-joined String, running
-    # through Tailwind merge when available. Returns "" for no matches
-    # so users can inline it directly.
+    # SSR helper: resolved ClassMap entries matching `names` as a
+    # space-joined String. Tailwind-merged if available. `""` on miss.
     def class_list_for_stimulus_classes(*names)
+      resolve_stimulus_attributes_at_render_time
       plan = seal_draft
       maps = plan.class_maps
       return "" if maps.empty? || names.empty?
@@ -341,10 +309,9 @@ module Vident2
       result || ""
     end
 
-    # Emit a child element's opening tag + data attributes + block content.
-    # Child-element builder: 7 singular + 7 plural stimulus
-    # kwargs. Plural kwargs must be Enumerable. Delegates the actual tag
-    # emission to the adapter's `generate_child_element` (Phlex vs VC).
+    # Emit a child element with stimulus_* kwargs folded into data-*
+    # attrs. Plural kwargs must be Enumerable. Adapter provides the tag
+    # emission (`generate_child_element`).
     def child_element(
       tag_name,
       stimulus_controllers: nil,
@@ -387,17 +354,37 @@ module Vident2
 
     private
 
-    # Literal callback — runs after props are assigned. Build the Draft,
-    # register on outlet host if present, then invoke the user hook.
+    # Literal callback after props are assigned. Builds the Draft with
+    # STATIC entries; DSL procs defer to render (adapter's
+    # `before_template` / `before_render` — `view_context` isn't wired yet).
     def after_initialize
       @__vident2_draft = ::Vident2::Internals::Resolver.call(
-        self.class.declarations, self
+        self.class.declarations, self, phase: :static
       )
       @stimulus_outlet_host&.add_stimulus_outlets(self)
       after_component_initialize
     end
 
-    # Implied controller used by singular parsers + add_stimulus_*.
+    public
+
+    # Resolve DSL proc entries deferred at `after_initialize`. Called by
+    # the adapter's `before_template` / `before_render`; `seal_draft` and
+    # `class_list_for_stimulus_classes` call it as safety nets.
+    #
+    # Flag set before the guards so a sealed Draft can't trap us in a
+    # loop where every subsequent call re-takes the sealed branch.
+    def resolve_stimulus_attributes_at_render_time
+      return if @__vident2_procs_resolved
+      @__vident2_procs_resolved = true
+      # Nil = test double. Sealed = someone consumed the Draft already.
+      return if @__vident2_draft.nil? || @__vident2_draft.sealed?
+      ::Vident2::Internals::Resolver.resolve_procs_into(
+        @__vident2_draft, self.class.declarations, self
+      )
+    end
+
+    private
+
     def implied_controller
       @__vident2_implied_controller ||= ::Vident2::Stimulus::Controller.new(
         path: self.class.stimulus_identifier_path,
@@ -405,11 +392,8 @@ module Vident2
       )
     end
 
-    # Decompose mutator input into 0+ parsed entries. Pre-built Value /
-    # Collection pass through (Collection unwraps to its items). Hash
-    # input for keyed kinds fans out one entry per pair. Array input is
-    # ONE entry (gotcha: V2 intentionally does not splat Arrays across
-    # multiple entries — mirrors the DSL's plural-forwarding shape).
+    # Array input is ONE entry — V2 intentionally does not splat Arrays
+    # across entries (mirrors the DSL's plural→singular forwarding).
     def unwrap_mutator_input(kind, input)
       return [] if input.nil?
       return [input] if input.is_a?(kind.value_class)
@@ -431,15 +415,15 @@ module Vident2
         "cannot modify stimulus attributes after rendering has begun"
     end
 
-    # Seal Draft and memoise the Plan. First caller wins; subsequent
-    # calls return the same Plan object.
+    # Seal Draft and memoise the Plan. Also a safety net for deferred
+    # proc resolution when the adapter hook didn't fire.
     def seal_draft
+      resolve_stimulus_attributes_at_render_time
       @__vident2_plan ||= @__vident2_draft.seal!
     end
 
-    # Builds the merged root-element attribute Hash for adapters.
-    # Accepts `overrides` from `root_element(**overrides)` (highest
-    # precedence for non-data keys) and folds data-* from the Plan.
+    # Merged root-element attribute Hash for adapters. `overrides` come
+    # from `root_element(**overrides)` and win on non-data keys.
     def build_root_element_attributes(overrides)
       plan = seal_draft
       data_attrs = ::Vident2::Internals::AttributeWriter.call(plan)
@@ -450,16 +434,14 @@ module Vident2
       extra_id = extra[:id]
       extra_data = extra_html_options[:data] || {}
 
-      # data merge: Plan fragments first (lowest), then root_element_attributes[:html_options][:data],
-      # then instance html_options[:data], then overrides[:data] (highest).
+      # data precedence (low→high): Plan fragments → attrs html_options[:data]
+      # → instance html_options[:data] → overrides[:data].
       merged_data = data_attrs.dup
       merged_data.merge!(symbolize_keys(extra_data))
       merged_data.merge!(symbolize_keys(@html_options[:data] || {}))
       merged_data.merge!(symbolize_keys(overrides[:data] || {}))
 
-      # 6-tier class list precedence — see ClassListBuilder for the
-      # full description. Here we marshal the tiers out of the various
-      # sources (instance method, attrs Hash, template kwarg, prop).
+      # 6-tier class-list cascade — see ClassListBuilder.
       class_list = ::Vident2::Internals::ClassListBuilder.call(
         component_name: component_name,
         root_element_classes: root_element_classes,
@@ -507,9 +489,8 @@ module Vident2
         "Did you mean 'stimulus_#{SINGULAR_NAMES.fetch(kind.name)}:'?"
     end
 
-    # Build a Collection for one kind from the (plural, singular) pair.
-    # Exactly one of `plural` / `singular` is non-nil (the guard above
-    # rejects both-set).
+    # Exactly one of `plural` / `singular` is non-nil; guard above
+    # rejects both-set.
     def child_element_build_collection(kind, plural, singular)
       plural_method = :"stimulus_#{kind.plural_name}"
       singular_method = :"stimulus_#{SINGULAR_NAMES.fetch(kind.name)}"

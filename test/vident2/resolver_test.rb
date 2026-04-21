@@ -327,5 +327,86 @@ module Vident2
         ::Vident2::Internals::Resolver.call(cls.declarations, cls.new)
       end
     end
+
+    # ---- phase: :static / :procs split ---------------------------------
+
+    def test_static_phase_skips_proc_declarations
+      cls = make_component do
+        prop :count, Integer, default: 3
+        stimulus do
+          values total: 5                    # literal — resolves in :static
+          values dynamic: -> { @count + 1 }  # proc — deferred
+        end
+      end
+      draft = ::Vident2::Internals::Resolver.call(cls.declarations, cls.new, phase: :static)
+      keys = draft.values.map(&:name)
+      assert_includes keys, "total"
+      refute_includes keys, "dynamic"
+    end
+
+    def test_procs_phase_adds_only_deferred_proc_entries
+      cls = make_component do
+        prop :count, Integer, default: 3
+        stimulus do
+          values total: 5
+          values dynamic: -> { @count + 1 }
+        end
+      end
+      draft = ::Vident2::Internals::Resolver.call(cls.declarations, cls.new, phase: :static)
+      ::Vident2::Internals::Resolver.resolve_procs_into(draft, cls.declarations, cls.new)
+      keys = draft.values.map(&:name).sort
+      assert_equal %w[dynamic total], keys
+    end
+
+    def test_static_phase_skips_action_procs
+      cls = make_component do
+        stimulus do
+          action :click
+          action(:handle).on(:keydown).when { true }  # has when_proc — deferred
+        end
+      end
+      draft = ::Vident2::Internals::Resolver.call(cls.declarations, cls.new, phase: :static)
+      assert_equal 1, draft.actions.size
+      assert_equal "click", draft.actions.first.method_name
+    end
+
+    def test_static_phase_does_not_eval_proc_that_would_raise
+      # Concrete scenario: a DSL proc that would fail at init because
+      # `helpers` isn't wired yet. The :static phase must not trip it.
+      cls = make_component do
+        stimulus { values path: -> { raise "would blow up without view_context" } }
+      end
+      draft = ::Vident2::Internals::Resolver.call(cls.declarations, cls.new, phase: :static)
+      assert_empty draft.values
+    end
+
+    def test_procs_phase_resolves_when_proc_gated_action_passing_the_gate
+      cls = make_component do
+        stimulus do
+          action :click                                  # static, seeds at :static
+          action(:handle).on(:keydown).when { true }     # when_proc, deferred
+        end
+      end
+      draft = ::Vident2::Internals::Resolver.call(cls.declarations, cls.new, phase: :static)
+      ::Vident2::Internals::Resolver.resolve_procs_into(draft, cls.declarations, cls.new)
+      methods = draft.actions.map(&:method_name)
+      assert_equal ["click", "handle"], methods
+    end
+
+    def test_procs_phase_drops_when_proc_gated_action_failing_the_gate
+      cls = make_component do
+        stimulus { action(:handle).on(:keydown).when { false } }
+      end
+      draft = ::Vident2::Internals::Resolver.call(cls.declarations, cls.new, phase: :static)
+      ::Vident2::Internals::Resolver.resolve_procs_into(draft, cls.declarations, cls.new)
+      assert_empty draft.actions
+    end
+
+    def test_call_raises_on_explicit_procs_phase
+      cls = make_component
+      assert_raises(ArgumentError) do
+        ::Vident2::Internals::Resolver.call(cls.declarations, cls.new, phase: :procs)
+      end
+    end
   end
 end

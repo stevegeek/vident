@@ -39,6 +39,14 @@ module Vident2
         end
       end
 
+      # Phlex lifecycle hook: resolve stimulus DSL procs now that
+      # `view_context` / `helpers` are wired. Procs declared in the DSL
+      # stayed unresolved at `after_initialize`; this is where they run.
+      def before_template
+        resolve_stimulus_attributes_at_render_time
+        super
+      end
+
       # Block-capture-first so children initialising inside the block can
       # mutate THIS instance's Draft (outlet-host pattern). After the
       # block returns, we seal the Draft and emit the tag.
