@@ -125,7 +125,7 @@ module Vident
         klass = define_component(name: "ButtonComponent") do
           stimulus { actions(-> { false }) }
         end
-        assert_raises(ArgumentError) { klass.new }
+        assert_raises(::Vident2::ParseError) { klass.new }
       end
 
       # ---- V2 type references -----------------------------------------

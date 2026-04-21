@@ -1,0 +1,4 @@
+<%= root_element do |btn| %>
+  <span <%= btn.as_stimulus_target(:spinner) %> class="hidden">Loading...</span>
+  <%= @text %>
+<% end %>

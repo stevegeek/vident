@@ -13,30 +13,31 @@ module Vident
     module Errors
       # ---- unknown action option symbol ----------------------------------
 
-      def test_unknown_action_option_symbol_raises_argument_error
+      # V1 raises ArgumentError; V2 raises the typed Vident2::ParseError
+      # (which doesn't inherit from ArgumentError). Each test asserts its
+      # adapter's current behaviour.
+
+      def test_unknown_action_option_symbol_raises
         klass = define_component(name: "ButtonComponent") do
           stimulus { actions({event: :click, method: :submit, options: [:bogus_modifier]}) }
         end
-        error = assert_raises(ArgumentError) { klass.new }
+        expected = (vident_version == :v2) ? ::Vident2::ParseError : ArgumentError
+        error = assert_raises(expected) { klass.new }
         assert_match(/Invalid option|bogus_modifier/i, error.message)
       end
-
-      # ---- invalid action argument type ---------------------------------
 
       def test_action_numeric_argument_raises
         klass = define_component(name: "ButtonComponent") do
           stimulus { actions 42 }
         end
-        assert_raises(ArgumentError) { klass.new }
+        expected = (vident_version == :v2) ? ::Vident2::ParseError : ArgumentError
+        assert_raises(expected) { klass.new }
       end
-
-      # ---- too many arguments to action parser --------------------------
 
       def test_action_four_args_raises
         klass = define_component(name: "ButtonComponent")
-        assert_raises(ArgumentError) do
-          klass.new.stimulus_action(:a, :b, :c, :d)
-        end
+        expected = (vident_version == :v2) ? ::Vident2::ParseError : ArgumentError
+        assert_raises(expected) { klass.new.stimulus_action(:a, :b, :c, :d) }
       end
 
       # ---- invalid HTML tag (Phlex) -------------------------------------
