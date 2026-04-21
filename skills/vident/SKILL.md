@@ -421,7 +421,10 @@ Plural (`as_stimulus_targets`, `as_stimulus_actions`, `as_stimulus_values`, `as_
 
 Opens a `Vident::StimulusBuilder` instance scoped to the class. It supports `actions`, `targets`, `values`, `values_from_props`, `classes`, `outlets`. Multiple `stimulus do` blocks on the same class are merged; a subclass's block is merged with its superclass's (subclass entries appended, values/classes/outlets merged by key, subclass wins on conflicts).
 
-Procs passed anywhere in the DSL are evaluated via `instance_exec` on the **component instance** at render time, so they see `@ivars` and public/private instance methods.
+Procs passed anywhere in the DSL are evaluated via `instance_exec` on the **component instance** at render time (Phlex `before_template` / ViewComponent `before_render`), so they see `@ivars`, public/private instance methods, and the view context.
+
+- **Phlex**: `helpers` is deprecated in phlex-rails. Opt in per Rails helper via `include Phlex::Rails::Helpers::NumberWithPrecision` (etc.), or use the `phlex_helpers :number_with_precision, :t, :l` class macro on `Vident::Phlex::HTML` which expands to the matching includes. Then call the helper bare inside the proc — `number_with_precision(@amount, precision: 2)`. See [phlex.fun/rails/helpers](https://www.phlex.fun/rails/helpers) for the full adapter list.
+- **ViewComponent**: `helpers.<method>` and `view_context.<method>` both work.
 
 ---
 

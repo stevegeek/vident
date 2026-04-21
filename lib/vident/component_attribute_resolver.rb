@@ -6,14 +6,16 @@ module Vident
 
     private
 
-    # Prepare attributes set at initialization, which will later be merged together before rendering.
+    # Prepare attributes set at initialization. The DSL's static entries are
+    # merged in here so user-land `after_component_initialize` mutators append
+    # after them (preserving DSL-first ordering). DSL procs are NOT resolved
+    # here — they run at render time via `resolve_stimulus_attributes_at_render_time`
+    # so they can reach `helpers` / `view_context`.
     def prepare_component_attributes
       prepare_stimulus_collections
 
-      # Add stimulus attributes from DSL first (lower precedence)
-      add_stimulus_attributes_from_dsl
+      add_stimulus_attributes_from_dsl(phase: :static)
 
-      # Process root_element_attributes (higher precedence)
       extra = root_element_attributes
       @html_options = (extra[:html_options] || {}).merge(@html_options) if extra.key?(:html_options)
       @root_element_attributes_classes = extra[:classes]
@@ -23,6 +25,19 @@ module Vident
       Stimulus::PRIMITIVES.each do |primitive|
         send(mutator_method(primitive), extra[primitive.key]) if extra.key?(primitive.key)
       end
+
+      @stimulus_proc_attributes_resolved = false
+    end
+
+    # Render-phase: resolve DSL proc entries against the component instance,
+    # now that `helpers` / `view_context` are wired. Triggered by Phlex's
+    # `before_template` and ViewComponent's `before_render`. Idempotent —
+    # `stimulus_data_attributes` also calls this as a safety net.
+    def resolve_stimulus_attributes_at_render_time
+      return if @stimulus_proc_attributes_resolved
+      @stimulus_proc_attributes_resolved = true
+
+      add_stimulus_attributes_from_dsl(phase: :procs)
     end
 
     def resolve_root_element_attributes_before_render(root_element_html_options = nil)
@@ -51,10 +66,13 @@ module Vident
       final_attributes.merge!(other_html_options.except(:data))
     end
 
-    # Run every DSL attribute through its `add_stimulus_*` mutator. `values_from_props`
-    # is a sidecar on values, resolved at instance render time.
-    def add_stimulus_attributes_from_dsl
-      dsl_attrs = self.class.stimulus_dsl_attributes(self)
+    # Run DSL attributes through their `add_stimulus_*` mutators. `phase:` is
+    # forwarded to the builder: `:static` skips procs (init-time), `:procs`
+    # skips non-procs (render-time), `:all` resolves everything.
+    # `values_from_props` is a sidecar on values, resolved at instance
+    # render time (only during the static phase since it has no procs).
+    def add_stimulus_attributes_from_dsl(phase: :all)
+      dsl_attrs = self.class.stimulus_dsl_attributes(self, phase:)
       return if dsl_attrs.empty?
 
       Stimulus::PRIMITIVES.each do |primitive|
@@ -80,6 +98,7 @@ module Vident
     end
 
     def stimulus_data_attributes
+      resolve_stimulus_attributes_at_render_time
       collections = Stimulus::PRIMITIVES.to_h { |primitive| [primitive.name, instance_variable_get(collection_ivar(primitive))] }
       StimulusDataAttributeBuilder.new(**collections).build
     end

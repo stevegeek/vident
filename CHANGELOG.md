@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
+## [Unreleased]
+
+### Changed
+
+- Stimulus DSL procs (`values foo: -> { ... }`, `actions -> { ... }`, etc.) now resolve at **render time** — Phlex's `before_template` for `Vident::Phlex::HTML`, ViewComponent's `before_render` for `Vident::ViewComponent::Base` — instead of in `after_initialize`. Procs can now reach `helpers` / `view_context`, so they can call Rails helpers (`number_with_precision`, `t`, `l`, url helpers, etc.). Non-proc DSL entries still land in the collections at init time, so `after_component_initialize` mutators and external readers see them in the same order as before.
+
+### Added
+
+- `phlex_helpers :name1, :name2, ...` class macro on `Vident::Phlex::HTML` — opts the component into Phlex's per-helper Rails adapters (`Phlex::Rails::Helpers::<CamelCase>`) so DSL procs can call helpers bare (`number_with_precision(@amount, precision: 2)`) instead of via the deprecated `helpers.<method>`. Unknown helper names raise `ArgumentError` at class definition.
+
+
 ## [1.0.0] - 2026-04-19
 
 ### Breaking

@@ -41,6 +41,13 @@ module Vident
 
       SELF_CLOSING_TAGS = Set[:area, :base, :br, :col, :embed, :hr, :img, :input, :link, :meta, :param, :source, :track, :wbr].freeze
 
+      # ViewComponent lifecycle hook: resolve stimulus DSL procs now that
+      # `@view_context` is set (so `helpers` works inside them).
+      def before_render
+        resolve_stimulus_attributes_at_render_time
+        super
+      end
+
       def root_element(**overrides, &block)
         tag_type = root_element_tag_type
         child_content = view_context.capture(self, &block) if block_given? # Evaluate before generating the outer tag options to ensure DSL methods are executed

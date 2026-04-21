@@ -19,16 +19,16 @@ module Vident
         @stimulus_builder.instance_eval(&block)
       end
 
-      def stimulus_dsl_attributes(component_instance)
+      def stimulus_dsl_attributes(component_instance, phase: :all)
         # If no stimulus blocks have been defined on this class, check parent
         if @stimulus_builder.nil? && superclass.respond_to?(:stimulus_dsl_attributes)
-          return superclass.stimulus_dsl_attributes(component_instance)
+          return superclass.stimulus_dsl_attributes(component_instance, phase:)
         end
 
         # Ensure inheritance is applied at access time
         ensure_inheritance_merged
 
-        @stimulus_builder&.to_attributes(component_instance) || {}
+        @stimulus_builder&.to_attributes(component_instance, phase:) || {}
       end
 
       private
@@ -51,7 +51,7 @@ module Vident
     end
 
     # Instance method to get DSL attributes for this component instance
-    def stimulus_dsl_attributes = self.class.stimulus_dsl_attributes(self)
+    def stimulus_dsl_attributes(phase: :all) = self.class.stimulus_dsl_attributes(self, phase:)
 
     # Instance method to resolve prop-mapped values at runtime
     def resolve_values_from_props(prop_names)

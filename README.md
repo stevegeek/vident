@@ -415,7 +415,10 @@ class DynamicComponent < Vident::ViewComponent::Base
 end
 ```
 
-Procs have access to instance variables, component methods, and Rails helpers.
+Procs have access to instance variables and component methods. They run at render time (Phlex `before_template` / ViewComponent `before_render`), so they can reach the view context:
+
+- **Phlex**: `helpers` is deprecated in phlex-rails. Opt in per Rails helper by including the matching adapter — e.g. `include Phlex::Rails::Helpers::NumberWithPrecision` — and call the helper bare (`number_with_precision(@amount, precision: 2)`) inside the proc. Vident ships a `phlex_helpers :number_with_precision, :t, :l` class macro on `Vident::Phlex::HTML` that does the right include for each name. See [phlex.fun/rails/helpers](https://www.phlex.fun/rails/helpers) for the full list of adapters.
+- **ViewComponent**: call `helpers.<method>` or `view_context.<method>` directly.
 
 **Important**: Each proc returns a single value for its corresponding stimulus attribute. If a proc returns an array, that entire array is treated as a single value, not multiple separate values. To provide multiple values for an attribute, use multiple procs or mix procs with static values:
 

@@ -62,14 +62,23 @@ module Vident
       self
     end
 
-    def to_attributes(component_instance)
+    # `phase:` controls which entries are resolved.
+    # - `:static` — resolve non-proc entries only; procs are skipped entirely
+    #   (no placeholder). Used at init time, before helpers/view_context exist.
+    # - `:procs` — resolve proc entries only; non-procs are skipped. Used at
+    #   render time so procs can reach `helpers` / `view_context`.
+    # - `:all` — resolve everything (legacy path, retained for safety).
+    def to_attributes(component_instance, phase: :all)
       attrs = {}
       DSL_PRIMITIVES.each do |primitive|
         entries = @entries[primitive.name]
         next if entries.empty?
-        attrs[primitive.key] = resolve_entries(primitive, entries, component_instance)
+        resolved = resolve_entries(primitive, entries, component_instance, phase:)
+        attrs[primitive.key] = resolved unless resolved.nil? || resolved.empty?
       end
-      attrs[:stimulus_values_from_props] = @values_from_props.dup unless @values_from_props.empty?
+      if phase != :procs && !@values_from_props.empty?
+        attrs[:stimulus_values_from_props] = @values_from_props.dup
+      end
       attrs
     end
 
@@ -87,19 +96,24 @@ module Vident
     # Outlets don't support procs — static merge only. The other keyed kinds
     # and the positional (Array-shaped) kinds resolve procs in the component
     # instance and drop nil results.
-    def resolve_entries(primitive, entries, component_instance)
-      return entries.dup if primitive.name == :outlets
+    def resolve_entries(primitive, entries, component_instance, phase:)
+      if primitive.name == :outlets
+        return (phase == :procs) ? {} : entries.dup
+      end
 
       if primitive.keyed?
-        resolve_hash_filtering_nil(entries, component_instance)
+        resolve_hash_filtering_nil(entries, component_instance, phase:)
       else
-        resolve_array_filtering_nil(entries, component_instance)
+        resolve_array_filtering_nil(entries, component_instance, phase:)
       end
     end
 
-    def resolve_array_filtering_nil(array, component_instance)
+    def resolve_array_filtering_nil(array, component_instance, phase:)
       array.each_with_object([]) do |value, out|
-        resolved = callable?(value) ? component_instance.instance_exec(&value) : value
+        is_proc = callable?(value)
+        next if phase == :static && is_proc
+        next if phase == :procs && !is_proc
+        resolved = is_proc ? component_instance.instance_exec(&value) : value
         out << resolved unless resolved.nil?
       end
     end
@@ -107,9 +121,12 @@ module Vident
     # Dropping nil matters because Stimulus's Boolean value parser reads an
     # empty data attribute as `true` — so `-> { flag? || nil }` would silently
     # flip a Boolean value on. Omitting the entry keeps the attribute off.
-    def resolve_hash_filtering_nil(hash, component_instance)
+    def resolve_hash_filtering_nil(hash, component_instance, phase:)
       hash.each_with_object({}) do |(key, value), out|
-        resolved = callable?(value) ? component_instance.instance_exec(&value) : value
+        is_proc = callable?(value)
+        next if phase == :static && is_proc
+        next if phase == :procs && !is_proc
+        resolved = is_proc ? component_instance.instance_exec(&value) : value
         out[key] = resolved unless resolved.nil?
       end
     end

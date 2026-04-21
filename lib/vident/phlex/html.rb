@@ -23,6 +23,25 @@ module Vident
           raise StandardError, "No component source file exists #{path}" unless path && ::File.exist?(path)
           ::File.mtime(path).to_i.to_s
         end
+
+        # Include the matching `Phlex::Rails::Helpers::<CamelCase>` module for
+        # each Rails helper name. Replaces `helpers.foo(...)` with bare `foo(...)`
+        # calls via phlex-rails' adapter macros.
+        #
+        #   class Card < Vident::Phlex::HTML
+        #     phlex_helpers :number_with_precision, :t, :l
+        #   end
+        def phlex_helpers(*helper_names)
+          helper_names.each do |name|
+            mod_name = name.to_s.camelize
+            mod = begin
+              ::Phlex::Rails::Helpers.const_get(mod_name)
+            rescue NameError
+              raise ArgumentError, "No Phlex::Rails::Helpers::#{mod_name} adapter. See https://www.phlex.fun/rails/helpers for the available list."
+            end
+            include(mod)
+          end
+        end
       end
 
       # Helper to create the main element
@@ -37,6 +56,13 @@ module Vident
         else
           send(tag_type, **resolve_root_element_attributes_before_render(overrides))
         end
+      end
+
+      # Phlex lifecycle hook: resolve stimulus DSL procs now that the view
+      # context is wired (so `helpers` / `view_context` work inside them).
+      def before_template(&)
+        resolve_stimulus_attributes_at_render_time
+        super
       end
 
       private

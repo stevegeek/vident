@@ -8,6 +8,9 @@ module Vident
     # Getter for a stimulus classes list so can be used in view to set initial state on SSR
     # Returns a String of classes that can be used in a `class` attribute.
     def class_list_for_stimulus_classes(*names)
+      # DSL proc entries are resolved lazily at render time; trigger them now
+      # so procs that use only instance state work from ERB/template.
+      resolve_stimulus_attributes_at_render_time if respond_to?(:resolve_stimulus_attributes_at_render_time, true)
       ClassListBuilder.new(tailwind_merger:).build(
         @stimulus_classes_collection&.to_a,
         stimulus_class_names: names
