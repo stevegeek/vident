@@ -1,28 +1,32 @@
 # frozen_string_literal: true
 
-class ButtonComponent < Vident::ViewComponent::Base
-  # Define typed properties
+require "vident"
+
+class ButtonComponent < ::Vident::ViewComponent::Base
+  # Locked identifier so the same app_components/button_component_controller.js
+  # resolves. Emitted data-controller stays `button-component`.
+  class << self
+    def stimulus_identifier_path = "button_component"
+  end
+
   prop :text, String, default: "Click me"
   prop :url, _Nilable(String)
   prop :style, Symbol, default: :primary
   prop :clicked_count, Integer, default: 0
 
-  # Configure Stimulus integration
   stimulus do
     actions [:click, :handle_click]
-    # Static values
     values loading_duration: 1000
-    # Map the clicked_count prop as a Stimulus value
+    # Map the clicked_count prop straight through as a Stimulus value.
     values_from_props :clicked_count
-    # Dynamic values using procs (evaluated in component context)
+    # Dynamic values — the Resolver evaluates these against `self` at
+    # render time, so @items / Rails helpers are in scope.
     values item_count: -> { @items&.count || 0 }
     values api_url: -> { Rails.application.routes.url_helpers.root_path }
-    # Static and dynamic classes
     classes loading: "opacity-50 cursor-wait"
     classes size: -> { ((@items&.count || 0) > 10) ? "large" : "small" }
   end
 
-  # Using the call method instead of ERB template
   def call
     root_element do |component|
       component.child_element(:span, stimulus_target: :status) do

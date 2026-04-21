@@ -1,5 +1,18 @@
+# frozen_string_literal: true
+
 module Phlex
   class AvatarComponent < ApplicationComponent
+    # Lock the stimulus identifier path to V1's so the implicit component
+    # class (e.g. `phlex--avatar-component`) on the root element matches
+    # V1. This avatar opts out of a Stimulus controller, but the computed
+    # identifier still feeds the root's class list via `component_name`.
+    class << self
+      def stimulus_identifier_path = "phlex/avatar_component"
+    end
+
+    # No controller on this component — it's pure decoration. Declaring
+    # `stimulus do ... end` AFTER `no_stimulus_controller` would raise
+    # DeclarationError in V2, so we leave the class declaration-free.
     no_stimulus_controller
     with_cache_key
 
@@ -22,6 +35,8 @@ module Phlex
       end
     end
 
+    # Returning :img or :div switches the root tag at render time.
+    # `html_options` is folded into the root-element attribute hash.
     def root_element_attributes
       {
         element_tag: image_avatar? ? :img : :div,

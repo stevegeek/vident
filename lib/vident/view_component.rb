@@ -1,6 +1,7 @@
-require "vident/view_component/version"
+# frozen_string_literal: true
+
+require "view_component"
 require "vident/view_component/base"
-require "vident/view_component/engine" if defined?(Rails)
 
 module Vident
   module ViewComponent

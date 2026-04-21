@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 module PhlexGreeters
-  # A simple Phlex component that greets the user. Does not use vident.
+  # Plain Phlex — does not use Vident. Mirrors V1's non-Vident baseline
+  # so the demo suite still shows the "hand-rolled" shape for comparison.
   class GreeterComponent < ::Phlex::HTML
     def initialize(cta:)
       @cta = cta

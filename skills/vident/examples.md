@@ -176,7 +176,7 @@ export default class extends Controller {
 }
 ```
 
-### Detail panel (StimulusNull + keyboard modifier action)
+### Detail panel (StimulusNull + keyboard modifier action + alias resolution)
 
 ```ruby
 module Dashboard
@@ -192,14 +192,27 @@ module Dashboard
 
       classes state: "fixed right-0 top-0 h-full w-80 border-l bg-white p-6 shadow-xl transition-transform duration-200 translate-x-full"
 
-      # Three action entries in one `actions` call:
-      #   1. scoped window event from ReleaseCard → opens the panel
-      #   2. Hash form with keyboard filter + @window → Escape closes it.
-      #      Expands to `keydown.esc@window->dashboard--detail-panel-component#close`.
-      #   3. plain `:close` — the close button's local click target
-      actions -> { [ReleaseCardComponent.stimulus_scoped_event_on_window(:selected), :handle_selected] },
-              { event: :keydown, method: :close, keyboard: "esc", window: true },
-              :close
+      # Secondary controller stacked on the same root, given a short alias so
+      # later action entries can refer to it by `:dismissable` instead of the
+      # full path. Emits `data-controller="dashboard--detail-panel-component
+      # dashboard--dismissable"`.
+      controller "dashboard_v2/dismissable", as: :dismissable
+
+      # 1. Proc + scoped window event — opens the panel when a card emits `selected`.
+      actions -> { [ReleaseCardComponent.stimulus_scoped_event_on_window(:selected), :handle_selected] }
+
+      # 2. Kwargs shorthand for the keyboard filter. Equivalent to:
+      #    `action(:close).on(:keydown).keyboard("esc").window`.
+      #    Emits `keydown.esc@window->dashboard--detail-panel-component#close`.
+      action :close, on: :keydown, keyboard: "esc", window: true
+
+      # 3. Fluent chain routed through the `:dismissable` alias. Emits
+      #    `keydown.backspace@window->dashboard--dismissable#close` instead of
+      #    the implied controller — alias resolved by Internals::Resolver.
+      action(:close).on(:keydown).keyboard("backspace").window.on_controller(:dismissable)
+
+      # 4. Plain `:close` — wired to the close button's local click target.
+      action :close
     end
 
     def view_template
@@ -308,7 +321,7 @@ parent's action:
 <% end %>
 ```
 
-`greeter.stimulus_action(:click, :greet)` returns a `Vident::StimulusAction` whose
+`greeter.stimulus_action(:click, :greet)` returns a `Vident::Stimulus::Action` whose
 `controller` is the parent's (greeter's) identifier, so the click handler on the child's
 button routes to `greeter-with-trigger-component#greet`, not to the child.
 

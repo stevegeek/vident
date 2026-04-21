@@ -82,15 +82,6 @@ module Vident
 
       # ---- outlets DSL does NOT evaluate procs ---------------------------
 
-      def test_outlets_dsl_proc_values_raise_not_silently_passed_through
-        skip_on_v2 "V2 evaluates outlet procs like every other DSL primitive"
-        klass = define_component(name: "PageComponent") do
-          stimulus { outlets modal: -> { ".modal" } }
-        end
-        error = assert_raises(ArgumentError) { klass.new }
-        assert_match(/Invalid argument types/, error.message)
-      end
-
       # ---- stimulus_outlet_host: self-registration -----------------------
 
       def test_stimulus_outlet_host_registers_child_on_parent

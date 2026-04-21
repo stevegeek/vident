@@ -67,7 +67,7 @@ module Vident
           stimulus { values items: ["a", 1, true] }
         end
         assert_includes render(klass.new),
-          %q{data-card-component-items-value="["a",1,true]"}
+          'data-card-component-items-value="["a",1,true]"'
       end
 
       def test_value_hash_serializes_as_json
@@ -75,7 +75,7 @@ module Vident
           stimulus { values cfg: {a: 1, b: "x"} }
         end
         assert_includes render(klass.new),
-          %q{data-card-component-cfg-value="{"a":1,"b":"x"}"}
+          'data-card-component-cfg-value="{"a":1,"b":"x"}"'
       end
 
       def test_value_nested_hash_serializes_as_json
@@ -83,7 +83,7 @@ module Vident
           stimulus { values cfg: {outer: {inner: [1, 2]}} }
         end
         assert_includes render(klass.new),
-          %q{data-card-component-cfg-value="{"outer":{"inner":[1,2]}}"}
+          'data-card-component-cfg-value="{"outer":{"inner":[1,2]}}"'
       end
 
       # ---- StimulusNull sentinel -----------------------------------------
@@ -120,7 +120,7 @@ module Vident
 
       def test_value_proc_returning_nil_drops
         klass = define_component(name: "CardComponent") do
-          stimulus { values maybe: -> { nil } }
+          stimulus { values maybe: -> {} }
         end
         refute_match(/maybe-value/, render(klass.new))
       end
@@ -157,7 +157,7 @@ module Vident
           stimulus { params cfg: {k: "v"} }
         end
         assert_includes render(klass.new),
-          %q{data-button-component-cfg-param="{"k":"v"}"}
+          'data-button-component-cfg-param="{"k":"v"}"'
       end
 
       def test_param_stimulus_null

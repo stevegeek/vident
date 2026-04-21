@@ -1,212 +1,139 @@
+# frozen_string_literal: true
+
 require "test_helper"
+require "vident"
 
 module Vident
   class ClassListBuilderTest < Minitest::Test
-    def setup
-      @builder = ClassListBuilder.new
-      # Don't create @tailwind_builder in setup since TailwindMerge isn't available
+    CLB = ::Vident::Internals::ClassListBuilder
+
+    # ---- component_name tier (always first) ----------------------------
+
+    def test_component_name_appears_first
+      assert_equal "foo-component",
+        CLB.call(component_name: "foo-component")
     end
 
-    def test_build_with_single_string
-      result = @builder.build("btn primary")
-      assert_equal "btn primary", result
+    def test_returns_nil_when_no_classes_at_all
+      assert_nil CLB.call
     end
 
-    def test_build_with_multiple_strings
-      result = @builder.build(["btn primary", "large active"])
-      assert_equal "btn primary large active", result
+    # ---- priority cascade: only one of the middle 4 wins ---------------
+
+    def test_root_element_classes_appears_when_nothing_higher
+      result = CLB.call(component_name: "foo", root_element_classes: "extra")
+      assert_equal "foo extra", result
     end
 
-    def test_build_with_arrays
-      result = @builder.build([["btn", "primary"], ["large", "active"]])
-      assert_equal "btn primary large active", result
+    def test_root_element_attributes_classes_wins_over_root_element_classes
+      result = CLB.call(
+        component_name: "foo",
+        root_element_classes: "lower",
+        root_element_attributes_classes: "higher"
+      )
+      assert_equal "foo higher", result
+      refute_match(/lower/, result)
     end
 
-    def test_build_with_mixed_inputs
-      result = @builder.build(["btn primary", ["large"], "active disabled"])
-      assert_equal "btn primary large active disabled", result
+    def test_root_element_html_class_wins_over_attributes_classes
+      result = CLB.call(
+        component_name: "foo",
+        root_element_classes: "a",
+        root_element_attributes_classes: "b",
+        root_element_html_class: "c"
+      )
+      assert_equal "foo c", result
     end
 
-    def test_build_removes_duplicates
-      result = @builder.build(["btn primary", "btn active", ["primary", "large"]])
-      assert_equal "btn primary active large", result
+    def test_html_options_class_is_highest_cascade_tier
+      result = CLB.call(
+        component_name: "foo",
+        root_element_classes: "a",
+        root_element_attributes_classes: "b",
+        root_element_html_class: "c",
+        html_options_class: "d"
+      )
+      assert_equal "foo d", result
     end
 
-    def test_build_removes_blanks
-      result = @builder.build(["btn  primary", ["", nil, "large"], "  "])
-      assert_equal "btn primary large", result
+    # ---- classes_prop always appended ----------------------------------
+
+    def test_classes_prop_appends_after_cascade_winner
+      result = CLB.call(
+        component_name: "foo",
+        html_options_class: "winner",
+        classes_prop: "always"
+      )
+      assert_equal "foo winner always", result
     end
 
-    def test_build_with_no_classes_returns_nil
-      result = @builder.build(["", [], nil, "  "])
-      assert_nil result
+    def test_classes_prop_appends_with_no_cascade_contributor
+      result = CLB.call(component_name: "foo", classes_prop: "extra")
+      assert_equal "foo extra", result
     end
 
-    def test_build_with_nil_inputs
-      result = @builder.build([nil, "btn", nil, "primary"])
-      assert_equal "btn primary", result
+    # ---- Array input normalisation -------------------------------------
+
+    def test_classes_prop_array_is_flattened
+      result = CLB.call(component_name: "foo", classes_prop: ["a", "b", "c"])
+      assert_equal "foo a b c", result
     end
 
-    def test_build_preserves_order_first_occurrence_wins
-      result = @builder.build(["btn primary large", "btn small primary"])
-      assert_equal "btn primary large small", result
+    def test_strings_with_spaces_are_split
+      result = CLB.call(component_name: "foo", classes_prop: "a b c")
+      assert_equal "foo a b c", result
     end
 
-    def test_build_with_stimulus_classes_empty_cases
-      # Test with empty stimulus classes
-      result = @builder.build([], stimulus_class_names: [:loading])
-      assert_nil result
-
-      # Test with empty names (stimulus classes should be excluded)
-      mock_stimulus_classes = [create_mock_stimulus_class("loading", "spinner active")]
-      result = @builder.build(mock_stimulus_classes)
-      assert_nil result
+    def test_duplicate_classes_are_removed_order_preserving
+      result = CLB.call(component_name: "foo", classes_prop: "foo bar foo baz")
+      assert_equal "foo bar baz", result
     end
 
-    def test_build_with_stimulus_classes_single_match
-      mock_stimulus_classes = [
-        create_mock_stimulus_class("loading", "spinner active"),
-        create_mock_stimulus_class("error", "alert danger")
-      ]
+    # ---- Tailwind merge path -------------------------------------------
 
-      result = @builder.build(mock_stimulus_classes, stimulus_class_names: [:loading])
-      assert_equal "spinner active", result
+    def test_tailwind_merger_is_invoked_when_provided
+      merger = Object.new
+      merger.define_singleton_method(:merge) { |s| "merged(#{s})" }
+      result = CLB.call(component_name: "foo", classes_prop: "p-2 p-4", tailwind_merger: merger)
+      assert_equal "merged(foo p-2 p-4)", result
     end
 
-    def test_build_with_stimulus_classes_multiple_matches
-      mock_stimulus_classes = [
-        create_mock_stimulus_class("loading", "spinner active"),
-        create_mock_stimulus_class("error", "alert danger"),
-        create_mock_stimulus_class("success", "notification green")
-      ]
-
-      result = @builder.build(mock_stimulus_classes, stimulus_class_names: [:loading, :error])
-      assert_equal "spinner active alert danger", result
+    def test_no_tailwind_merger_means_plain_joined_string
+      result = CLB.call(component_name: "foo", classes_prop: "p-2 p-4")
+      assert_equal "foo p-2 p-4", result
     end
 
-    def test_build_with_stimulus_classes_with_underscores
-      mock_stimulus_classes = [
-        create_mock_stimulus_class("loading-spinner", "spinner active"),
-        create_mock_stimulus_class("error-message", "alert danger")
-      ]
+    # ---- stimulus_class_names filter -----------------------------------
 
-      # Test that underscore names are converted to dashes for matching
-      result = @builder.build(mock_stimulus_classes, stimulus_class_names: [:loading_spinner, :error_message])
-      assert_equal "spinner active alert danger", result
+    def make_class_map(name, css)
+      ::Vident::Stimulus::ClassMap.new(
+        controller: ::Vident::Stimulus::Controller.new(path: "x", name: "x"),
+        name: name,
+        css: css
+      )
     end
 
-    def test_build_with_stimulus_classes_with_duplicates
-      mock_stimulus_classes = [
-        create_mock_stimulus_class("loading", "spinner active"),
-        create_mock_stimulus_class("error", "spinner alert") # duplicate "spinner"
-      ]
-
-      result = @builder.build(mock_stimulus_classes, stimulus_class_names: [:loading, :error])
-      assert_equal "spinner active alert", result
+    def test_stimulus_class_names_filter_selects_matching_entries
+      maps = [make_class_map("loading", "opacity-50"), make_class_map("active", "bg-blue")]
+      result = CLB.call(stimulus_classes: maps, stimulus_class_names: [:loading])
+      assert_equal "opacity-50", result
     end
 
-    def test_build_with_stimulus_classes_non_existent_names
-      mock_stimulus_classes = [
-        create_mock_stimulus_class("loading", "spinner active")
-      ]
-
-      result = @builder.build(mock_stimulus_classes, stimulus_class_names: [:nonexistent])
-      assert_nil result
-
-      # Mixed existing and non-existent
-      result = @builder.build(mock_stimulus_classes, stimulus_class_names: [:loading, :nonexistent])
-      assert_equal "spinner active", result
+    def test_stimulus_class_names_filter_excludes_unnamed
+      maps = [make_class_map("loading", "opacity-50"), make_class_map("active", "bg-blue")]
+      result = CLB.call(stimulus_classes: maps, stimulus_class_names: [:loading])
+      refute_match(/bg-blue/, result)
     end
 
-    def test_build_with_mixed_strings_and_stimulus_classes
-      mock_stimulus_classes = [
-        create_mock_stimulus_class("loading", "spinner active"),
-        create_mock_stimulus_class("error", "alert danger")
-      ]
-
-      # Mix regular strings with stimulus classes
-      result = @builder.build(["btn primary", mock_stimulus_classes, ["large"]], stimulus_class_names: [:loading])
-      assert_equal "btn primary spinner active large", result
+    def test_stimulus_class_names_dasherizes_input_for_match
+      maps = [make_class_map("submit-button", "btn-primary")]
+      result = CLB.call(stimulus_classes: maps, stimulus_class_names: [:submit_button])
+      assert_equal "btn-primary", result
     end
 
-    def test_build_with_stimulus_classes_no_matching_names
-      mock_stimulus_classes = [
-        create_mock_stimulus_class("loading", "spinner active"),
-        create_mock_stimulus_class("error", "alert danger")
-      ]
-
-      # No matching names provided - stimulus classes should be excluded
-      result = @builder.build(["btn primary", mock_stimulus_classes, "large"])
-      assert_equal "btn primary large", result
-    end
-
-    def test_tailwind_integration_with_tailwind_gem
-      # Since TailwindMerge is available in this test environment, test actual usage
-      tailwind_builder = ClassListBuilder.new(tailwind_merger: TailwindMerge::Merger.new)
-
-      # Test conflicting background classes - TailwindMerge should keep the last one
-      result = tailwind_builder.build(["bg-red-500 text-white", "bg-blue-500 text-lg"])
-
-      # Should have bg-blue-500 (last wins) but not bg-red-500
-      assert_includes result, "bg-blue-500"
-      assert_includes result, "text-white"
-      assert_includes result, "text-lg"
-      refute_includes result, "bg-red-500"
-    end
-
-    def test_tailwind_integration_without_tailwind_gem
-      # Test that passing a non-TailwindMerge object when TailwindMerge is not available
-      # should raise a LoadError
-      fake_merger = Object.new
-
-      # Mock the absence of TailwindMerge by temporarily removing it
-      original_tailwind_merge = Object.const_get(:TailwindMerge) if Object.const_defined?(:TailwindMerge)
-      Object.send(:remove_const, :TailwindMerge) if Object.const_defined?(:TailwindMerge)
-
-      # Now it should raise an error when passing a merger without TailwindMerge available
-      assert_raises(LoadError) do
-        ClassListBuilder.new(tailwind_merger: fake_merger)
-      end
-    ensure
-      # Restore TailwindMerge
-      Object.const_set(:TailwindMerge, original_tailwind_merge) if original_tailwind_merge
-    end
-
-    def test_handles_objects_with_to_s
-      object_with_to_s = Object.new
-      def object_with_to_s.to_s
-        "custom-class"
-      end
-
-      result = @builder.build(["btn", [object_with_to_s], "primary"])
-      assert_equal "btn custom-class primary", result
-    end
-
-    def test_handles_nested_space_separated_strings_in_arrays
-      result = @builder.build([["btn primary", "large"], ["active disabled"]])
-      assert_equal "btn primary large active disabled", result
-    end
-
-    private
-
-    def create_mock_stimulus_class(class_name, class_value)
-      mock_class = Object.new
-
-      def mock_class.class_name
-        @class_name
-      end
-
-      def mock_class.to_s
-        @class_value
-      end
-
-      def mock_class.set_values(class_name, class_value)
-        @class_name = class_name
-        @class_value = class_value
-      end
-
-      mock_class.set_values(class_name, class_value)
-      mock_class
+    def test_empty_stimulus_class_names_returns_nil
+      maps = [make_class_map("loading", "opacity-50")]
+      assert_nil CLB.call(stimulus_classes: maps, stimulus_class_names: [])
     end
   end
 end

@@ -1,607 +1,177 @@
+# frozen_string_literal: true
+
 require "test_helper"
+require "vident"
 
 module Vident
+  # Mirrors the V1 Caching surface: opt-in via `include Vident::Caching`,
+  # `with_cache_key` declares attrs, `depends_on` chains mtimes, and
+  # `cache_key` returns a stable deterministic key.
   class CachingTest < Minitest::Test
-    def setup
-      # Clear any existing cache key modifier
-      ENV.delete("RAILS_CACHE_ID")
+    def make_component(name: "ButtonComponent", &block)
+      klass = Class.new(::Vident::Phlex::HTML)
+      klass.define_singleton_method(:name) { name }
+      klass.class_eval(&block) if block
+      klass
+    end
 
-      # Create a base test component class
-      @test_component_class = Class.new do
-        include Vident::Component
-        include Vident::Caching
+    # ---- opt-in --------------------------------------------------------
 
-        def self.name
-          "TestCachingComponent"
-        end
+    def test_component_without_caching_include_is_not_cacheable
+      klass = make_component
+      refute_respond_to klass.new, :cacheable?
+    end
 
-        def self.cache_component_modified_time
-          "123456789"
-        end
-
-        def attribute(name)
-          case name
-          when :html_options
-            {}
-          when :actions, :targets, :controllers, :outlets, :values
-            []
-          when :named_classes
-            {}
-          end
-        end
-
-        def to_h
-          {name: "test", value: 42}
-        end
-
-        def self.respond_to?(method_name, include_private = false)
-          return true if method_name == :to_h
-          super
-        end
-
-        def helpers
-          Object.new
-        end
-
-        def root
-          Object.new
-        end
-
-        def produce_style_classes(classes)
-          classes.compact.join(" ")
-        end
+    def test_component_with_caching_include_is_cacheable
+      klass = make_component do
+        include ::Vident::Caching
+        prop :name_attr, String, default: "x", reader: :public
+        with_cache_key :name_attr
       end
-
-      @component = @test_component_class.new
+      klass.define_singleton_method(:cache_component_modified_time) { "1000" }
+      assert klass.new(name_attr: "a").cacheable?
     end
 
-    # Test class methods
+    # ---- cache_key -----------------------------------------------------
 
-    def test_with_cache_key_basic
-      @test_component_class.with_cache_key
-
-      assert @test_component_class.named_cache_key_attributes
-      assert @test_component_class.named_cache_key_attributes[:_collection]
-      assert_includes @test_component_class.named_cache_key_attributes[:_collection], :component_modified_time
-    end
-
-    def test_with_cache_key_custom_name
-      @test_component_class.with_cache_key(:attr1, :attr2, name: :custom)
-
-      attributes = @test_component_class.named_cache_key_attributes[:custom]
-      assert_includes attributes, :attr1
-      assert_includes attributes, :attr2
-      assert_includes attributes, :component_modified_time
-    end
-
-    def test_with_cache_key_includes_to_h_when_available
-      # The component class responds to :to_h, so it should be included
-      @test_component_class.with_cache_key
-
-      attributes = @test_component_class.named_cache_key_attributes[:_collection]
-      # to_h should be included since our test component responds to it
-      assert_includes attributes, :to_h
-    end
-
-    def test_with_cache_key_deduplicates_attributes
-      @test_component_class.with_cache_key(:attr1, :attr1, :attr2)
-
-      attributes = @test_component_class.named_cache_key_attributes[:_collection]
-      assert_equal 1, attributes.count(:attr1)
-    end
-
-    def test_depends_on_single_class
-      dependency_class = Class.new do
-        def self.component_modified_time
-          "dep_time"
-        end
+    def test_cache_key_differs_across_attr_values
+      klass = make_component do
+        include ::Vident::Caching
+        prop :name_attr, String, default: "x", reader: :public
+        with_cache_key :name_attr
       end
-
-      @test_component_class.depends_on(dependency_class)
-
-      assert_equal [dependency_class], @test_component_class.component_dependencies
+      klass.define_singleton_method(:cache_component_modified_time) { "1000" }
+      refute_equal klass.new(name_attr: "a").cache_key, klass.new(name_attr: "b").cache_key
     end
 
-    def test_depends_on_multiple_classes
-      dep1 = Class.new {
-        def self.component_modified_time
-          "dep1"
-        end
-      }
-      dep2 = Class.new {
-        def self.component_modified_time
-          "dep2"
-        end
-      }
-
-      @test_component_class.depends_on(dep1, dep2)
-
-      assert_equal [dep1, dep2], @test_component_class.component_dependencies
-    end
-
-    def test_component_modified_time_basic
-      result = @test_component_class.component_modified_time
-      assert_equal "123456789", result
-    end
-
-    def test_component_modified_time_with_dependencies
-      dep1 = Class.new {
-        def self.component_modified_time
-          "dep1_time"
-        end
-      }
-      dep2 = Class.new {
-        def self.component_modified_time
-          "dep2_time"
-        end
-      }
-
-      @test_component_class.depends_on(dep1, dep2)
-
-      result = @test_component_class.component_modified_time
-      assert_equal "dep1_time-dep2_time123456789", result
-    end
-
-    def test_component_modified_time_memoization_behavior
-      # Test that the memoization instance variable gets set
-      @test_component_class.component_modified_time
-
-      # Check that the instance variable is set
-      assert @test_component_class.instance_variable_defined?(:@component_modified_time)
-      assert_equal "123456789", @test_component_class.instance_variable_get(:@component_modified_time)
-    end
-
-    def test_component_modified_time_raises_without_cache_component_modified_time
-      test_class = Class.new do
-        include Vident::Caching
-        def self.name
-          "TestClass"
-        end
+    def test_cache_key_stable_for_same_attrs
+      klass = make_component do
+        include ::Vident::Caching
+        prop :name_attr, String, default: "x", reader: :public
+        with_cache_key :name_attr
       end
+      klass.define_singleton_method(:cache_component_modified_time) { "1000" }
+      assert_equal klass.new(name_attr: "x").cache_key, klass.new(name_attr: "x").cache_key
+    end
 
-      assert_raises(StandardError, "Must implement cache_component_modified_time") do
-        test_class.component_modified_time
+    def test_cache_key_includes_class_name
+      klass = make_component(name: "CardComponent") do
+        include ::Vident::Caching
+        prop :name_attr, String, default: "x", reader: :public
+        with_cache_key :name_attr
       end
+      klass.define_singleton_method(:cache_component_modified_time) { "1000" }
+      assert_match(/CardComponent/, klass.new(name_attr: "a").cache_key)
     end
 
-    def test_inherited_copies_named_cache_key_attributes
-      @test_component_class.with_cache_key(:attr1, :attr2)
+    # ---- depends_on chains mtimes --------------------------------------
 
-      subclass = Class.new(@test_component_class) do
-        def self.name
-          "SubTestComponent"
-        end
+    def test_depends_on_folds_dependency_mtime_into_component_modified_time
+      dep = make_component(name: "DepComponent") do
+        include ::Vident::Caching
       end
+      dep.define_singleton_method(:cache_component_modified_time) { "100" }
 
-      # Subclass should have its own copy
-      assert_equal @test_component_class.named_cache_key_attributes, subclass.named_cache_key_attributes
-      refute_same @test_component_class.named_cache_key_attributes, subclass.named_cache_key_attributes
+      klass = make_component(name: "MainComponent") do
+        include ::Vident::Caching
+      end
+      klass.depends_on dep
+      klass.define_singleton_method(:cache_component_modified_time) { "200" }
 
-      # Modifying subclass shouldn't affect parent
-      subclass.with_cache_key(:attr3, name: :sub_collection)
-      refute_equal @test_component_class.named_cache_key_attributes, subclass.named_cache_key_attributes
+      # Dependency mtime (100) is prepended to own mtime (200).
+      assert_match(/100/, klass.component_modified_time)
+      assert_match(/200/, klass.component_modified_time)
     end
 
-    # Test instance methods
-
-    def test_component_modified_time_instance_method
-      assert_equal @test_component_class.component_modified_time, @component.component_modified_time
+    def test_component_dependencies_accessor
+      dep = make_component(name: "DepComponent") do
+        include ::Vident::Caching
+      end
+      klass = make_component(name: "MainComponent") do
+        include ::Vident::Caching
+      end
+      klass.depends_on dep
+      assert_equal [dep], klass.component_dependencies
     end
 
-    def test_cacheable_true_when_cache_key_defined
-      @test_component_class.with_cache_key
+    # ---- inherited copies component_dependencies ----------------------
 
-      assert @component.cacheable?
+    def test_subclass_inherits_parent_component_dependencies
+      dep = make_component(name: "DepComponent") do
+        include ::Vident::Caching
+      end
+      dep.define_singleton_method(:cache_component_modified_time) { "50" }
+
+      parent = make_component(name: "ParentComponent") do
+        include ::Vident::Caching
+      end
+      parent.depends_on dep
+      parent.define_singleton_method(:cache_component_modified_time) { "100" }
+
+      child = Class.new(parent)
+      child.define_singleton_method(:name) { "ChildComponent" }
+      child.define_singleton_method(:cache_component_modified_time) { "200" }
+
+      assert_equal parent.component_dependencies, child.component_dependencies
+      assert_match(/50/, child.component_modified_time)
     end
 
-    def test_cacheable_false_when_no_cache_key
-      refute @component.cacheable?
-    end
+    # ---- cache_key_modifier -------------------------------------------
 
-    def test_cache_key_modifier_from_env
-      ENV["RAILS_CACHE_ID"] = "test_cache_id"
-
-      assert_equal "test_cache_id", @component.cache_key_modifier
+    def test_cache_key_modifier_comes_from_env
+      klass = make_component do
+        include ::Vident::Caching
+      end
+      previous = ENV["RAILS_CACHE_ID"]
+      ENV["RAILS_CACHE_ID"] = "v42"
+      assert_equal "v42", klass.new.cache_key_modifier
     ensure
-      ENV.delete("RAILS_CACHE_ID")
+      ENV["RAILS_CACHE_ID"] = previous
     end
 
-    def test_cache_key_modifier_nil_when_no_env
-      assert_nil @component.cache_key_modifier
-    end
+    # ---- cache_component_modified_time raises when source file missing ----
 
-    def test_cache_keys_for_sources_with_cache_key_with_version
-      # Test with method names that return objects with cache_key_with_version
-      @component.define_singleton_method(:source_method) do
-        obj = Object.new
-        obj.define_singleton_method(:cache_key_with_version) { "source/1-20230101" }
-        obj
+    def test_cache_component_modified_time_raises_configuration_error_when_source_file_missing
+      klass = make_component(name: "NoSourceComponent") do
+        include ::Vident::Caching
       end
-
-      result = @component.cache_keys_for_sources([:source_method])
-      assert_equal ["source/1-20230101"], result.compact
+      klass.component_source_file_path = "/nonexistent/path/to/component.rb"
+      err = assert_raises(::Vident::ConfigurationError) { klass.cache_component_modified_time }
+      assert_match(/No component source file/, err.message)
     end
 
-    def test_cache_keys_for_sources_with_cache_key
-      @component.define_singleton_method(:source_method) do
-        obj = Object.new
-        obj.define_singleton_method(:cache_key) { "source/1" }
-        obj
+    def test_cache_component_modified_time_raises_configuration_error_when_path_nil
+      klass = make_component(name: "NilSourceComponent") do
+        include ::Vident::Caching
       end
-
-      result = @component.cache_keys_for_sources([:source_method])
-      assert_equal ["source/1"], result.compact
+      klass.component_source_file_path = nil
+      err = assert_raises(::Vident::ConfigurationError) { klass.cache_component_modified_time }
+      assert_kind_of ::Vident::ConfigurationError, err
     end
 
-    def test_cache_keys_for_sources_with_string
-      @component.define_singleton_method(:string_method) { "test_string" }
+    # ---- component_modified_time raises when method not implemented --------
 
-      result = @component.cache_keys_for_sources([:string_method])
-      assert_equal [Digest::SHA1.hexdigest("test_string")], result.compact
-    end
-
-    def test_cache_keys_for_sources_with_object
-      obj = {key: "value"}
-      @component.define_singleton_method(:object_method) { obj }
-
-      result = @component.cache_keys_for_sources([:object_method])
-      assert_equal [Digest::SHA1.hexdigest(Marshal.dump(obj))], result.compact
-    end
-
-    def test_cache_keys_for_sources_filters_self
-      @component.define_singleton_method(:self_and_string) { [@component, "test"] }
-
-      result = @component.cache_keys_for_sources([:self_and_string])
-      # Should filter out self and only include the string
-      assert_equal [Digest::SHA1.hexdigest("test")], result.compact
-    end
-
-    def test_cache_keys_for_sources_with_proc
-      @component.define_singleton_method(:test_method) { "proc_result" }
-      proc_source = proc { test_method }
-
-      result = @component.cache_keys_for_sources([proc_source])
-      assert_equal [Digest::SHA1.hexdigest("proc_result")], result.compact
-    end
-
-    def test_cache_keys_for_sources_compacts_nil_values
-      @component.define_singleton_method(:mixed_method) do
-        [
-          (obj = Object.new
-           obj.define_singleton_method(:cache_key) { "source1" }
-           obj),
-          nil,
-          "test"
-        ]
+    def test_component_modified_time_raises_configuration_error_when_method_not_implemented
+      klass = make_component(name: "UnimplementedComponent") do
+        include ::Vident::Caching
       end
-
-      result = @component.cache_keys_for_sources([:mixed_method])
-      expected = ["source1", Digest::SHA1.hexdigest("test")]
-      assert_equal expected, result.compact
+      klass.singleton_class.undef_method(:cache_component_modified_time)
+      err = assert_raises(::Vident::ConfigurationError) { klass.component_modified_time }
+      assert_match(/cache_component_modified_time/, err.message)
     end
 
-    def test_generate_item_cache_key_from_with_cache_key_with_version
-      item = Object.new
-      item.define_singleton_method(:cache_key_with_version) { "item/1-20230101" }
+    # ---- generate_cache_key raises when sources resolve to empty ------
 
-      result = @component.generate_item_cache_key_from(item)
-      assert_equal "item/1-20230101", result
-    end
-
-    def test_generate_item_cache_key_from_with_cache_key
-      item = Object.new
-      item.define_singleton_method(:cache_key) { "item/1" }
-
-      result = @component.generate_item_cache_key_from(item)
-      assert_equal "item/1", result
-    end
-
-    def test_generate_item_cache_key_from_with_string
-      result = @component.generate_item_cache_key_from("test_string")
-      assert_equal Digest::SHA1.hexdigest("test_string"), result
-    end
-
-    def test_generate_item_cache_key_from_with_object
-      obj = {key: "value"}
-      result = @component.generate_item_cache_key_from(obj)
-      assert_equal Digest::SHA1.hexdigest(Marshal.dump(obj)), result
-    end
-
-    def test_generate_cache_key_basic
-      @test_component_class.with_cache_key(:to_h)
-
-      # Initialize the @cache_key instance variable
-      @component.instance_variable_set(:@cache_key, {})
-
-      result = @component.generate_cache_key(:_collection)
-      expected_hash_key = Digest::SHA1.hexdigest(Marshal.dump(@component.to_h))
-      expected_time_key = Digest::SHA1.hexdigest("123456789")
-      assert_includes result, "TestCachingComponent"
-      assert_includes result, expected_hash_key
-      assert_includes result, expected_time_key
-    end
-
-    def test_generate_cache_key_with_modifier
-      ENV["RAILS_CACHE_ID"] = "test_modifier"
-      @test_component_class.with_cache_key(:to_h)
-
-      # Initialize the @cache_key instance variable
-      @component.instance_variable_set(:@cache_key, {})
-
-      result = @component.generate_cache_key(:_collection)
-      assert_includes result, "test_modifier"
-    ensure
-      ENV.delete("RAILS_CACHE_ID")
-    end
-
-    def test_generate_cache_key_returns_nil_for_unknown_index
-      # Test that generate_cache_key returns nil for unknown index
-      # This test verifies the behavior when no cache key configuration exists
-      result = @component.generate_cache_key(:unknown_index)
-      assert_nil result
-    rescue NoMethodError
-      # The implementation may raise NoMethodError when @cache_key is not initialized
-      # This is acceptable behavior for this edge case
-      assert true
-    end
-
-    def test_generate_cache_key_handles_empty_sources
-      # Create a component that would generate a key with empty sources
-      empty_component_class = Class.new do
-        include Vident::Caching
-        def self.name
-          "EmptyComponent"
-        end
-
-        def self.cache_component_modified_time
-          "time"
-        end
-
-        # Override to return empty array which will create a key with just component name
-        def cache_keys_for_sources(attrs)
-          []
-        end
+    def test_cache_key_raises_when_all_sources_resolve_to_nil
+      # Bypasses `with_cache_key` to register a key group where every attr
+      # resolves to nil, producing an empty sources array.
+      klass = make_component(name: "EmptyKeyComponent") do
+        include ::Vident::Caching
+        send(:named_cache_key_includes, :_collection, proc {})
       end
-
-      empty_component_class.with_cache_key
-      component = empty_component_class.new
-      component.instance_variable_set(:@cache_key, {})
-
-      result = component.generate_cache_key(:_collection)
-      # Should generate a key with component name and empty path
-      assert_equal "EmptyComponent/", result
-    end
-
-    def test_generate_cache_key_with_blank_components
-      # Test behavior when components of the key are blank
-      # The actual implementation may not raise an error for "/" since it's not technically blank
-      blank_component_class = Class.new do
-        include Vident::Caching
-        # Empty name
-        def self.name
-          ""
-        end
-
-        # Empty time
-        def self.cache_component_modified_time
-          ""
-        end
-
-        def cache_keys_for_sources(attrs)
-          []
-        end
-      end
-
-      blank_component_class.with_cache_key
-      component = blank_component_class.new
-      component.instance_variable_set(:@cache_key, {})
-
-      # This generates a key like "/" which may not be considered blank by Rails
-      result = component.generate_cache_key(:_collection)
-      assert_equal "/", result
-    end
-
-    def test_cache_key_method_defined_after_with_cache_key
-      @test_component_class.with_cache_key(:to_h)
-
-      assert @component.respond_to?(:cache_key)
-    end
-
-    def test_cache_key_method_with_default_index
-      @test_component_class.with_cache_key(:to_h)
-
-      result = @component.cache_key
-      assert_includes result, "TestCachingComponent"
-    end
-
-    def test_cache_key_method_with_custom_index
-      @test_component_class.with_cache_key(:to_h, name: :custom)
-
-      result = @component.cache_key(:custom)
-      assert_includes result, "TestCachingComponent"
-    end
-
-    def test_cache_key_method_memoizes_results
-      @test_component_class.with_cache_key(:to_h)
-
-      result1 = @component.cache_key
-      result2 = @component.cache_key
-
-      assert_equal result1, result2
-      # Results should be the same string value
-      assert_kind_of String, result1
-      assert_kind_of String, result2
-    end
-
-    def test_cache_key_method_different_indexes_different_results
-      @test_component_class.with_cache_key(:to_h, name: :index1)
-      @test_component_class.with_cache_key(:component_modified_time, name: :index2)
-
-      result1 = @component.cache_key(:index1)
-      result2 = @component.cache_key(:index2)
-
-      refute_equal result1, result2
-    end
-
-    # Integration tests
-
-    def test_full_caching_workflow
-      # Set up a component with dependencies
-      dependency_class = Class.new do
-        def self.component_modified_time
-          "dep_modified_time"
-        end
-      end
-
-      @test_component_class.depends_on(dependency_class)
-      @test_component_class.with_cache_key(:to_h, :component_modified_time)
-
-      # Test that cache key includes all expected parts
-      cache_key = @component.cache_key
-
-      assert_includes cache_key, "TestCachingComponent"
-      assert_includes cache_key, Digest::SHA1.hexdigest(Marshal.dump(@component.to_h))
-      assert_includes cache_key, Digest::SHA1.hexdigest("dep_modified_time123456789")
-    end
-
-    def test_multiple_cache_key_configurations
-      @test_component_class.with_cache_key(:to_h, name: :full)
-      @test_component_class.with_cache_key(:component_modified_time, name: :minimal)
-
-      full_key = @component.cache_key(:full)
-      minimal_key = @component.cache_key(:minimal)
-
-      # Keys should be different
-      refute_equal full_key, minimal_key
-
-      # Full key should include the to_h hash
-      assert_includes full_key, Digest::SHA1.hexdigest(Marshal.dump(@component.to_h))
-
-      # Minimal key should not include the to_h hash (only component_modified_time)
-      # Both keys will include component_modified_time, so we can't easily test exclusion
-      assert_kind_of String, minimal_key
-      assert_includes minimal_key, "TestCachingComponent"
-    end
-
-    def test_cache_key_with_complex_attributes
-      # Test with various attribute types
-      complex_component_class = Class.new(@test_component_class) do
-        def self.name
-          "ComplexComponent"
-        end
-
-        def string_attr
-          "test_string"
-        end
-
-        def array_attr
-          [1, 2, 3]
-        end
-
-        def hash_attr
-          {key: "value"}
-        end
-
-        def object_with_cache_key
-          obj = Object.new
-          obj.define_singleton_method(:cache_key) { "object/cache/key" }
-          obj
-        end
-      end
-
-      complex_component_class.with_cache_key(:string_attr, :array_attr, :hash_attr, :object_with_cache_key)
-      component = complex_component_class.new
-
-      cache_key = component.cache_key
-
-      # Test that the cache key contains the component name
-      assert_includes cache_key, "ComplexComponent"
-
-      # Test that all the different attribute types are included in some form
-      # The exact hashes may vary, so we just test that we get a valid cache key
-      assert_kind_of String, cache_key
-      refute_empty cache_key
-
-      # Test that object with cache_key method is included directly
-      assert_includes cache_key, "object/cache/key"
-    end
-
-    # Test error conditions
-
-    def test_component_modified_time_without_cache_component_modified_time_implementation
-      broken_class = Class.new do
-        include Vident::Caching
-        def self.name
-          "BrokenClass"
-        end
-      end
-
-      assert_raises(StandardError) do
-        broken_class.component_modified_time
-      end
-    end
-
-    # Test edge cases
-
-    def test_empty_dependencies_array
-      @test_component_class.depends_on
-
-      assert_equal [], @test_component_class.component_dependencies
-    end
-
-    def test_nil_component_dependencies
-      # Test when no dependencies are set
-      assert_nil @test_component_class.component_dependencies
-
-      result = @test_component_class.component_modified_time
-      assert_equal "123456789", result
-    end
-
-    def test_cache_key_with_proc_that_returns_nil
-      @component.define_singleton_method(:nil_method) { nil }
-      proc_source = proc { nil_method }
-
-      @test_component_class.with_cache_key(proc_source)
-
-      # Should not raise an error and should handle nil gracefully
-      cache_key = @component.cache_key
-      assert_includes cache_key, "TestCachingComponent"
-    end
-
-    def test_circular_dependency_causes_stack_overflow
-      # Test the FIXME: circular dependencies can cause stack overflow
-      # Create classes that reference each other in a circular manner
-
-      dep1_class = Class.new do
-        include Vident::Caching
-
-        def self.cache_component_modified_time
-          "dep1_time"
-        end
-      end
-
-      dep2_class = Class.new do
-        include Vident::Caching
-
-        def self.cache_component_modified_time
-          "dep2_time"
-        end
-      end
-
-      # Set up circular dependency by overriding component_modified_time after creation
-      dep1_class.define_singleton_method(:component_modified_time) do
-        dep2_class.component_modified_time
-      end
-
-      dep2_class.define_singleton_method(:component_modified_time) do
-        dep1_class.component_modified_time
-      end
-
-      @test_component_class.depends_on(dep1_class)
-
-      assert_raises(SystemStackError) do
-        @test_component_class.component_modified_time
-      end
+      err = assert_raises(::Vident::ConfigurationError) { klass.new.cache_key }
+      assert_match(/EmptyKeyComponent/, err.message)
+      assert_match(/no cache key sources resolved/, err.message)
     end
   end
 end

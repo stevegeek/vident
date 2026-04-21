@@ -39,14 +39,6 @@ module Vident
       # action through the mutator, wrap in a pre-built value
       # (`stimulus_action(:click, :handle)`) or double-wrap
       # (`add_stimulus_actions([[:click, :handle]])`).
-      def test_add_stimulus_actions_splats_array_argument_into_multiple_actions
-        skip_on_v2 "mutator splat gotcha — V2 treats Array as one entry (event+method pair)"
-        klass = define_component(name: "ButtonComponent") do
-          define_method(:after_component_initialize) { add_stimulus_actions([:click, :hover]) }
-        end
-        assert_includes render(klass.new),
-          'data-action="button-component#click button-component#hover"'
-      end
 
       def test_add_stimulus_actions_accepts_pre_built_event_method_value
         klass = define_component(name: "ButtonComponent") do
@@ -190,6 +182,33 @@ module Vident
           end
         end
         assert_includes render(klass.new), 'data-controller="panel-component extra"'
+      end
+
+      def test_add_stimulus_controllers_hash_raises_parse_error
+        klass = define_component(name: "PanelComponent") do
+          define_method(:after_component_initialize) do
+            add_stimulus_controllers({name: "tooltip"})
+          end
+        end
+        assert_raises(::Vident::ParseError) { klass.new }
+      end
+
+      def test_add_stimulus_actions_hash_descriptor_passes
+        klass = define_component(name: "ButtonComponent") do
+          define_method(:after_component_initialize) do
+            add_stimulus_actions({method: :save, event: :click})
+          end
+        end
+        assert_includes render(klass.new), 'data-action="click->button-component#save"'
+      end
+
+      def test_add_stimulus_targets_hash_raises_parse_error
+        klass = define_component(name: "FormComponent") do
+          define_method(:after_component_initialize) do
+            add_stimulus_targets({name: "input"})
+          end
+        end
+        assert_raises(::Vident::ParseError) { klass.new }
       end
     end
   end

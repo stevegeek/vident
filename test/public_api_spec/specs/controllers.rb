@@ -66,13 +66,13 @@ module Vident
         assert_equal "anonymous-component", klass.stimulus_identifier
       end
 
-      def test_stimulus_identifier_from_path_public_module_function
+      def test_stimulize_path_public_helper
         assert_equal "admin--users",
-          ::Vident::StimulusComponent.stimulus_identifier_from_path("admin/users")
+          ::Vident::Stimulus::Naming.stimulize_path("admin/users")
         assert_equal "my-controller",
-          ::Vident::StimulusComponent.stimulus_identifier_from_path("my_controller")
+          ::Vident::Stimulus::Naming.stimulize_path("my_controller")
         assert_equal "a--b--c",
-          ::Vident::StimulusComponent.stimulus_identifier_from_path("a/b/c")
+          ::Vident::Stimulus::Naming.stimulize_path("a/b/c")
       end
 
       # ---- no_stimulus_controller opt-out --------------------------------
@@ -92,25 +92,7 @@ module Vident
         refute_match(/data-controller=/, render(klass.new))
       end
 
-      def test_no_stimulus_controller_with_dsl_emission_raises
-        skip_on_v2 "V2 raises Vident2::DeclarationError at class-def time (not instance-init StandardError)"
-        klass = define_component(name: "AvatarComponent") do
-          no_stimulus_controller
-          stimulus { actions :click }
-        end
-        error = assert_raises(StandardError) { klass.new }
-        assert_match(/No controllers have been specified/, error.message)
-      end
-
       # ---- stimulus_controllers: prop ------------------------------------
-
-      def test_stimulus_controllers_prop_at_new_replaces_implied
-        skip_on_v2 "V2 unifies: prop appends to implied controller (no longer replaces)"
-        klass = define_component(name: "ButtonComponent")
-        html = render(klass.new(stimulus_controllers: ["tooltip"]))
-        assert_includes html, 'data-controller="tooltip"'
-        refute_match(/data-controller="[^"]*button-component[^"]*"/, html)
-      end
 
       def test_stimulus_controllers_via_root_element_attributes_additive
         klass = define_component(name: "ButtonComponent") do

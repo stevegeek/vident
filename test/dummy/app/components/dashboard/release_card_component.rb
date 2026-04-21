@@ -2,20 +2,30 @@
 
 module Dashboard
   class ReleaseCardComponent < ApplicationComponent
+    # Lock the stimulus identifier to match the V1 component's, so the
+    # existing `app_components/dashboard/release_card_component_controller.js`
+    # still resolves against this V2 component without duplication.
+    # Emitted `data-controller="dashboard--release-card-component"`.
+    class << self
+      def stimulus_identifier_path = "dashboard/release_card_component"
+    end
+
     prop :release_id, Integer
     prop :name, String
     prop :version, String
     prop :environment, _Union(:production, :staging, :preview), default: :staging
     prop :status, _Union(:pending, :deployed, :failed), default: :pending
 
-    # `stimulus_outlet_host:` is inherited from Vident::Component — there's no
-    # prop declaration needed here. Passing the parent page in at render time
-    # (see PageComponent#view_template) causes this card to call
-    # `host.add_stimulus_outlets(self)` during initialize, which wires a
+    # `stimulus_outlet_host:` is inherited from Vident::Component. Passing
+    # the parent page at render time causes this card to call
+    # `host.add_stimulus_outlets(self)` in after_initialize, which wires a
     # `data-dashboard--page-component-dashboard--release-card-component-outlet`
-    # attribute onto the page's root element.
+    # attribute onto the host's root element.
 
     stimulus do
+      # Mirrors the :release_id / :name / :status props straight through as
+      # Stimulus values. No second declaration needed — the Resolver reads
+      # the `@ivar` current value at render time.
       values_from_props :release_id, :name, :status
 
       # Proc evaluated in the component instance, so it sees @status. The DSL
@@ -26,14 +36,15 @@ module Dashboard
       classes status: -> {
         case @status
         when :deployed then "border-green-500 bg-green-50"
-        when :failed   then "border-red-500 bg-red-50"
-        else                "border-yellow-400 bg-yellow-50"
+        when :failed then "border-red-500 bg-red-50"
+        else "border-yellow-400 bg-yellow-50"
         end
       }
 
-      # Single entry in the array form: bind the root's click event to the
-      # `select` method on the implied (this) controller.
-      actions [:click, :select]
+      # Fluent builder: reads left-to-right as "the `select` method fires
+      # on the `click` event". Emits `click->implied#select`. Equivalent
+      # V1-style shorthand `actions [:click, :select]` still works.
+      action(:select).on(:click)
     end
 
     def view_template
@@ -57,8 +68,8 @@ module Dashboard
           # `stimulus_params: { kind: ... }` on the element so the handler reads
           # `event.params.kind` to tell which button fired. In a real app you'd
           # probably just keep separate `promote` / `cancel` handlers — this
-          # intentional "one dispatch switch" shape is a bit RPC-ish and is here
-          # to show what the params feature looks like, not to recommend it.
+          # intentional "one dispatch switch" shape is a bit RPC-ish and is
+          # here to show what the params feature looks like.
           card.child_element(
             :button,
             stimulus_action: [:click, :apply],
@@ -79,6 +90,5 @@ module Dashboard
         end
       end
     end
-
   end
 end

@@ -1,5 +1,4 @@
 require_relative "lib/vident/version"
-require_relative "lib/vident/view_component/version"
 
 Gem::Specification.new do |spec|
   spec.name = "vident-view_component"

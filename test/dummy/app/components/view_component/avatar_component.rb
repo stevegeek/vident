@@ -1,7 +1,20 @@
+# frozen_string_literal: true
+
+require "vident"
+
 module ViewComponent
   class AvatarComponent < ::Vident::ViewComponent::Base
-    include Vident::Caching
+    include ::Vident::Caching
 
+    # Lock the stimulus identifier path to V1's so the implicit component
+    # class (e.g. `view-component--avatar-component`) lines up with V1
+    # even though this lives in a new namespace.
+    class << self
+      def stimulus_identifier_path = "view_component/avatar_component"
+    end
+
+    # No Stimulus controller — pure decoration. Declaring any `stimulus do`
+    # block after this would raise DeclarationError in V2.
     no_stimulus_controller
     with_cache_key
 

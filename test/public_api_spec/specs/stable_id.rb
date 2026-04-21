@@ -69,7 +69,7 @@ module Vident
 
       def test_with_sequence_generator_raises_on_nil_seed
         assert_raises(ArgumentError) do
-          ::Vident::StableId.with_sequence_generator(seed: nil) { }
+          ::Vident::StableId.with_sequence_generator(seed: nil) {}
         end
       end
 
@@ -117,6 +117,15 @@ module Vident
       ensure
         ::Vident::StableId.strategy = previous_strategy
         Thread.current[:vident_number_sequence_generator] = previous_gen
+      end
+
+      # ---- error hierarchy -----------------------------------------------
+
+      def test_stable_id_errors_inherit_from_configuration_error
+        assert ::Vident::StableId::GeneratorNotSetError.ancestors.include?(::Vident::ConfigurationError),
+          "GeneratorNotSetError must inherit from Vident::ConfigurationError"
+        assert ::Vident::StableId::StrategyNotConfiguredError.ancestors.include?(::Vident::ConfigurationError),
+          "StrategyNotConfiguredError must inherit from Vident::ConfigurationError"
       end
 
       # ---- component id integration --------------------------------------

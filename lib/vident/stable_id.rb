@@ -5,9 +5,9 @@ require "digest/md5"
 
 module Vident
   class StableId
-    class GeneratorNotSetError < StandardError; end
+    class GeneratorNotSetError < ::Vident::ConfigurationError; end
 
-    class StrategyNotConfiguredError < StandardError; end
+    class StrategyNotConfiguredError < ::Vident::ConfigurationError; end
 
     RANDOM_FALLBACK = ->(generator) do
       return Random.hex(16) unless generator
@@ -25,7 +25,7 @@ module Vident
     end
 
     class << self
-      # Callable(generator_or_nil) -> String. Starts nil; host app must configure it.
+      # Callable(generator_or_nil) -> String. Host app must configure before first render.
       attr_accessor :strategy
 
       def set_current_sequence_generator(seed:)

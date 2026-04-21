@@ -60,7 +60,45 @@ Cross-controller references elsewhere (actions/targets/values/classes/outlets) u
 
 Stimulus descriptor: `event->controller#method`, with optional modifiers (`:once`, `:prevent`, `keydown.ctrl+a`, `@window`, etc.). Stimulus encodes them as space-separated tokens in `data-action="..."`.
 
-Vident `actions` DSL entries (all of these work inside `stimulus do ... end`):
+**Primary form — the fluent `action(...)` builder.** Singular `action` returns a builder that reads left-to-right:
+
+```ruby
+stimulus do
+  action :click                                        # implied#click
+  action(:submit).on(:click)                           # click->implied#submit
+  action(:save).on(:click).modifier(:prevent, :stop)   # click:prevent:stop->implied#save
+  action(:escape).on(:keydown).keyboard("esc").window  # keydown.esc@window->implied#escape
+  action(:delete).when { admin? }                      # conditional — `.when` takes a predicate proc
+end
+```
+
+Chain methods: `.on(event)`, `.call_method(name)` (override), `.modifier(*opts)`, `.keyboard(str)`, `.window`, `.on_controller(alias_sym)`, `.when { predicate }`. Each returns `self`.
+
+**Kwargs shorthand.** Equivalent to the fluent chain — pick whichever reads better:
+
+```ruby
+action :save, on: :click, modifier: [:prevent, :stop]
+action :escape, on: :keydown, keyboard: "esc", window: true
+action :delete, when: -> { admin? }
+action :save, on: :click, call_method: :handle_save
+```
+
+Recognised keys: `on:`, `call_method:`, `modifier:` (Symbol or Array), `keyboard:`, `window:`, `on_controller:`, `when:`. Anything else raises `ArgumentError`.
+
+**Controller aliases.** Declare a short name for a cross-controller path with `controller "path", as: :alias`, then reference it from action entries:
+
+```ruby
+stimulus do
+  controller "admin/users", as: :admin
+
+  action(:save).on(:click).on_controller(:admin)       # click->admin--users#save
+  action :save, on: :click, on_controller: :admin      # same, kwargs form
+end
+```
+
+The alias resolves at render time — unknown aliases raise `Vident::DeclarationError`. Also works for runtime inputs: `stimulus_actions: [{method: :save, controller: :admin}]` resolves against the same declared map.
+
+**Legacy plural form.** Still accepted for compat — `actions(*entries)` accepts:
 
 | Ruby                                        | Emits                                              |
 | ------------------------------------------- | -------------------------------------------------- |
@@ -69,10 +107,9 @@ Vident `actions` DSL entries (all of these work inside `stimulus do ... end`):
 | `[:click, "other/ctrl", :my_thing]`         | `click->other--ctrl#myThing`                       |
 | `"click->other--ctrl#myThing"`              | pass-through, parsed into its parts                |
 | `{event: :click, method: :submit, options: [:once, :prevent]}` | `click:once:prevent->implied#submit` |
-| `Vident::StimulusAction::Descriptor.new(event: :click, method: :submit, options: [:once])` | same — typed data object, Hash is sugar |
 | `-> { [:click, :my_thing] if @editable }`   | proc, evaluated in component instance; `nil`/`false` returns drop the entry |
 
-**Modifiers via the Hash / Descriptor form.** Accepted keys on the hash (and the `Descriptor` data class):
+**Modifiers via the Hash form.** Accepted keys:
 
 | Key          | Type              | Emits                                    |
 | ------------ | ----------------- | ---------------------------------------- |
@@ -83,7 +120,7 @@ Vident `actions` DSL entries (all of these work inside `stimulus do ... end`):
 | `keyboard:`  | String like `"ctrl+a"` | `.ctrl+a` suffix on event filter    |
 | `window:`    | Boolean           | `@window` suffix on event                |
 
-Unknown option symbols raise `ArgumentError`. Use the Hash form for the common case; use `Vident::StimulusAction::Descriptor.new(...)` when you want a typed, passable value object (reusable across components, shared helpers).
+Unknown option symbols raise `ArgumentError`. The Hash descriptor is parsed directly into `Vident::Stimulus::Action` — there is no separate `Descriptor` class in V2.
 
 ```ruby
 actions({event: :keydown, method: :on_escape, keyboard: "esc", options: [:prevent]})
@@ -247,7 +284,7 @@ stimulus_outlets: [
 ]
 ```
 
-**(c) Child self-registers on a host via `stimulus_outlet_host:`.** Every Vident component inherits a `stimulus_outlet_host` prop. Passing a parent component at render time calls `host.add_stimulus_outlets(self)` in `prepare_stimulus_collections`, so the host's root gets the outlet attribute without enumerating children in its DSL:
+**(c) Child self-registers on a host via `stimulus_outlet_host:`.** Every Vident component inherits a `stimulus_outlet_host` prop. Passing a parent component at render time calls `host.add_stimulus_outlets(self)` in `after_initialize` (via `Vident::Capabilities::StimulusDraft`), so the host's root gets the outlet attribute without enumerating children in its DSL:
 
 ```ruby
 render PageComponent.new do |page|
@@ -329,7 +366,7 @@ prop :count, Integer, default: 0                      # with default
 prop :url, _Nilable(String)                           # optional / nilable
 prop :variant, _Union(:primary, :secondary), default: :primary
 prop :items, _Array(Hash), default: -> { [] }         # callable defaults must be lambdas
-prop :open, _Boolean, default: false                  # generates an `open?` predicate
+prop :open, _Boolean, default: false                  # pass `predicate: :public` to also get an `open?` method
 ```
 
 Props become `@ivar`s at init time. To also expose a reader method, declare the prop with `reader: :public`.
@@ -343,9 +380,9 @@ From `Vident::Component`:
 - `classes` — `String | Array(String)`. Appended to the root element's `class=`.
 - `html_options` — `Hash`. Merged onto the root element; highest precedence.
 
-From `Vident::StimulusComponent`:
+From `Vident::Component`:
 
-- `stimulus_controllers` — `Array(String | Symbol | StimulusController | Collection)`. Defaults to `[default_controller_path]` unless `no_stimulus_controller` is declared.
+- `stimulus_controllers` — `Array(String | Symbol | Vident::Stimulus::Controller)`. Defaults to `[default_controller_path]` unless `no_stimulus_controller` is declared.
 - `stimulus_actions`, `stimulus_targets`, `stimulus_values`, `stimulus_classes`, `stimulus_outlets` — Array / Hash props matching the shapes described in section 1.
 - `stimulus_outlet_host` — optional `Vident::Component`; activates child→host outlet self-registration.
 
@@ -413,13 +450,13 @@ When handwriting HTML inside ERB instead of using `child_element`, emit just the
 <div <%= component.as_stimulus_values(%i[count label]) %>></div>
 ```
 
-Plural (`as_stimulus_targets`, `as_stimulus_actions`, `as_stimulus_values`, `as_stimulus_classes`, `as_stimulus_outlets`, `as_stimulus_controllers`) and singular variants exist for every attribute kind. These helpers are defined on `Vident::ViewComponent::Base`; for Phlex, use `child_element` or compose directly.
+Plural (`as_stimulus_targets`, `as_stimulus_actions`, `as_stimulus_values`, `as_stimulus_params`, `as_stimulus_classes`, `as_stimulus_outlets`, `as_stimulus_controllers`) and singular variants (`as_stimulus_target`, `as_stimulus_action`, `as_stimulus_value`, `as_stimulus_param`, `as_stimulus_class`, `as_stimulus_outlet`, `as_stimulus_controller`) exist for every attribute kind. These helpers are defined on `Vident::ViewComponent::Base`; for Phlex, use `child_element` or compose directly.
 
 ---
 
 ## 3. `stimulus do ... end` block
 
-Opens a `Vident::StimulusBuilder` instance scoped to the class. It supports `actions`, `targets`, `values`, `values_from_props`, `classes`, `outlets`. Multiple `stimulus do` blocks on the same class are merged; a subclass's block is merged with its superclass's (subclass entries appended, values/classes/outlets merged by key, subclass wins on conflicts).
+Opens a `Vident::Internals::DSL` instance scoped to the class. It supports `actions`, `targets`, `values`, `values_from_props`, `classes`, `outlets`. Multiple `stimulus do` blocks on the same class are merged; a subclass's block is merged with its superclass's (subclass entries appended, values/classes/outlets merged by key, subclass wins on conflicts).
 
 Procs passed anywhere in the DSL are evaluated via `instance_exec` on the **component instance** at render time (Phlex `before_template` / ViewComponent `before_render`), so they see `@ivars`, public/private instance methods, and the view context.
 
@@ -496,7 +533,7 @@ Vident::StableId.with_sequence_generator(seed: "some-unique-key") { render ... }
 - **`after_component_initialize`** — override in your component; runs after props are assigned and Vident has prepared its stimulus collections. Don't override `after_initialize` unless you `super` — Literal calls it to wire everything up.
 - **`component_name` / `stimulus_identifier`** — class method and instance method; the kebab-case/`--`-separated identifier. Used for outlet auto-selectors, scoped event names, and the default class on the root.
 - **Caching** (`include Vident::Caching` + `with_cache_key :attr1, :attr2`) — declares attributes that feed `cache_key`. Combined with a template mtime so edits bust the cache. `depends_on(OtherComponent, …)` chains subcomponent mtimes into the key.
-- **`clone(overrides = {})`** — returns a new instance with merged props.
+- **`with(overrides = {})`** — returns a new instance with merged props. (`clone` is a backward-compat alias.)
 - **Phlex tag safety** — `Vident::Phlex::HTML` validates every `child_element` tag name against a whitelist; passing an unknown tag raises.
 
 ---
@@ -625,13 +662,12 @@ end
 
 For the exhaustive public-API listing (every method signature, argument shape, and raise-condition, verified against current code), see [`api-reference.md`](api-reference.md). The files below are useful when you need to read the implementation itself.
 
-- `lib/vident/stimulus_builder.rb` — DSL evaluator.
-- `lib/vident/stimulus_attributes.rb` — parser for every `stimulus_*` input shape + `as_stimulus_*` helpers' backing.
-- `lib/vident/stimulus_{action,target,value,outlet,class,controller}.rb` — value objects; read `parse_arguments` to learn the argument shapes.
-- `lib/vident/child_element_helper.rb` — `child_element` kwargs and validation.
-- `lib/vident/component_attribute_resolver.rb` — how DSL, props, and `root_element_attributes` compose at render time.
-- `lib/vident/component_class_lists.rb` — `class_list_for_stimulus_classes` / `render_classes`.
+- `lib/vident/component.rb` — composition root; includes all capabilities in dependency order.
 - `lib/vident/stable_id.rb` — the StableId strategy system.
 - `lib/vident/stimulus_null.rb` — the StimulusNull sentinel.
-- `lib/vident/view_component/base.rb` / `lib/vident/phlex/html.rb` — framework-specific `root_element` / `child_element` backings and (ViewComponent only) `as_stimulus_*` helpers.
+- `lib/vident/stimulus/` — value classes: `Action`, `Target`, `Controller`, `Outlet`, `Value`, `Param`, `ClassMap`, `Collection`, `Null`, `Naming`.
+- `lib/vident/capabilities/` — focused capability mixins: `Tailwind`, `Caching`, `Declarable`, `Identifiable`, `StimulusDeclaring`, `StimulusParsing`, `StimulusMutation`, `StimulusDraft`, `StimulusDataEmitting`, `ClassListBuilding`, `RootElementRendering`, `ChildElementRendering`, `Inspectable`.
+- `lib/vident/internals/` — internal DSL/resolver plumbing: `Registry`, `Declaration`, `Declarations`, `DSL`, `Draft`, `Plan`, `Resolver`, `AttributeWriter`, `ClassListBuilder`, `ActionBuilder`, `TargetBuilder`.
+- `lib/vident/phlex/html.rb` — Phlex adapter (`root_element`, `child_element`, tag whitelist).
+- `lib/vident/view_component/base.rb` — ViewComponent adapter (`root_element`, `child_element`, `as_stimulus_*` helpers).
 - `test/dummy/app/components/dashboard/` — canonical multi-component example (outlets, scoped events, `StimulusNull`, dynamic classes, `values_from_props`, `class_list_for_stimulus_classes`, full JS side).

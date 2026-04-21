@@ -2,9 +2,19 @@
 
 module Greeters
   class GreeterButtonComponent < ApplicationComponent
+    # Lock the identifier path to V1's so existing
+    # greeters/greeter_button_component_controller.js resolves to this
+    # V2 component without a JS duplicate.
+    class << self
+      def stimulus_identifier_path = "greeters/greeter_button_component"
+    end
+
     prop :after_clicked_message, String, default: -> { "Greeted!" }, reader: :private
     prop :before_clicked_message, String, default: -> { "Greet" }, reader: :private
 
+    # Demonstrates the `root_element_attributes`-driven shape. V2's
+    # Resolver absorbs these `stimulus_*` keys into the Draft so they
+    # emit just like DSL entries.
     private def root_element_attributes
       {
         element_tag: :button,

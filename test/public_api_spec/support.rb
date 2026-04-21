@@ -19,23 +19,8 @@ module Vident
     # `CGI.unescapeHTML` before returning. If a per-adapter test needs to
     # check literal encoded bytes, it can call `#render_raw` instead.
 
-    # Gate a test to only run on one Vident major version. Use to protect
-    # V1-locking tests from running against V2 (where the behaviour
-    # intentionally changed) and vice versa.
-    module VersionGates
-      def skip_on_v2(reason)
-        skip "v1-only: #{reason}" if vident_version == :v2
-      end
-
-      def skip_on_v1(reason)
-        skip "v2-only: #{reason}" if vident_version == :v1
-      end
-    end
-
     module PhlexAdapter
-      include VersionGates
       def component_base = ::Vident::Phlex::HTML
-      def vident_version = :v1
 
       # Build a Vident::Phlex::HTML subclass whose .name returns the given
       # string (drives stimulus_identifier_path and therefore the implied
@@ -59,13 +44,12 @@ module Vident
       end
 
       def render_raw(component) = component.call.to_s
+
       def render(component) = CGI.unescapeHTML(render_raw(component))
     end
 
     module ViewComponentAdapter
-      include VersionGates
       def component_base = ::Vident::ViewComponent::Base
-      def vident_version = :v1
 
       def define_component(name: "TestComponent", &block)
         klass = Class.new(component_base)
@@ -89,23 +73,6 @@ module Vident
       end
 
       def render(component) = CGI.unescapeHTML(render_raw(component))
-    end
-
-    # V2 adapters: override only #component_base so the whole test helper
-    # pipeline (define_component, render, render_raw, define_render)
-    # retargets at Vident2 base classes. As Vident2 grows, these adapters
-    # need no changes — they already do the right thing.
-
-    module PhlexV2Adapter
-      include PhlexAdapter
-      def component_base = ::Vident2::Phlex::HTML
-      def vident_version = :v2
-    end
-
-    module ViewComponentV2Adapter
-      include ViewComponentAdapter
-      def component_base = ::Vident2::ViewComponent::Base
-      def vident_version = :v2
     end
   end
 end

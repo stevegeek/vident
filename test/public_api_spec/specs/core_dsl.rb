@@ -110,7 +110,7 @@ module Vident
 
       def test_values_proc_returning_nil_drops_the_attribute
         klass = define_component(name: "CardComponent") do
-          stimulus { values maybe: -> { nil } }
+          stimulus { values maybe: -> {} }
         end
         refute_match(/maybe-value/, render(klass.new))
       end

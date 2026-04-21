@@ -25,18 +25,6 @@ module Vident
 
       # ---- action: Descriptor typed value object -------------------------
 
-      def test_action_from_descriptor_instance
-        skip_on_v2 "V2 folds the descriptor shape directly into Stimulus::Action (no separate Descriptor class)"
-        klass = define_component(name: "ButtonComponent") do
-          descriptor = ::Vident::StimulusAction::Descriptor.new(
-            event: :click, method: :submit, options: [:once]
-          )
-          stimulus { actions descriptor }
-        end
-        assert_includes render(klass.new),
-          'data-action="click:once->button-component#submit"'
-      end
-
       # ---- action modifiers ---------------------------------------------
 
       def test_action_hash_with_keyboard_modifier
@@ -109,15 +97,7 @@ module Vident
 
       def test_action_proc_returning_nil_drops
         klass = define_component(name: "ButtonComponent") do
-          stimulus { actions -> { nil } }
-        end
-        refute_match(/data-action=/, render(klass.new))
-      end
-
-      def test_action_proc_returning_false_drops_silently
-        skip_on_v2 "V2 unifies drop rule — only nil drops, false reaches parser (and raises)"
-        klass = define_component(name: "ButtonComponent") do
-          stimulus { actions(-> { false }) }
+          stimulus { actions -> {} }
         end
         refute_match(/data-action=/, render(klass.new))
       end

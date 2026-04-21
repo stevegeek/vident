@@ -60,7 +60,7 @@ module Vident
           end
         end
         assert_includes render(listener.new),
-          %q{data-action="dispatcher-component:dataReady@window->listener-component#handleReady"}
+          'data-action="dispatcher-component:dataReady@window->listener-component#handleReady"'
       end
     end
   end

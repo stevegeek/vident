@@ -2,6 +2,13 @@
 
 module PhlexGreeters
   class GreeterButtonComponent < ApplicationComponent
+    # Lock to V1's identifier so the existing
+    # phlex_greeters/greeter_button_component_controller.js resolves
+    # to this V2 component without duplication.
+    class << self
+      def stimulus_identifier_path = "phlex_greeters/greeter_button_component"
+    end
+
     prop :after_clicked_message, String, default: "Greeted!"
     prop :before_clicked_message, String, default: "Greet"
 

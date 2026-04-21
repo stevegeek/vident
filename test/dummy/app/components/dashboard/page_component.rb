@@ -2,6 +2,13 @@
 
 module Dashboard
   class PageComponent < ApplicationComponent
+    # Identifier locked to V1's so the existing page_component JS
+    # controller resolves without duplication. Emitted data-controller
+    # stays `dashboard--page-component`.
+    class << self
+      def stimulus_identifier_path = "dashboard/page_component"
+    end
+
     prop :releases, _Array(Hash), default: -> { [] }
     prop :active_filter, _Union(:all, :pending, :deployed, :failed), default: :all
 
@@ -24,9 +31,10 @@ module Dashboard
 
         div(class: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4") do
           @releases.each do |release|
-            # `stimulus_outlet_host: page` is the self-registration hook: each card
-            # adds itself to this page's outlet collection at init, so the page
-            # doesn't have to list the cards in its own `stimulus do ... outlets`.
+            # `stimulus_outlet_host: page` is the self-registration hook: each
+            # card adds itself to the page's outlet collection in
+            # after_initialize, so the page doesn't have to enumerate cards
+            # in its own `stimulus do ... outlets`.
             render ReleaseCardComponent.new(
               release_id: release[:id],
               name: release[:name],

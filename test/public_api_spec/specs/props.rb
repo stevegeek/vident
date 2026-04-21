@@ -90,15 +90,6 @@ module Vident
         assert_includes html, 'data-action="button-component#click"'
       end
 
-      def test_stimulus_controllers_prop_accepts_pre_built_value
-        skip_on_v2 "V2 unifies: prop appends to implied controller (no longer replaces)"
-        klass = define_component(name: "PanelComponent")
-        comp = klass.new
-        ctrl = comp.stimulus_controller("tooltip")
-        html = render(klass.new(stimulus_controllers: [ctrl]))
-        assert_includes html, 'data-controller="tooltip"'
-      end
-
       # ---- _Boolean prop does NOT auto-generate `NAME?` predicate --------
 
       # SPEC-NOTE (doc error flagged during spec extraction): SKILL.md L231

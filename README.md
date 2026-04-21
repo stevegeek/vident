@@ -178,7 +178,7 @@ Use the component in your views:
 <%= render ButtonComponent.new(text: "Cancel", url: "/home", style: :secondary) %>
 
 <!-- Override things -->
-<%= render ButtonComponent.new(text: "Cancel", url: "/home" classes: "bg-red-900", html_options: {role: "button"}) %>
+<%= render ButtonComponent.new(text: "Cancel", url: "/home", classes: "bg-red-900", html_options: {role: "button"}) %>
 ```
 
 The rendered HTML includes all Stimulus data attributes:
@@ -227,7 +227,7 @@ class CardComponent < Vident::ViewComponent::Base
   # Property with validation
   prop :size, _Union(:small, :medium, :large), default: :medium
   
-  # Boolean property (creates predicate method)
+  # Boolean property (pass `predicate: :public` to also generate a `?` method)
   prop :featured, _Boolean, default: false
 end
 ```
@@ -271,7 +271,7 @@ The `root_element` helper method renders your component's root element with all 
 ```ruby
 # In your component class
 def root_element_classes
-  ["card", featured? ? "card-featured" : nil]
+  ["card", @featured ? "card-featured" : nil]
 end
 
 private
@@ -362,17 +362,41 @@ class ToggleComponent < Vident::ViewComponent::Base
 end
 ```
 
-**Action modifiers** — the Array form `[:click, :method]` handles the common case. For Stimulus's modifier syntax (`:once`/`:prevent`/`:stop`/`:passive`/`:"!passive"`/`:capture`/`:self`, keyboard filters, `@window`), pass a Hash or a `Vident::StimulusAction::Descriptor`:
+**Action modifiers — fluent DSL.** Singular `action(...)` returns a builder you chain with event, modifier, keyboard, and window setters. Kwargs shorthand is equivalent:
 
 ```ruby
-actions({event: :click,   method: :submit, options: [:once, :prevent]})
-actions({event: :keydown, method: :on_key, keyboard: "ctrl+a"})
-actions({event: :resize,  method: :on_resize, window: true})
-# or, if you want a typed, passable object:
-actions Vident::StimulusAction::Descriptor.new(event: :click, method: :save, options: [:prevent])
+stimulus do
+  action(:submit).on(:click).modifier(:once, :prevent)          # click:once:prevent->implied#submit
+  action(:on_key).on(:keydown).keyboard("ctrl+a")               # keydown.ctrl+a->implied#onKey
+  action(:on_resize).on(:resize).window                         # resize@window->implied#onResize
+
+  # kwargs shorthand — same result:
+  action :submit,     on: :click,   modifier: [:once, :prevent]
+  action :on_key,     on: :keydown, keyboard: "ctrl+a"
+  action :on_resize,  on: :resize,  window: true
+  action :save,       on: :click,   call_method: :handle_save
+
+  # conditional inclusion via `.when` / `when:`:
+  action(:delete).when { admin? }
+end
 ```
 
-Unknown option symbols raise `ArgumentError` at attribute construction, not at render.
+Chain methods: `.on`, `.call_method`, `.modifier`, `.keyboard`, `.window`, `.on_controller`, `.when`. Recognised kwargs: `on:`, `call_method:`, `modifier:` (Symbol or Array), `keyboard:`, `window:`, `on_controller:`, `when:`. Unknown kwargs or modifier symbols raise `ArgumentError`.
+
+**Controller aliases.** Declare a short alias with `controller "path", as: :sym`, then reference it from action entries via the fluent `.on_controller(:sym)` or the `on_controller: :sym` kwarg:
+
+```ruby
+stimulus do
+  controller "admin/users", as: :admin
+
+  action(:save).on(:click).on_controller(:admin)     # click->admin--users#save
+  action :save, on: :click, on_controller: :admin    # same, kwargs form
+end
+```
+
+Unknown aliases raise `Vident::DeclarationError` at render time.
+
+**Legacy Hash form.** Still accepted for compat — `actions({event: :click, method: :submit, options: [:once, :prevent]})` parses the same way. The Hash descriptor is folded directly into `Vident::Stimulus::Action` — pass a Hash and it is parsed in place. Accepted keys: `method:`, `event:`, `controller:`, `options:`, `keyboard:`, `window:`.
 
 ### Dynamic Values and Classes with Procs
 
@@ -489,14 +513,14 @@ class MyComponent < Vident::ViewComponent::Base
     # This would generate: "my-component:dataLoaded"
     puts stimulus_scoped_event(:data_loaded)
     
-    # For window events, this generates: "my-component:dataLoaded@window" 
+    # For window events, this generates: :"my-component:dataLoaded@window" 
     puts stimulus_scoped_event_on_window(:data_loaded)
   end
 end
 
 # Available as both class and instance methods:
-MyComponent.stimulus_scoped_event(:data_loaded)      # => "my-component:dataLoaded"
-MyComponent.new.stimulus_scoped_event(:data_loaded)  # => "my-component:dataLoaded"
+MyComponent.stimulus_scoped_event(:data_loaded)      # => :"my-component:dataLoaded"
+MyComponent.new.stimulus_scoped_event(:data_loaded)  # => :"my-component:dataLoaded"
 ```
 
 This is useful for:
@@ -532,7 +556,7 @@ class CustomComponent < Vident::ViewComponent::Base
 end
 ```
 
-All stimulus props accept Symbol paths as well as Strings (e.g. `stimulus_controllers: [:custom, :"admin/users"]`). `stimulus_values:` and `stimulus_classes:` additionally accept Array entries (for cross-controller: `[["admin/users", :name, "value"]]`) and pre-built `StimulusValue`/`StimulusValueCollection` / `StimulusClass`/`StimulusClassCollection` instances, so you can compose attribute sets outside the component and pass them in.
+All stimulus props accept Symbol paths as well as Strings (e.g. `stimulus_controllers: [:custom, :"admin/users"]`). `stimulus_values:` and `stimulus_classes:` additionally accept Array entries (for cross-controller: `[["admin/users", :name, "value"]]`) and pre-built `Vident::Stimulus::Value` / `Vident::Stimulus::ClassMap` instances, so you can compose attribute sets outside the component and pass them in.
 
 or you can use tag helpers to generate HTML with Stimulus attributes:
 

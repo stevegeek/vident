@@ -18,26 +18,26 @@ module Vident
 
       def test_as_stimulus_target_basic
         comp = build_component
-        assert_equal %q{data-greeter-component-target="button"},
+        assert_equal 'data-greeter-component-target="button"',
           comp.as_stimulus_target(:button).to_s
         assert_kind_of ActiveSupport::SafeBuffer, comp.as_stimulus_target(:button)
       end
 
       def test_as_stimulus_target_snake_case_becomes_camel_case
         comp = build_component
-        assert_equal %q{data-greeter-component-target="errorMessage"},
+        assert_equal 'data-greeter-component-target="errorMessage"',
           comp.as_stimulus_target(:error_message).to_s
       end
 
       def test_as_stimulus_target_cross_controller
         comp = build_component
-        assert_equal %q{data-custom--ctrl-target="input"},
+        assert_equal 'data-custom--ctrl-target="input"',
           comp.as_stimulus_target("custom/ctrl", :input).to_s
       end
 
       def test_as_stimulus_targets_plural_multiple
         comp = build_component
-        assert_equal %q{data-greeter-component-target="button input"},
+        assert_equal 'data-greeter-component-target="button input"',
           comp.as_stimulus_targets(:button, :input).to_s
       end
 
@@ -50,19 +50,19 @@ module Vident
 
       def test_as_stimulus_action_basic
         comp = build_component
-        assert_equal %q{data-action="greeter-component#click"},
+        assert_equal 'data-action="greeter-component#click"',
           comp.as_stimulus_action(:click).to_s
       end
 
       def test_as_stimulus_action_with_event
         comp = build_component
-        assert_equal %q{data-action="submit->greeter-component#save"},
+        assert_equal 'data-action="submit->greeter-component#save"',
           comp.as_stimulus_action(:submit, :save).to_s
       end
 
       def test_as_stimulus_actions_multiple
         comp = build_component
-        assert_equal %q{data-action="greeter-component#click submit->greeter-component#save"},
+        assert_equal 'data-action="greeter-component#click submit->greeter-component#save"',
           comp.as_stimulus_actions(:click, [:submit, :save]).to_s
       end
 
@@ -70,19 +70,19 @@ module Vident
 
       def test_as_stimulus_controller_basic
         comp = build_component
-        assert_equal %q{data-controller="my-controller"},
+        assert_equal 'data-controller="my-controller"',
           comp.as_stimulus_controller("my_controller").to_s
       end
 
       def test_as_stimulus_controller_nested_path
         comp = build_component
-        assert_equal %q{data-controller="forms--validation"},
+        assert_equal 'data-controller="forms--validation"',
           comp.as_stimulus_controller("forms/validation").to_s
       end
 
       def test_as_stimulus_controllers_multiple
         comp = build_component
-        assert_equal %q{data-controller="a b"},
+        assert_equal 'data-controller="a b"',
           comp.as_stimulus_controllers("a", "b").to_s
       end
 
@@ -90,13 +90,13 @@ module Vident
 
       def test_as_stimulus_value_basic
         comp = build_component
-        assert_equal %q{data-greeter-component-url-value="https://example.com"},
+        assert_equal 'data-greeter-component-url-value="https://example.com"',
           comp.as_stimulus_value(:url, "https://example.com").to_s
       end
 
       def test_as_stimulus_value_cross_controller
         comp = build_component
-        assert_equal %q{data-api-controller-endpoint-value="/api/users"},
+        assert_equal 'data-api-controller-endpoint-value="/api/users"',
           comp.as_stimulus_value("api_controller", :endpoint, "/api/users").to_s
       end
 
@@ -111,7 +111,7 @@ module Vident
 
       def test_as_stimulus_param_basic
         comp = build_component
-        assert_equal %q{data-greeter-component-kind-param="promote"},
+        assert_equal 'data-greeter-component-kind-param="promote"',
           comp.as_stimulus_param(:kind, "promote").to_s
       end
 
@@ -126,7 +126,7 @@ module Vident
 
       def test_as_stimulus_class_basic
         comp = build_component
-        assert_equal %q{data-greeter-component-loading-class="opacity-50"},
+        assert_equal 'data-greeter-component-loading-class="opacity-50"',
           comp.as_stimulus_class(:loading, "opacity-50").to_s
       end
 
@@ -141,7 +141,7 @@ module Vident
 
       def test_as_stimulus_outlet_basic
         comp = build_component
-        assert_equal %q{data-greeter-component-modal-outlet=".modal"},
+        assert_equal 'data-greeter-component-modal-outlet=".modal"',
           comp.as_stimulus_outlet(:modal, ".modal").to_s
       end
     end

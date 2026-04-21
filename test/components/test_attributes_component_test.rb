@@ -1,100 +1,73 @@
+# frozen_string_literal: true
+
 require "test_helper"
+require "vident"
 
 class TestAttributesComponentTest < Minitest::Test
   def test_can_be_instantiated_with_default_values
-    component = TestAttributesComponent.new(initials: "TW")
-
+    component = ::TestAttributesComponent.new(initials: "TW")
     assert_equal "World", component.name
     assert_equal "TW", component.initials
     assert_nil component.url
   end
 
   def test_can_be_instantiated_with_custom_values
-    component = TestAttributesComponent.new(
+    component = ::TestAttributesComponent.new(
       name: "John",
       initials: "JD",
       url: "https://example.com"
     )
-
     assert_equal "John", component.name
     assert_equal "JD", component.initials
     assert_equal "https://example.com", component.url
   end
 
   def test_renders_with_default_values
-    component = TestAttributesComponent.new(initials: "TW")
-    result = component.call
-
-    assert_equal "Hi World", result
+    component = ::TestAttributesComponent.new(initials: "TW")
+    assert_equal "Hi World", component.call
   end
 
   def test_renders_with_custom_name_no_url
-    component = TestAttributesComponent.new(name: "Alice", initials: "A")
-    result = component.call
-
-    assert_equal "Hi Alice", result
+    component = ::TestAttributesComponent.new(name: "Alice", initials: "A")
+    assert_equal "Hi Alice", component.call
   end
 
   def test_renders_with_url_as_link
-    component = TestAttributesComponent.new(
+    component = ::TestAttributesComponent.new(
       name: "Bob",
       initials: "B",
       url: "https://example.com"
     )
     result = component.call
-
-    # Should render as a link when URL is present
     assert_includes result, '<a href="https://example.com">'
     assert_includes result, "Hi Bob"
     assert_includes result, "</a>"
   end
 
   def test_renders_without_url_as_plain_text
-    component = TestAttributesComponent.new(name: "Charlie", initials: "C", url: nil)
-    result = component.call
-
-    # Should render as plain text when URL is nil
-    assert_equal "Hi Charlie", result
-    refute_includes result, "<a"
-  end
-
-  def test_renders_without_url_as_plain_text_when_empty_string
-    component = TestAttributesComponent.new(name: "Dave", initials: "D", url: nil)
-    result = component.call
-
-    # Should render as plain text when URL is nil (empty string violates the present constraint)
-    assert_equal "Hi Dave", result
-    refute_includes result, "<a"
+    component = ::TestAttributesComponent.new(name: "Charlie", initials: "C", url: nil)
+    assert_equal "Hi Charlie", component.call
+    refute_includes component.call, "<a"
   end
 
   def test_initials_validation
-    # Should accept non-empty string
-    component = TestAttributesComponent.new(initials: "AB")
-    assert_equal "AB", component.initials
+    assert_equal "AB", ::TestAttributesComponent.new(initials: "AB").initials
 
-    # Should reject empty string due to present constraint
     assert_raises(Literal::TypeError) do
-      TestAttributesComponent.new(initials: "")
+      ::TestAttributesComponent.new(initials: "")
     end
-
-    # Should reject nil since it's not _Nilable
     assert_raises(Literal::TypeError) do
-      TestAttributesComponent.new(initials: nil)
+      ::TestAttributesComponent.new(initials: nil)
     end
   end
 
   def test_url_validation
-    # Should accept nil (due to _Nilable wrapper)
-    component = TestAttributesComponent.new(initials: "T", url: nil)
-    assert_nil component.url
+    assert_nil ::TestAttributesComponent.new(initials: "T", url: nil).url
+    assert_equal "https://example.com",
+      ::TestAttributesComponent.new(initials: "T", url: "https://example.com").url
 
-    # Should accept non-empty string
-    component = TestAttributesComponent.new(initials: "T", url: "https://example.com")
-    assert_equal "https://example.com", component.url
-
-    # Should reject empty string due to present constraint
     assert_raises(Literal::TypeError) do
-      TestAttributesComponent.new(initials: "T", url: "")
+      ::TestAttributesComponent.new(initials: "T", url: "")
     end
   end
 end

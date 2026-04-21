@@ -6,6 +6,43 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
+## [2.0.0] - 2026-04-21
+
+Vident 2.0 is a ground-up rearchitecture of the DSL, attribute resolution, and composition model. The public shape of `stimulus do ... end`, `root_element`, `child_element`, outlets, props, and the `stimulus_*:` prop/kwarg API is preserved for common cases, but several internals and a handful of edge-case behaviours changed. See `doc/reviews/v1-gotchas.md` for the full list of fixed gotchas; the highlights are below.
+
+### Breaking
+
+- **Namespace consolidation.** The `Vident2::*` namespace used during side-by-side development has been removed. Everything now lives under `Vident::*` directly: `Vident::Component`, `Vident::Capabilities::*`, `Vident::Phlex::HTML`, `Vident::ViewComponent::Base`, `Vident::Stimulus::*` (value classes), `Vident::Internals::*` (DSL/Resolver/Plan). Upgrade path is a `s/Vident2::/Vident::/g` on project code.
+- **Legacy collection classes removed.** `Vident::StimulusAction`, `StimulusTarget`, `StimulusController`, `StimulusValue`, `StimulusParam`, `StimulusOutlet`, `StimulusClass`, and each of their `*Collection` companions (plus `StimulusBuilder`, `StimulusDataAttributeBuilder`, `StimulusAttributeBase`, `StimulusAttributes`, `StimulusAction::Descriptor`) are gone. The 2.0 equivalents live under `Vident::Stimulus::*` (`Action`, `Target`, `Controller`, `Value`, `Param`, `Outlet`, `ClassMap`, `Collection`). `#to_h` now uses **Symbol keys** uniformly; V1 returned String keys for some primitives.
+- **`child_element` strictness.** Passing both `stimulus_<singular>:` and `stimulus_<plural>:` kwargs now raises `ArgumentError` (`"mutually exclusive — pass one or the other."`). V1 silently dropped the singular when the plural was an empty array (latent since 1.0.0, see "Fixed" below). Workaround at call sites that relied on the V1 shape: `stimulus_targets: [:input, *control_targets]`.
+- **`stimulus_controllers:` prop appends instead of replacing.** V1 replaced the implied controller when you passed `stimulus_controllers:` at render time; V2 appends, so the root element carries `data-controller="implied extra"`. Migration: if you wanted to *replace*, add `no_stimulus_controller` at the class level.
+- **Outlet DSL procs now resolve.** V1 silently passed a proc through as the outlet selector string, emitting literal `#<Proc:0x...>`. V2 evaluates the proc in the instance binding and emits the returned string. This turns previously broken code into working code, but if you relied on the proc-as-identity string for some reason, you'll now see a different data attribute.
+- **`nil` vs `false` drop rule.** V1 dropped both `nil` and `false` proc returns silently via a `blank?` filter. V2 drops only `nil`; `false` reaches the parser and raises `Vident::ParseError`. Fix: return `nil` (not `false`) to mean "don't emit this entry."
+- **`no_stimulus_controller` + DSL body now raises loudly.** V1 raised a bare `StandardError` at instance init. V2 raises `Vident::DeclarationError` at `stimulus do ... end` time with the offending class name and caller location in the message.
+- **StableId strategy.** Unchanged from 1.0, but reiterated here because it's the biggest gotcha during upgrade. `Vident::StableId` requires an explicit `strategy` and per-request seed — `bin/rails generate vident:install` sets both up correctly.
+
+### Added
+
+- **Fluent action DSL.** Inside `stimulus do ... end`, the singular `action(...)` call returns a chainable builder: `action(:escape).on(:keydown).keyboard("esc").window`, `action(:save).modifier(:prevent, :stop)`, `action(:delete).when { admin? }`. Chain methods: `.on`, `.call_method`, `.modifier`, `.keyboard`, `.window`, `.on_controller`, `.when`.
+- **Kwargs shorthand for actions.** `action :save, on: :click, modifier: [:prevent, :stop], keyboard: "ctrl+s", window: true, on_controller: :admin, call_method: :handle_save, when: -> { ... }` — equivalent to the fluent chain, pick whichever reads better. Unknown kwargs raise `ArgumentError`.
+- **Controller aliases.** `controller "admin/users", as: :admin` inside `stimulus do` declares a short alias; `action(...).on_controller(:admin)` or `action(..., on_controller: :admin)` then routes through it. Unknown alias refs raise `Vident::DeclarationError`. Runtime inputs (`stimulus_actions: [{method: :save, controller: :admin}]`) resolve the same map.
+- **Capability mixin composition.** `Vident::Component` is a composition root that includes twelve focused capability mixins (`Tailwind`, `Declarable`, `Identifiable`, `StimulusDeclaring`, `StimulusParsing`, `StimulusMutation`, `StimulusDraft`, `StimulusDataEmitting`, `ClassListBuilding`, `RootElementRendering`, `ChildElementRendering`, `Inspectable`), plus an opt-in `Caching` mixin (thirteen in total, including Caching). Mixin order mirrors capability dependencies.
+- **Singular DSL primitives.** `value(:name, *, **)`, `param(:name, *, **)`, `outlet(:name, *, **)`, `class_map(:name, *, **)`, `controller(path, as: nil)`, `controllers(*paths)`, `target(:name).when { ... }` — full set of singular entry points alongside the plural forms.
+- **Draft → Plan seal pattern.** Internal: `after_component_initialize` mutators (e.g. `add_stimulus_actions`) still work against a mutable Draft; the Draft seals into an immutable Plan once rendering begins. Prevents the V1 "mutator silently ignored post-render" class of bug.
+- **Phase-split proc resolution.** DSL procs are evaluated in two phases: static (after_initialize, no `view_context`) and procs (`before_template` / `before_render`, `view_context`/`helpers` wired). Procs can now call Rails helpers (`number_with_precision`, url helpers, `t`, `l`, etc.) safely — already backported to 1.0.2.
+
+### Fixed
+
+- `child_element` no longer silently drops a `stimulus_<singular>:` kwarg when `stimulus_<plural>:` is also passed with an empty array. The V1 helper returned early on an empty-but-truthy plural, losing the singular and emitting no data attribute — latent since 1.0.0, surfaced by call sites like `child_element(:input, stimulus_target: :input, stimulus_targets: control_targets)` where `control_targets` defaulted to `[]`. V2 raises `ArgumentError` on both-set (see Breaking); workaround on 1.x is `stimulus_targets: [:input, *control_targets]` (also works on 2.x).
+- Outlet DSL procs now resolve instead of being treated as identity strings (see Breaking).
+- `add_stimulus_actions([:click, :handle])` now treats the Array as *one* action descriptor (event + method pair) rather than splatting it into two separate `:click` and `:handle` actions. Matches the DSL's `actions [:click, :handle]` semantics — the V1 asymmetry is gone.
+
+### Removed
+
+- `Vident::StimulusAction::Descriptor` typed data class. The V2 equivalent is `Vident::Stimulus::Action` itself — the Hash shape accepted by the DSL (`{event:, method:, controller:, options:, keyboard:, window:}`) parses directly into the value class now. Callers that instantiated `Descriptor` explicitly should swap to `Vident::Stimulus::Action.parse(hash, implied: ...)` or just pass the Hash.
+- Legacy top-level requires like `require "vident/stimulus_action"`. The main `require "vident"` loads the whole surface; deep requires for individual value classes still work (`require "vident/stimulus/action"`) but are no longer the documented path.
+
+
 ## [1.0.2] - 2026-04-21
 
 ### Changed

@@ -1,18 +1,27 @@
 # frozen_string_literal: true
 
 module PhlexGreeters
-  # Demonstrates:
-  #   - inherited stimulus config: parent's `stimulus do` is kept and this subclass's
-  #     block is merged in, so the rendered controller has both action sets
-  #   - Symbol-form `stimulus_controllers:` (mirror of the String form, just less quoting)
-  #   - `Vident::Tailwind` class merging: the user-supplied `:classes` prop can override
-  #     conflicting Tailwind utilities from the base classes without css specificity games
+  # Demonstrates V2:
+  #   - inherited stimulus config: parent's `stimulus do` is kept and this
+  #     subclass's block is merged in, so the rendered controller has both
+  #     action sets (V2 Component#inherited preserves parent declarations).
+  #   - Symbol-form `stimulus_controllers:` (mirror of the String form).
+  #   - `Vident::Tailwind` class merging via `classes` prop to override
+  #     conflicting Tailwind utilities from the base classes without CSS
+  #     specificity games.
   class InheritedGreeterComponent < GreeterVidentComponent
     include ::Vident::Tailwind
 
-    # Second stimulus block: the parent's actions/targets are preserved and this
-    # block is merged in. The extra :status target just exists to prove the
-    # merge — it needs no JS handler.
+    # Lock to a V1-style identifier path — V1 doesn't have this component
+    # but we keep the locked-identifier convention consistent with the
+    # rest of the V2 family.
+    class << self
+      def stimulus_identifier_path = "phlex_greeters/inherited_greeter_component"
+    end
+
+    # Second stimulus block: the parent's actions/targets are preserved and
+    # this block is merged in. The extra :status target just exists to prove
+    # the merge — it needs no JS handler.
     stimulus do
       targets :status
     end
@@ -21,7 +30,7 @@ module PhlexGreeters
 
     def root_element_attributes
       super.merge(
-        # Symbol-form path is accepted alongside String.
+        # Symbol-form controller path is accepted alongside String.
         stimulus_controllers: [:"phlex_greeters/greeter_vident_component"],
         html_options: {class: merged_classes}
       )

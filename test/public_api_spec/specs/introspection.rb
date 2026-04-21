@@ -51,40 +51,6 @@ module Vident
         assert_equal klass.prop_names, klass.new.prop_names
       end
 
-      # ---- clone ----------------------------------------------------------
-
-      def test_clone_returns_new_distinct_instance
-        klass = define_component(name: "ButtonComponent") do
-          prop :title, String, default: "x"
-        end
-        original = klass.new(title: "A")
-        cloned = original.clone
-        refute_same original, cloned
-        assert_kind_of klass, cloned
-      end
-
-      def test_clone_without_overrides_preserves_props
-        klass = define_component(name: "ButtonComponent") do
-          prop :title, String, default: "x"
-        end
-        original = klass.new(title: "A")
-        cloned = original.clone
-        assert_equal "A", cloned.instance_variable_get(:@title)
-      end
-
-      def test_clone_with_overrides_merges
-        klass = define_component(name: "ButtonComponent") do
-          prop :title, String, default: "x"
-          prop :url, _Nilable(String)
-        end
-        original = klass.new(title: "A", url: "/a")
-        cloned = original.clone(title: "B")
-        assert_equal "B", cloned.instance_variable_get(:@title)
-        assert_equal "/a", cloned.instance_variable_get(:@url)
-        # Original unchanged
-        assert_equal "A", original.instance_variable_get(:@title)
-      end
-
       # ---- inspect --------------------------------------------------------
 
       def test_inspect_includes_class_name
@@ -136,6 +102,40 @@ module Vident
         klass = define_component(name: "Admin::UserCardComponent")
         assert_equal "admin/user_card_component",
           klass.new.send(:default_controller_path)
+      end
+
+      # ---- with -----------------------------------------------------------
+
+      def test_with_returns_new_distinct_instance
+        klass = define_component(name: "ButtonComponent") do
+          prop :title, String, default: "x"
+        end
+        original = klass.new(title: "A")
+        copy = original.with
+        refute_same original, copy
+        assert_kind_of klass, copy
+        assert_equal original.instance_variable_get(:@title), copy.instance_variable_get(:@title)
+      end
+
+      def test_with_without_overrides_preserves_props
+        klass = define_component(name: "ButtonComponent") do
+          prop :title, String, default: "x"
+        end
+        original = klass.new(title: "A")
+        copy = original.with
+        assert_equal "A", copy.instance_variable_get(:@title)
+      end
+
+      def test_with_overrides_merges
+        klass = define_component(name: "ButtonComponent") do
+          prop :title, String, default: "x"
+          prop :url, _Nilable(String)
+        end
+        original = klass.new(title: "A", url: "/a")
+        copy = original.with(title: "B")
+        assert_equal "B", copy.instance_variable_get(:@title)
+        assert_equal "/a", copy.instance_variable_get(:@url)
+        assert_equal "A", original.instance_variable_get(:@title)
       end
     end
   end

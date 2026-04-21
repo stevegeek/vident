@@ -72,7 +72,7 @@ Public instance methods:
   `:element_tag` (Symbol), `:html_options` (Hash), `:id` (String), `:classes`
   (String | Array), and any of the seven `stimulus_<plural>:` / `stimulus_<singular>:`
   keys documented in section 5.
-- `clone(overrides = {})` — returns a new instance, `self.class.new(**to_h.merge(**overrides))`.
+- `with(overrides = {})` — returns a new instance, `self.class.new(**to_h.merge(overrides))`. `clone(overrides = {})` is a backward-compat alias.
 - `inspect(klass_name = "Component")` — formatted debug string with every prop.
 - `id` — `String`, auto-generated from `StableId` if `@id` was nil. The generated form
   is `"#{component_name}-#{StableId.next_id_in_sequence}"`.
@@ -96,18 +96,18 @@ From `Vident::Component` (`lib/vident/component.rb`):
 | `classes`      | `_Union(String, _Array(String))`    | `[]`           | Appended on top of all other class sources.      |
 | `html_options` | `Hash`                              | `{}`           | Merged onto root; highest class-source precedence. |
 
-From `Vident::StimulusComponent` (`lib/vident/stimulus_component.rb`):
+From `Vident::Component` via the `StimulusDeclaring` / `StimulusParsing` capability mixins:
 
-| Prop                    | Type                                                                                                   | Default                              |
-| ----------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------ |
-| `stimulus_controllers`  | `_Array(_Union(String, Symbol, StimulusController, StimulusControllerCollection))`                     | `[default_controller_path]` unless `no_stimulus_controller`, else `[]` |
-| `stimulus_actions`      | `_Array(_Union(String, Symbol, Array, Hash, StimulusAction, StimulusAction::Descriptor, StimulusActionCollection))` | `[]`                                 |
-| `stimulus_targets`      | `_Array(_Union(String, Symbol, Array, Hash, StimulusTarget, StimulusTargetCollection))`                | `[]`                                 |
-| `stimulus_outlets`      | `_Array(_Union(String, Symbol, StimulusOutlet, StimulusOutletCollection))`                             | `[]`                                 |
-| `stimulus_outlet_host`  | `_Nilable(Vident::Component)`                                                                          | `nil`                                |
-| `stimulus_values`       | `_Union(_Hash(Symbol, _Any), Array, StimulusValue, StimulusValueCollection)`                           | `{}`                                 |
-| `stimulus_params`       | `_Union(_Hash(Symbol, _Any), Array, StimulusParam, StimulusParamCollection)`                           | `{}`                                 |
-| `stimulus_classes`      | `_Union(_Hash(Symbol, String), Array, StimulusClass, StimulusClassCollection)`                         | `{}`                                 |
+| Prop                    | Type                                                                                       | Default                              |
+| ----------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------ |
+| `stimulus_controllers`  | `_Array(_Union(String, Symbol, Vident::Stimulus::Controller))`                             | `[default_controller_path]` unless `no_stimulus_controller`, else `[]` |
+| `stimulus_actions`      | `_Array(_Union(String, Symbol, Array, Hash, Vident::Stimulus::Action))`                    | `[]`                                 |
+| `stimulus_targets`      | `_Array(_Union(String, Symbol, Array, Vident::Stimulus::Target))`                          | `[]`                                 |
+| `stimulus_outlets`      | `_Array(_Union(String, Symbol, Array, Vident::Stimulus::Outlet))`                          | `[]`                                 |
+| `stimulus_outlet_host`  | `_Nilable(Vident::Component)`                                                              | `nil`                                |
+| `stimulus_values`       | `_Union(_Hash(Symbol, _Any), Array, Vident::Stimulus::Value)`                              | `{}`                                 |
+| `stimulus_params`       | `_Union(_Hash(Symbol, _Any), Array, Vident::Stimulus::Param)`                              | `{}`                                 |
+| `stimulus_classes`      | `_Union(_Hash(Symbol, _Any), Array, Vident::Stimulus::ClassMap)`                           | `{}`                                 |
 
 ---
 
@@ -136,84 +136,149 @@ All of these live on `Vident::Component`'s class body (via included modules).
   `:"foo-component:dataReady"`. Also an instance method.
 - `stimulus_scoped_event_on_window(event)` — same, with `@window` suffix. Also an
   instance method.
-- `stimulus(&block)` — the DSL entry point. Opens a `Vident::StimulusBuilder` block
+- `stimulus(&block)` — the DSL entry point. Opens a `Vident::Internals::DSL` block
   evaluator. See section 3.
 
 Not intended for application code:
 
-- `stimulus_dsl_attributes(component_instance)` — returns the DSL's emitted attribute
-  hash for a specific instance (so procs resolve against it).
-- `stimulus_dsl_builder` — the builder accessor; `protected`, used only by inheritance
-  merging.
+- `declarations` — frozen `Vident::Internals::Declarations` aggregate (own + inherited);
+  `protected`, consumed by the Resolver at render time.
 
 ---
 
 ## 3. `stimulus do ... end` block
 
-Evaluated by `Vident::StimulusBuilder` (`lib/vident/stimulus_builder.rb`). Multiple
+Evaluated by `Vident::Internals::DSL` (`lib/vident/internals/dsl.rb`). Multiple
 `stimulus do` blocks on the same class accumulate. A subclass's blocks are merged with
 every parent's blocks on first access (subclass entries appended to positional kinds;
 subclass wins on conflicts for keyed kinds).
 
-Every DSL method returns `self` so calls chain — but there's no real reason to chain
-inside a `do ... end` block. All methods accept procs anywhere a value is expected;
-procs are evaluated via `instance_exec` on the component instance at render time.
+Every DSL method returns `self` (for the singular primitives `action`/`target`, the
+fluent **builder** is returned instead — chain methods also return self). All DSL
+entries may use a `Proc` anywhere a value is expected; procs are evaluated via
+`instance_exec` on the component instance at render time (or at `after_initialize`
+for purely static entries).
 
 ### Methods on the builder
 
-- `actions(*entries)` — positional. Each entry is one of:
+**Controllers.** Primary form is the singular `controller`; plural `controllers`
+accumulates paths without the `as:` alias.
+
+- `controller(path, as: alias_sym = nil)` — declare a cross-controller path on
+  the root element. Optional `as:` registers an alias looked up by
+  `action(...).on_controller(alias_sym)` / `on_controller: alias_sym`. Paths
+  may be `String` (`"admin/users"`) or `Symbol` (`:admin_users`).
+- `controllers(*paths)` — one entry per path. Array entries splat into the
+  singular parser (so `[path, as: sym]` tuples work when building
+  programmatically).
+- `no_stimulus_controller` — class-level, **not** inside the block. Suppresses
+  the implied controller. Raises `Vident::DeclarationError` if any DSL entries
+  were subsequently added.
+
+**Actions.** Primary form is the singular `action(*args, **meta)` which returns
+an `Internals::ActionBuilder`. Chain methods pre-applied via kwargs are equivalent
+to calling the setters explicitly.
+
+- `action(*args, **meta) -> ActionBuilder` — builder state:
+  - Positional `*args` shapes (`base_descriptor` pattern-matches):
+    - `(Symbol)`                     → method on implied (no event)
+    - `(Symbol, Symbol)`             → `(event, method)` on implied
+    - `(Symbol, String, Symbol)`     → `(event, controller_path, method)`
+    - `(Hash)`                       → full descriptor (`:method`, `:event`, `:controller`, `:options`, `:keyboard`, `:window`)
+  - Kwargs `**meta` (equivalent to the fluent chain methods):
+    - `on:` (Symbol/String)          → event
+    - `call_method:` (Symbol/String) → override the method name
+    - `modifier:` (Symbol or Array)  → Stimulus options whitelist (see §4.2)
+    - `keyboard:` (String)           → `keydown.<key>` filter suffix
+    - `window:` (Boolean)            → `@window` suffix
+    - `on_controller:` (Symbol)      → resolve against a `controller ..., as: sym` alias
+    - `when:` (Proc / callable)      → render-time predicate; `false`/`nil` drops the entry
+  - Unknown kwargs raise `ArgumentError`.
+- Chain methods on the returned builder: `.on(event)`, `.call_method(name)`,
+  `.modifier(*opts)`, `.keyboard(str)`, `.window`, `.on_controller(sym)`,
+  `.when(callable = nil, &block)`. Each returns the builder.
+- `actions(*entries)` — legacy plural form, still accepted. Each entry is one of:
   - `Symbol`                         → `implied#<jsSymbol>`
   - `[Symbol, Symbol]`               → `<event>-><implied>#<jsMethod>`
   - `[Symbol, String, Symbol]`       → `<event>-><stimulized-path>#<jsMethod>`
-  - `String` containing `#`          → parsed literally (pass-through); `event->ctrl#method`
-    or `ctrl#method` supported.
-  - `Hash` (desugared to a `Descriptor`) — keys: `:method` (required), `:event`,
-    `:controller`, `:options` (`Array<Symbol>`), `:keyboard` (`String`),
-    `:window` (`Boolean`). See section 4.2 for the `options:` whitelist.
-  - `Vident::StimulusAction::Descriptor` — typed equivalent of the Hash form.
-  - `Proc` — evaluated at render time; `nil` / `false` return drops the entry.
-- `targets(*entries)` — positional. Each entry is one of:
+  - `String` containing `#`          → parsed literally (pass-through).
+  - `Hash`                           → descriptor keys as above.
+  - `Proc`                           → evaluated at render time; `nil`/`false` drops.
+
+**Alias resolution.** When an action descriptor's `:controller` is a `Symbol`, the
+resolver looks it up in the class's declared alias map (`controller X, as: sym`
+entries) and substitutes the full path before parsing. Unknown alias →
+`Vident::DeclarationError`. Alias resolution also runs on runtime inputs
+(`stimulus_actions:` prop, `root_element_attributes[:stimulus_actions]`) that
+carry a Hash with a `Symbol` `:controller`.
+
+**Targets.** Singular `target` returns a `TargetBuilder` whose only chain method
+is `.when`; plural `targets` accepts the same positional shapes as before.
+
+- `target(*args) -> TargetBuilder` — chain `.when(callable = nil, &block)` for
+  conditional inclusion; without a chain, the builder passes `*args` through.
+- `targets(*entries)` — each entry is one of:
   - `Symbol`                         → target on the implied controller
   - `String`                         → pass-through target name
   - `[String, Symbol]`               → target on the named cross-controller
-  - `Proc` — evaluated at render time; `nil` drops the entry.
-- `values(**kvs)` — keyed. Values may be `String`/`Number`/`Boolean` (stringified),
-  `Array`/`Hash` (JSON-serialised), `Vident::StimulusNull` (emits literal `"null"`),
-  or a `Proc` resolving to any of the above. A resolved `nil` omits the attribute.
-- `params(**kvs)` — keyed. Same serialisation rules as `values`.
-- `classes(**kvs)` — keyed. Value is `String` or `Array(String)`; array joined with
-  single space. A `Proc` may resolve to either. A resolved `nil` omits the attribute.
-- `outlets(positional_hash = nil, **kvs)` — keyed. Value is a `String` CSS selector.
-  `outlets({"admin--users" => ".sel"})` accepts a positional Hash so identifiers
-  containing `--` (not valid Ruby kwarg keys) work. Procs are **not** supported here
-  — the builder skips proc resolution for outlets; pass cross-controller outlets via
-  the `stimulus_outlets:` prop or `root_element_attributes` instead.
-- `values_from_props(*prop_names)` — keyed, sidecar to `values`. Mirrors each prop's
-  current `@ivar` value at render time. Prop names are Symbols.
+  - `Proc` — `nil` return drops the entry.
 
-No `controllers` method exists in the DSL. Controllers are set via the `stimulus_controllers:`
-prop, `root_element_attributes[:stimulus_controllers]`, or `no_stimulus_controller`.
+**Keyed primitives.** `values`, `params`, `classes`, `outlets` keep the plural
+kwargs form and add singular `value`/`param`/`class_map`/`outlet` that take
+`(name, *args, **meta)`:
+
+- `values(**kvs)` / `value(name, *args, **meta)` — keyed. Values may be
+  `String`/`Number`/`Boolean` (stringified), `Array`/`Hash` (JSON-serialised),
+  `Vident::StimulusNull` (emits literal `"null"`), or a `Proc` resolving to
+  any of the above. A resolved `nil` omits the attribute. Singular supports
+  `value :count, static: 0` and `value :clicked_count, from_prop: true` meta
+  forms.
+- `params(**kvs)` / `param(name, *args, **meta)` — same serialisation rules.
+- `classes(**kvs)` / `class_map(name, *args, **meta)` — value is `String` or
+  `Array(String)`; array joined with single space.
+- `outlets(positional_hash = nil, **kvs)` / `outlet(name, *args, **meta)` —
+  value is a `String` CSS selector, a `Proc` returning one, or a pre-built
+  outlet value object. `outlets({"admin--users" => ".sel"})` accepts a
+  positional Hash so identifiers containing `--` (not valid Ruby kwarg keys)
+  work.
+- `values_from_props(*prop_names)` — keyed, sidecar to `values`. Mirrors each
+  prop's current `@ivar` value at render time. Prop names are Symbols.
 
 ### What the builder emits
 
-`to_attributes(component_instance)` returns a Hash keyed by `:stimulus_actions`,
-`:stimulus_targets`, `:stimulus_values`, `:stimulus_params`, `:stimulus_classes`,
-`:stimulus_outlets`, plus `:stimulus_values_from_props` (an Array of prop-name Symbols)
-if `values_from_props` was used. Only primitives with entries are included.
+`to_declarations` (called on the `Vident::Internals::DSL` instance when the block
+closes) returns a frozen `Vident::Internals::Declarations` struct. The struct is a
+`Data.define(...)` value object with these fields — all frozen arrays:
+
+| Field              | Content                                                                    |
+| ------------------ | -------------------------------------------------------------------------- |
+| `controllers`      | `Array` of `Declaration` entries (each wraps a path + optional `as:` alias). |
+| `actions`          | `Array` of `Declaration` entries, one per `action(...)` call.              |
+| `targets`          | `Array` of `Declaration` entries, one per `target(...)` call.              |
+| `outlets`          | `Array` of `[key, Declaration]` pairs (keyed; last-write-wins on same key).|
+| `values`           | `Array` of `[key, Declaration]` pairs.                                     |
+| `params`           | `Array` of `[key, Declaration]` pairs.                                     |
+| `class_maps`       | `Array` of `[key, Declaration]` pairs.                                     |
+| `values_from_props`| `Array(Symbol)` — prop names listed via `values_from_props`.              |
+
+The struct supports `merge(other)` (subclass block merged over superclass) and
+`any?`. Entries remain as raw `Declaration` tuples — parsing into
+`Vident::Stimulus::*` value objects is deferred to the Resolver at render time.
+Application code does not call `to_declarations` directly.
 
 ---
 
-## 4. Instance-level Stimulus helpers (`Vident::StimulusAttributes`)
+## 4. Instance-level Stimulus helpers (`Vident::Capabilities::StimulusParsing`)
 
-Included into every component via `StimulusComponent`. File:
-`lib/vident/stimulus_attributes.rb`.
+Included into every component via `Vident::Component`. File:
+`lib/vident/capabilities/stimulus_parsing.rb`.
 
 ### 4.1 Plural parsers `stimulus_<plural>(*args)`
 
 Seven methods: `stimulus_controllers`, `stimulus_actions`, `stimulus_targets`,
 `stimulus_outlets`, `stimulus_values`, `stimulus_params`, `stimulus_classes`.
 
-Each returns a collection object (`StimulusActionCollection`, etc.) whose `#to_h`
+Each returns a collection object (`Vident::Stimulus::Collection`, etc.) whose `#to_h`
 serialises to a `Hash` of `data-*` keys → values. Arg handling per input:
 
 - no args or all-blank         → empty collection
@@ -227,12 +292,12 @@ serialises to a `Hash` of `data-*` keys → values. Arg handling per input:
 
 ### 4.2 Singular builders `stimulus_<singular>(*args)`
 
-Each singular builder accepts the set of argument shapes its `parse_arguments`
-implementation supports. Raises `ArgumentError` on unsupported shape or arity.
+Each singular builder delegates to the corresponding value class's `.parse(*args, implied:, component_id:)`
+class method. Raises `ArgumentError` (or `Vident::ParseError`) on unsupported shape or arity.
 
 - `stimulus_controller(*)` — 0 or 1 arg. 0 args returns the implied controller; 1 arg
   is a controller path `String`/`Symbol`.
-- `stimulus_action(*)` — 1/2/3 args. See `StimulusAction::parse_arguments` for all
+- `stimulus_action(*)` — 1/2/3 args. See `Vident::Stimulus::Action.parse` for all
   accepted forms. `options:` whitelist (raises otherwise):
   `[:once, :prevent, :stop, :passive, :"!passive", :capture, :self]`.
 - `stimulus_target(*)` — 1 or 2 args. `(Symbol)` / `(String)` → implied controller;
@@ -258,26 +323,27 @@ Seven methods, one per primitive. Merge new attributes into the per-kind collect
 ivar (e.g. `@stimulus_actions_collection`). Typical use: inside
 `after_component_initialize`, compute runtime attributes and add them.
 
-**Splat asymmetry vs DSL.** The DSL's `actions [:click, :handle]` treats the Array as
-one action descriptor (event + method). The mutator `add_stimulus_actions([:click, :handle])`
-splats the Array and treats it as two separate symbol actions. To pass an
-Array-shaped single action through the mutator, wrap with a pre-built value
-(`stimulus_action(:click, :handle)`) or double-wrap (`[[:click, :handle]]`).
+**Array input is one entry.** `add_stimulus_actions([:click, :handle])` treats the
+Array as *one* action descriptor (event + method pair), matching the DSL's
+`actions [:click, :handle]` semantics. The V1 splat asymmetry — where the mutator
+treated the Array as two separate symbol actions — was fixed in V2. To pass a
+pre-built action object, construct it first:
+`add_stimulus_actions(stimulus_action(:click, :handle))`.
 
-### 4.4 Value serialisation (`StimulusAttributeBase#serialize_value`)
+### 4.4 Value serialisation
 
 `Array` and `Hash` → JSON. Everything else → `to_s`. `Vident::StimulusNull.to_s`
 returns the literal string `"null"`. A `nil` reaches the DSL/prop layer and
-is dropped by `StimulusBuilder#resolve_hash_filtering_nil` before serialisation, so
-the data attribute is omitted (not emitted as empty).
+is dropped by the Resolver before serialisation, so the data attribute is omitted
+(not emitted as empty).
 
 ### 4.5 Name-shaping helpers
 
-- `StimulusAttributeBase.stimulize_path(path)` — `"admin/users"` → `"admin--users"`;
-  each path segment is `dasherize`d and segments joined with `--`.
-- `StimulusAttributeBase.js_name(name)` — `camelize(:lower)`; `:my_thing` → `"myThing"`.
+`Vident::Stimulus::Naming` is a `module_function` module — call its methods directly:
 
-Both also available as private instance methods on any `StimulusAttributeBase` subclass.
+- `Vident::Stimulus::Naming.stimulize_path(path)` — `"admin/users"` → `"admin--users"`;
+  each path segment is `dasherize`d and segments joined with `--`.
+- `Vident::Stimulus::Naming.js_name(name)` — `camelize(:lower)`; `:my_thing` → `"myThing"`.
 
 ### 4.6 Scoped events
 
@@ -343,44 +409,44 @@ def child_element(tag_name,
 
 ---
 
-## 7. `Vident::StimulusBuilder` primitives
+## 7. `Vident::Internals::DSL` primitives
 
 For use in advanced cases (passing typed descriptors across components, building
-reusable shared helpers). File: `lib/vident/stimulus_action.rb`.
+reusable shared helpers). Value classes live under `lib/vident/stimulus/`.
 
-### `Vident::StimulusAction::Descriptor`
+### Hash descriptor form
 
-A `::Literal::Data` value object with the same shape as the Hash form accepted by
-`actions`:
+There is no separate `Descriptor` class in V2. The Hash form accepted by `actions`
+(and `stimulus_actions:`) is parsed directly into `Vident::Stimulus::Action`. Accepted keys:
 
-| Prop          | Type                                  | Default |
+| Key           | Type                                  | Default |
 | ------------- | ------------------------------------- | ------- |
-| `method`      | `_Union(Symbol, String)`              | —       |
-| `event`       | `_Nilable(_Union(Symbol, String))`    | `nil`   |
-| `controller`  | `_Nilable(String)`                    | `nil`   |
-| `options`     | `_Array(Symbol)`                      | `[]`    |
-| `keyboard`    | `_Nilable(String)`                    | `nil`   |
-| `window`      | `_Boolean`                            | `false` |
+| `method:`     | `Symbol \| String`                    | required |
+| `event:`      | `Symbol \| String \| nil`             | `nil`   |
+| `controller:` | `String \| nil`                       | `nil`   |
+| `options:`    | `Array(Symbol)` — see §4.2 whitelist  | `[]`    |
+| `keyboard:`   | `String \| nil`                       | `nil`   |
+| `window:`     | `Boolean`                             | `false` |
 
 ### `Vident::StimulusNull`
 
 Frozen singleton object. `inspect` → `"Vident::StimulusNull"`; `to_s` → `"null"`.
 See SKILL.md §1.4 for the usage contract.
 
-### Collection classes
+### Collection class
 
-Each primitive has a `StimulusXCollection < StimulusCollectionBase`:
+All primitive kinds share one parametric class: `Vident::Stimulus::Collection`,
+parametrised on a `Kind` record from `Vident::Internals::Registry`.
 
-- Base methods: `<<(item)`, `to_a`, `to_h` (abstract; each subclass implements),
-  `empty?`, `any?`, `merge(*others)`, `self.merge(*collections)`.
-- `StimulusActionCollection#to_h` → `{action: "…"}` with entries joined by space.
-- `StimulusControllerCollection#to_h` → `{controller: "…"}` with non-empty entries
-  joined by space.
-- `StimulusTargetCollection#to_h` → one key per controller-target attribute;
-  multiple targets on the same controller are joined with a single space.
-- `StimulusValueCollection`, `StimulusParamCollection`, `StimulusClassCollection` →
-  merged per-data-attribute hash.
-- `StimulusOutletCollection` → same.
+- Methods: `each`, `to_a`, `size`, `length`, `empty?`, `any?`, `to_h`, `to_hash`,
+  `merge(other)` (single same-kind Collection; raises `ArgumentError` on mismatch).
+- `#to_h` shape per kind:
+  - `actions` → `{action: "…"}` with entries joined by space.
+  - `controllers` → `{controller: "…"}` with non-empty entries joined by space.
+  - `targets` → one key per controller-target attribute; multiple targets on
+    the same controller joined with a single space.
+  - `values`, `params`, `class_maps` → merged per-data-attribute Hash.
+  - `outlets` → same.
 
 ---
 
@@ -398,7 +464,7 @@ File: `lib/vident/caching.rb`.
   into this class's `component_modified_time`, so sub-component edits bust the
   parent's cache.
 - `component_modified_time` — memoised in `Rails.env.production?`, otherwise recomputed
-  on every call. Raises `StandardError` if the host class has no
+  on every call. Raises `Vident::ConfigurationError` if the host class has no
   `cache_component_modified_time` (base classes provide it).
 
 ### Instance methods
@@ -407,7 +473,7 @@ File: `lib/vident/caching.rb`.
 - `cacheable?` — `respond_to?(:cache_key)`.
 - `cache_key` — defined when `with_cache_key` has been called; returns
   `"#{class.name}/#{cache_keys_for_sources(...).join("/")}"`, optionally suffixed with
-  `ENV["RAILS_CACHE_ID"]`. Raises `StandardError` if the computed key is blank.
+  `ENV["RAILS_CACHE_ID"]`. Raises `Vident::ConfigurationError` if the computed key is blank.
 - `cache_key_modifier` — returns `ENV["RAILS_CACHE_ID"]` (may be nil).
 
 `with_cache_key` without any attrs is valid — the call still appends
@@ -467,15 +533,15 @@ Included into every component. File: `lib/vident/tailwind.rb`.
   the `tailwind_merge` gem is loaded; otherwise returns `nil`.
 - `tailwind_merge_available?` — `true` iff `::TailwindMerge::Merger` is defined.
 
-`Vident::ClassListBuilder` invokes `tailwind_merger.merge(class_string)` automatically
-at the final stage of its `build(...)` call when a merger is provided. No per-component
+`Vident::Internals::ClassListBuilder` invokes `tailwind_merger.merge(class_string)` automatically
+at the final stage of its `call(...)` when a merger is provided. No per-component
 opt-in is required beyond adding the gem to the Gemfile.
 
 ---
 
 ## 11. `class_list_for_stimulus_classes`
 
-Instance method on every component. File: `lib/vident/component_class_lists.rb`.
+Instance method on every component. File: `lib/vident/capabilities/class_list_building.rb`.
 
 ```ruby
 class_list_for_stimulus_classes(*names) -> String
@@ -493,26 +559,32 @@ Names may be `Symbol` or `String`; both are normalised via `dasherize`.
 ## 12. Rails engine hooks
 
 - `Vident::Engine` (`lib/vident/engine.rb`) — autoloaded when Rails is defined.
-  Loads `Vident::Generators::InstallGenerator`.
-- `Vident::Phlex::Engine`, `Vident::ViewComponent::Engine` — thin Rails::Engine
-  subclasses from the sub-gems; no explicit initializer.
+  Registers Zeitwerk inflections for Vident's non-standard file names (`"dsl"` →
+  `"DSL"`, `"html"` → `"HTML"`) so `Vident::Internals::DSL` and
+  `Vident::Phlex::HTML` resolve correctly. It does not load any generators at
+  engine init — `Vident::Generators::InstallGenerator` is autoloaded on demand
+  when `bin/rails generate vident:install` is invoked.
 
 ---
 
 ## 13. What's not in the public API
 
-The following show up in `lib/vident/*.rb` but are explicitly internal:
+The following show up in `lib/vident/` but are explicitly internal:
 
-- `Vident::Stimulus::PRIMITIVES`, `Vident::Stimulus::Primitive`,
-  `Vident::Stimulus::KeyedPrimitive`, `Vident::Stimulus::PositionalPrimitive`,
-  `Vident::Stimulus::Naming` — the registry that drives every plural parser,
-  mutator, and DSL primitive. Don't rely on these modules in application code.
-- `Vident::StimulusDataAttributeBuilder` — used internally by `root_element_attributes`
+- `Vident::Internals::Registry::KINDS` / `Vident::Internals::Registry::Kind` — the
+  registry that drives every plural parser, mutator, and DSL primitive. Don't rely on
+  these in application code.
+- `Vident::Stimulus::Naming` — pure naming helpers (`stimulize_path`, `js_name`)
+  consumed by value classes. The two `module_function` methods documented in §4.5
+  are callable directly (`Vident::Stimulus::Naming.stimulize_path(...)`) but the
+  module itself is not designed for subclassing or further extension.
+- `Vident::Internals::AttributeWriter` — used internally by `root_element_attributes`
   resolution and `child_element`. Takes a collection-per-primitive kwarg hash and
   merges their `to_h` outputs.
-- `Vident::ClassListBuilder` — invoked internally by `ComponentClassLists#render_classes`.
-- `Vident::ComponentAttributeResolver`, `Vident::ComponentClassLists`,
-  `Vident::StimulusHelper`, `Vident::ChildElementHelper`, `Vident::StimulusComponent` —
+- `Vident::Internals::ClassListBuilder` — invoked internally by
+  `Vident::Capabilities::ClassListBuilding#class_list_for_stimulus_classes`.
+- `Vident::Capabilities::ChildElementRendering`, `Vident::Capabilities::RootElementRendering`,
+  `Vident::Capabilities::StimulusMutation`, `Vident::Capabilities::StimulusDraft` —
   included into components; their private/internal methods are not API.
-- `Vident::StimulusComponent.stimulus_identifier_from_path(path)` — still callable
-  but kept only as a back-compat shim for `StimulusAttributeBase.stimulize_path`.
+- `Vident::Stimulus::Naming.stimulize_path(path)` — the canonical path → identifier
+  helper. (V1's `stimulus_identifier_from_path` on `Vident::Component` was removed in V2.)

@@ -1,5 +1,4 @@
 require_relative "lib/vident/version"
-require_relative "lib/vident/phlex/version"
 
 Gem::Specification.new do |spec|
   spec.name = "vident-phlex"

@@ -9,13 +9,9 @@ module Vident
   # A bare `nil` (static or returned from a proc) omits the attribute entirely so
   # Stimulus uses its per-type default. Reach for this sentinel only when you need
   # an explicit JS `null`.
-  StimulusNull = Object.new
-  def StimulusNull.inspect
-    "Vident::StimulusNull"
-  end
+  StimulusNull = Object.new.tap do |s|
+    def s.inspect = "Vident::StimulusNull"
 
-  def StimulusNull.to_s
-    "null"
-  end
-  StimulusNull.freeze
+    def s.to_s = "null"
+  end.freeze
 end

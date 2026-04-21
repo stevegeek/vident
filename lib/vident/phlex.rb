@@ -1,6 +1,7 @@
-require "vident/phlex/version"
+# frozen_string_literal: true
+
+require "phlex"
 require "vident/phlex/html"
-require "vident/phlex/engine" if defined?(Rails)
 
 module Vident
   module Phlex

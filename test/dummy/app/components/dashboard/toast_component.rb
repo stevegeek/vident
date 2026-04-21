@@ -2,6 +2,12 @@
 
 module Dashboard
   class ToastComponent < ApplicationComponent
+    # Identifier locked to V1's so the existing toast_component JS
+    # controller resolves without duplication.
+    class << self
+      def stimulus_identifier_path = "dashboard/toast_component"
+    end
+
     prop :auto_dismiss_ms, Integer, default: 4000
 
     stimulus do
