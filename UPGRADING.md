@@ -28,6 +28,56 @@ If you hit something not covered here, the [CHANGELOG entry for 2.0.0](CHANGELOG
 
 **Related: `#to_h` keys are now Symbols.** V1 returned String keys for some primitives (`"form-component-target" => "input"`); V2 returns Symbols (`:"form-component-target" => "input"`) uniformly. If you had code matching String keys (`coll.to_h["foo-target"]`), switch to Symbols (`coll.to_h[:"foo-target"]`).
 
+**Related: V2 constructors take kwargs, not positional args.** After the rename in the table above, the next error you'll see at render time is:
+
+```
+ArgumentError: wrong number of arguments (given 2, expected 0; required keywords: controller, name)
+```
+
+V1 `Vident::StimulusAction.new(:click, "ctrl/path", :method)` (and the same positional pattern for `Target`, `Value`, `Outlet`, etc.) called the Literal-generated `.new` directly with positional args that mapped to props. V2's `Literal::Data` classes take kwargs — `.new(controller:, method_name:, event: nil, ...)` — and will not accept the V1 positional form.
+
+Three ways to fix each call site:
+
+1. **Prefer the Array form at prop boundaries.** Any `stimulus_*:` prop, `control_*` prop, or `child_element(stimulus_*: …)` kwarg accepts Array forms directly and parses them at render time:
+
+   ```ruby
+   # Target
+   ::Vident::StimulusTarget.new("ctrl/path", :name)
+   # → as prop value:
+   ["ctrl/path", :name]
+
+   # Action with event
+   ::Vident::StimulusAction.new(:click, "ctrl/path", :method)
+   # → as prop value:
+   [:click, "ctrl/path", :method]
+
+   # Action without event
+   ::Vident::StimulusAction.new("ctrl/path", :method)
+   # → as prop value:
+   ["ctrl/path", :method]
+   ```
+
+   Idiomatic V2 and the shortest diff.
+
+2. **Use `.parse(positional, ..., implied:)`** when you need a typed object for reuse or passing through a typed interface. `Vident::Stimulus::{Action,Target,Controller,...}.parse` is the V2 entry point that accepts the V1-style positional args. `implied:` is required — pass `nil` when every call site supplies an explicit controller path:
+
+   ```ruby
+   ::Vident::Stimulus::Action.parse(:click, "ctrl/path", :method, implied: nil)
+   ::Vident::Stimulus::Target.parse("ctrl/path", :name, implied: nil)
+   ```
+
+3. **Construct with kwargs directly** when you're staying inside Vident internals:
+
+   ```ruby
+   ::Vident::Stimulus::Action.new(
+     controller: ::Vident::Stimulus::Controller.parse("ctrl/path", implied: nil),
+     method_name: :method,
+     event: "click"
+   )
+   ```
+
+**Related: `implied_controller:` kwarg is gone.** V1 accepted `StimulusAction.new(..., implied_controller: …)` as an eager-resolution hatch. V2 has no equivalent kwarg — use `.parse(..., implied: …)` or the Array form above, and the resolution happens at render time.
+
 ---
 
 ## 2. `child_element` strictness — both-kwargs now raise
@@ -194,6 +244,30 @@ end
 ```
 
 Chain methods: `.on`, `.call_method`, `.modifier`, `.keyboard`, `.window`, `.on_controller`, `.when`. The plural Array / Hash forms from V1 still work, so you can migrate incrementally.
+
+---
+
+## 10. `stimulus_identifier_from_path` removed
+
+**Symptom:**
+
+```
+NoMethodError: undefined method `stimulus_identifier_from_path`
+```
+
+…on any component or in any template that used it to turn a controller path into its kebab-case `--`-separated identifier (e.g. `"entities/entity_user_form"` → `"entities--entity-user-form"`).
+
+**Fix:** the helper moved and was renamed. Use `Vident::Stimulus::Naming.stimulize_path(path)`:
+
+```ruby
+# Before
+stimulus_identifier_from_path(form_control_controller_path)
+
+# After
+::Vident::Stimulus::Naming.stimulize_path(form_control_controller_path)
+```
+
+Accepts the same `String`-or-`Symbol` input and returns the same identifier format.
 
 ---
 
