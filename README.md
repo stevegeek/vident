@@ -79,9 +79,13 @@ class ButtonComponent < Vident::ViewComponent::Base
   
   # Configure Stimulus integration
   stimulus do
-    # Setup actions, including with proc to evaluate on instance 
-    actions [:click, :handle_click], 
-            -> { [stimulus_scoped_event(:my_custom_event), :handle_this] if should_handle_this? }
+    # Fluent action DSL: reads left-to-right as "the handle_click method fires on the click event".
+    action(:handle_click).on(:click)
+    # Kwargs shorthand — same result, pick whichever reads better:
+    action :handle_submit, on: :submit, modifier: [:prevent, :stop]
+    # Proc for conditional / cross-component wiring, evaluated in the instance at render time.
+    action(-> { [stimulus_scoped_event(:my_custom_event), :handle_this] if should_handle_this? })
+
     # Map the clicked_count prop as a Stimulus value
     values_from_props :clicked_count
     # Dynamic values using procs (evaluated in component context)

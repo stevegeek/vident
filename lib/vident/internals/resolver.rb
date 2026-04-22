@@ -300,11 +300,10 @@ module Vident
         instance.instance_variable_get(name)
       end
 
-      # Raw ivar read — calling `#id` would trigger auto-generation.
+      # Must match the mutation-API path (#id, memoised) so DSL outlet
+      # auto-selectors and runtime-added outlets scope identically.
       def instance_id(instance)
-        return nil unless instance.instance_variable_defined?(:@id)
-        raw = instance.instance_variable_get(:@id)
-        raw.presence
+        instance.id
       end
 
       def read_prop(instance, name)

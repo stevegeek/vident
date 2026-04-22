@@ -5,8 +5,12 @@ module Vident
   class Error < StandardError; end
 
   class DeclarationError < Error; end
+
   class ParseError < Error; end
+
   class RenderError < Error; end
+
   class StateError < Error; end
+
   class ConfigurationError < Error; end
 end

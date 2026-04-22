@@ -37,13 +37,20 @@ module Vident
       # ---- stimulus_outlets: prop / root_element_attributes --------------
 
       def test_outlets_from_bare_symbol_uses_auto_selector
-        # SKILL §1.7 L244: `:user_status` → auto-selector
-        #   `[data-controller~=user-status]`
         klass = define_component(name: "PageComponent") do
           define_method(:root_element_attributes) { {stimulus_outlets: [:user_status]} }
         end
-        assert_includes render(klass.new),
-          'data-page-component-user-status-outlet="[data-controller~=user-status]"'
+        html = render(klass.new)
+        assert_match(/data-page-component-user-status-outlet="#page-component-[^\s"]+\s\[data-controller~=user-status\]"/, html)
+      end
+
+      def test_outlets_from_bare_symbol_auto_selector_scopes_by_explicit_id
+        klass = define_component(name: "PageComponent") do
+          define_method(:root_element_attributes) { {stimulus_outlets: [:user_status]} }
+        end
+        html = render(klass.new(id: "my-page"))
+        assert_includes html,
+          'data-page-component-user-status-outlet="#my-page [data-controller~=user-status]"'
       end
 
       def test_outlets_from_array_pair_name_and_selector

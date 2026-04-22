@@ -280,11 +280,13 @@ module Vident
 
     # ---- Outlet auto-selector scoping ------------------------------------
 
-    def test_outlet_auto_selector_without_explicit_id_omits_prefix
+    def test_outlet_auto_selector_without_explicit_id_scopes_by_auto_id
       cls = make_component
       instance = cls.new(stimulus_outlets: [:user_status])
       draft = ::Vident::Internals::Resolver.call(cls.declarations, instance)
-      assert_equal "[data-controller~=user-status]", draft.outlets.first.selector
+      assert_match(/\A#button-component-[^\s]+ \[data-controller~=user-status\]\z/,
+        draft.outlets.first.selector)
+      assert_includes draft.outlets.first.selector, "##{instance.id} "
     end
 
     def test_outlet_auto_selector_with_explicit_id_scopes_by_id
@@ -292,6 +294,19 @@ module Vident
       instance = cls.new(id: "my-card", stimulus_outlets: [:user_status])
       draft = ::Vident::Internals::Resolver.call(cls.declarations, instance)
       assert_equal "#my-card [data-controller~=user-status]", draft.outlets.first.selector
+    end
+
+    def test_outlet_auto_selector_matches_between_dsl_and_mutation_paths
+      cls = make_component do
+        stimulus { outlet :profile }
+      end
+      instance = cls.new
+      instance.add_stimulus_outlets(:team)
+      draft = ::Vident::Internals::Resolver.call(cls.declarations, instance)
+      dsl_outlet = draft.outlets.find { |o| o.name == "profile" }
+      runtime_outlet = instance.instance_variable_get(:@__vident_draft).outlets.last
+      assert dsl_outlet.selector.start_with?("##{instance.id} ")
+      assert runtime_outlet.selector.start_with?("##{instance.id} ")
     end
 
     # ---- no-declaration empty path ---------------------------------------
