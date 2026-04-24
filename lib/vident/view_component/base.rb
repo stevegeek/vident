@@ -49,6 +49,17 @@ module Vident
         super
       end
 
+      # Fragment-cache the block's rendered String using the Vident-computed
+      # `cache_key`. Useful inside a `call` method; for sidecar ERB templates
+      # use the native `<% cache cache_key do %>` pattern instead.
+      def cache_component(*extra_keys, expires_in: nil, &block)
+        unless respond_to?(:cacheable?) && cacheable?
+          raise ::Vident::ConfigurationError,
+            "#{self.class.name} is not cacheable — `include Vident::Caching` and declare `with_cache_key` first."
+        end
+        ::Rails.cache.fetch([cache_key, *extra_keys], expires_in: expires_in) { capture(&block) }
+      end
+
       # Capture block first so children can mutate this Draft before it seals (outlet-host pattern).
       def root_element(**overrides, &block)
         tag_type = root_element_tag_type

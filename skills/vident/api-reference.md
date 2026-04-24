@@ -543,6 +543,15 @@ File: `lib/vident/caching.rb`.
 `:component_modified_time` and `:to_h`, so the cache key reflects the template mtime
 plus the component's full prop hash.
 
+### Fragment-caching the render: `cache_component`
+
+Available on both adapter base classes (`Vident::Phlex::HTML` and `Vident::ViewComponent::Base`). Wraps a block of render output with Rails.cache using the Vident-computed `cache_key`:
+
+- `cache_component(*extra_keys, **options, &block)` — on Phlex, delegates to `Phlex::SGML#cache([cache_key, *extra_keys], **options, &block)`. On ViewComponent, uses `Rails.cache.fetch([cache_key, *extra_keys], **options) { capture(&block) }`.
+- Raises `Vident::ConfigurationError` if the component is not cacheable (no `with_cache_key` declared).
+- `extra_keys` let the caller add per-render state to the cache key without modifying `with_cache_key`.
+- Phlex usage: inside `view_template`. ViewComponent usage: inside a `def call` method; sidecar ERB templates can use Rails' native `<% cache cache_key do %> ... <% end %>` instead.
+
 ---
 
 ## 9. `Vident::StableId`

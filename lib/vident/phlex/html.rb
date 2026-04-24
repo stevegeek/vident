@@ -43,6 +43,17 @@ module Vident
         super
       end
 
+      # Fragment-cache this component's render using its Vident-computed
+      # `cache_key`. Delegates to Phlex's `cache(...)`; pass extra positional
+      # keys to invalidate on state not captured by `with_cache_key`.
+      def cache_component(*extra_keys, **options, &block)
+        unless respond_to?(:cacheable?) && cacheable?
+          raise ::Vident::ConfigurationError,
+            "#{self.class.name} is not cacheable — `include Vident::Caching` and declare `with_cache_key` first."
+        end
+        cache([cache_key, *extra_keys], **options, &block)
+      end
+
       # Capture block first so children can mutate this Draft before it seals (outlet-host pattern).
       def root_element(**overrides, &block)
         tag_type = root_element_tag_type

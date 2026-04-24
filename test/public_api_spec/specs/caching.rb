@@ -141,6 +141,16 @@ module Vident
       ensure
         ENV["RAILS_CACHE_ID"] = previous
       end
+
+      # ---- cache_component ---------------------------------------------
+
+      def test_cache_component_raises_when_component_is_not_cacheable
+        klass = define_component(name: "ButtonComponent")
+        define_render(klass) { cache_component { plain "body" } }
+        err = assert_raises(::Vident::ConfigurationError) { render(klass.new) }
+        assert_match(/not cacheable/, err.message)
+        assert_match(/with_cache_key/, err.message)
+      end
     end
   end
 end

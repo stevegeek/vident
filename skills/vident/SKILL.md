@@ -577,7 +577,29 @@ Vident::StableId.with_sequence_generator(seed: "some-unique-key") { render ... }
 
 - **`after_component_initialize`** — override in your component; runs after props are assigned and Vident has prepared its stimulus collections. Don't override `after_initialize` unless you `super` — Literal calls it to wire everything up.
 - **`component_name` / `stimulus_identifier`** — class method and instance method; the kebab-case/`--`-separated identifier. Used for outlet auto-selectors, scoped event names, and the default class on the root.
-- **Caching** (`include Vident::Caching` + `with_cache_key :attr1, :attr2`) — declares attributes that feed `cache_key`. Combined with a template mtime so edits bust the cache. `depends_on(OtherComponent, …)` chains subcomponent mtimes into the key.
+- **Caching** (`include Vident::Caching` + `with_cache_key :attr1, :attr2`) — declares attributes that feed `cache_key`. Combined with a template mtime so edits bust the cache. `depends_on(OtherComponent, …)` chains subcomponent mtimes into the key. Two separable concerns:
+  - **Computing the key** — `component.cache_key` is always available once `with_cache_key` is declared. Use it for etags, conditional rendering, explicit `Rails.cache.fetch(key) { ... }` at the call site, or any other place you need a content-addressed identifier.
+  - **Fragment-caching the render** — `cache_component(*extra_keys, &block)` wraps the block with Rails.cache using the Vident-computed key. Works on both adapters. For Phlex, call it inside `view_template` (delegates to Phlex's `cache(...)`); for ViewComponent, call inside `call` (uses `Rails.cache.fetch` + `capture`). Sidecar ERB templates can just write `<% cache cache_key do %> ... <% end %>` directly.
+
+    ```ruby
+    # Phlex
+    def view_template
+      cache_component do
+        root_element { ... }
+      end
+    end
+
+    # ViewComponent (def call form)
+    def call
+      cache_component { root_element { ... } }
+    end
+
+    # ViewComponent (sidecar ERB) — use the Rails helper with component.cache_key
+    # <% cache cache_key do %>
+    #   <%= root_element do %>...<% end %>
+    # <% end %>
+    ```
+    Calling `cache_component` on a non-cacheable component (no `with_cache_key`) raises `Vident::ConfigurationError`.
 - **`with(overrides = {})`** — returns a new instance with merged props. (`clone` is a backward-compat alias.)
 - **Phlex tag safety** — `Vident::Phlex::HTML` validates every `child_element` tag name against a whitelist; passing an unknown tag raises.
 
