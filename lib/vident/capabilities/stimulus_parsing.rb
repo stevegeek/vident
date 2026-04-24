@@ -47,6 +47,98 @@ module Vident
           ::Vident::Stimulus::Collection.new(kind: kind, items: items)
         end
       end
+
+      # Class-level builders reject cross-controller forms (receiver's implied
+      # controller would be silently ignored) — call `Vident::Stimulus::*.parse`
+      # directly for those. `stimulus_outlet` additionally requires an explicit
+      # selector (no component_id to auto-scope).
+      class_methods do
+        def stimulus_controller
+          implied_controller_for_class
+        end
+
+        def stimulus_target(*args)
+          case args
+          in [String => ctrl_path, Symbol]
+            raise ::Vident::ParseError,
+              "#{name}.stimulus_target does not accept cross-controller form at class level. " \
+              "Call Vident::Stimulus::Target.parse(#{ctrl_path.inspect}, ...) directly."
+          else
+            ::Vident::Stimulus::Target.parse(*args, implied: implied_controller_for_class)
+          end
+        end
+
+        def stimulus_action(*args)
+          case args
+          in [String => ctrl_path, Symbol]
+            raise ::Vident::ParseError,
+              "#{name}.stimulus_action does not accept cross-controller form at class level. " \
+              "Call Vident::Stimulus::Action.parse(#{ctrl_path.inspect}, ...) directly."
+          in [Symbol, String, Symbol]
+            raise ::Vident::ParseError,
+              "#{name}.stimulus_action does not accept cross-controller form at class level. " \
+              "Call Vident::Stimulus::Action.parse directly."
+          else
+            ::Vident::Stimulus::Action.parse(*args, implied: implied_controller_for_class)
+          end
+        end
+
+        def stimulus_value(*args)
+          case args
+          in [String, Symbol, *]
+            raise ::Vident::ParseError,
+              "#{name}.stimulus_value does not accept cross-controller form at class level. " \
+              "Call Vident::Stimulus::Value.parse directly."
+          else
+            ::Vident::Stimulus::Value.parse(*args, implied: implied_controller_for_class)
+          end
+        end
+
+        def stimulus_param(*args)
+          case args
+          in [String, Symbol, *]
+            raise ::Vident::ParseError,
+              "#{name}.stimulus_param does not accept cross-controller form at class level. " \
+              "Call Vident::Stimulus::Param.parse directly."
+          else
+            ::Vident::Stimulus::Param.parse(*args, implied: implied_controller_for_class)
+          end
+        end
+
+        def stimulus_class(*args)
+          case args
+          in [String, Symbol, *]
+            raise ::Vident::ParseError,
+              "#{name}.stimulus_class does not accept cross-controller form at class level. " \
+              "Call Vident::Stimulus::ClassMap.parse directly."
+          else
+            ::Vident::Stimulus::ClassMap.parse(*args, implied: implied_controller_for_class)
+          end
+        end
+
+        def stimulus_outlet(*args)
+          case args
+          in [Symbol => _name, String => _selector] | [String => _name, String => _selector]
+            ::Vident::Stimulus::Outlet.parse(*args, implied: implied_controller_for_class)
+          else
+            raise ::Vident::ParseError,
+              "#{name}.stimulus_outlet requires (name, selector) — no component_id at class level. " \
+              "Use instance-level `component.stimulus_outlet(:name)` for auto-selector, " \
+              "or `#{name}.stimulus_outlet(:name, '.selector')` with an explicit selector."
+          end
+        end
+
+        private
+
+        # Memoised on the class's own singleton — Ruby doesn't share
+        # singleton ivars through inheritance, so subclasses get their own.
+        def implied_controller_for_class
+          @__vident_class_implied_controller ||= ::Vident::Stimulus::Controller.new(
+            path: stimulus_identifier_path,
+            name: stimulus_identifier
+          )
+        end
+      end
     end
   end
 end
