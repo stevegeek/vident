@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
-## [2.0.0] - 2026-04-21
+## [2.0.0] - 2026-04-24
 
 Vident 2.0 is a ground-up rearchitecture of the DSL, attribute resolution, and composition model. The public shape of `stimulus do ... end`, `root_element`, `child_element`, outlets, props, and the `stimulus_*:` prop/kwarg API is preserved for common cases, but several internals and a handful of edge-case behaviours changed. See `doc/reviews/v1-gotchas.md` for the full list of fixed gotchas; the highlights are below.
 
