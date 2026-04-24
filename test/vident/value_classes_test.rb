@@ -168,6 +168,75 @@ module Vident
       assert_equal({}, Vident::Stimulus::Action.to_data_hash([]))
     end
 
+    # ---- Action.parse — pre-built instance inputs ---------------------
+
+    def test_action_parse_single_action_instance_is_passthrough
+      original = Vident::Stimulus::Action.parse(:click, :save, implied: @implied)
+      result = Vident::Stimulus::Action.parse(original, implied: @implied)
+      assert_same original, result
+    end
+
+    def test_action_parse_event_plus_instance_merges_event
+      inner = Vident::Stimulus::Action.parse(:save, implied: @implied)
+      merged = Vident::Stimulus::Action.parse(:"ajax:success", inner, implied: @implied)
+      assert_equal "ajax:success", merged.event
+      assert_equal inner.method_name, merged.method_name
+      assert_equal inner.controller, merged.controller
+    end
+
+    def test_action_parse_event_plus_instance_preserves_modifiers_and_keyboard
+      inner = Vident::Stimulus::Action.parse(
+        {method: :save, options: [:prevent, :stop], keyboard: "esc"}, implied: @implied
+      )
+      merged = Vident::Stimulus::Action.parse(:keydown, inner, implied: @implied)
+      assert_equal "keydown", merged.event
+      assert_equal [:prevent, :stop], merged.modifiers
+      assert_equal "esc", merged.keyboard
+    end
+
+    # ---- #with combinator --------------------------------------------
+
+    def test_action_with_overrides_event
+      a = Vident::Stimulus::Action.parse(:save, implied: @implied)
+      b = a.with(event: "click")
+      assert_equal "click", b.event
+      refute_same a, b
+      assert_nil a.event  # original unchanged
+    end
+
+    def test_target_with_overrides_name
+      t = Vident::Stimulus::Target.parse(:input, implied: @implied)
+      renamed = t.with(name: "other")
+      assert_equal "other", renamed.name
+      assert_equal "input", t.name
+    end
+
+    def test_with_is_available_on_every_value_class
+      %w[Action Target Controller Outlet Value Param ClassMap].each do |klass_name|
+        klass = ::Vident::Stimulus.const_get(klass_name)
+        assert klass.include?(::Vident::Stimulus::Combinable),
+          "expected Vident::Stimulus::#{klass_name} to include Combinable"
+      end
+    end
+
+    def test_deconstruct_keys_returns_construction_hash_not_data_attributes
+      a = Vident::Stimulus::Action.parse(:click, :save, implied: @implied)
+      h = a.deconstruct_keys(nil)
+      assert_equal "click", h[:event]
+      assert_equal "save", h[:method_name]
+      assert_equal @implied, h[:controller]
+      refute h.key?(:action), "deconstruct_keys must not emit the data-attribute shape"
+    end
+
+    def test_value_classes_pattern_match_on_props
+      a = Vident::Stimulus::Action.parse(:click, :save, implied: @implied)
+      matched = case a
+      in {event: "click", method_name: "save"}
+        true
+      end
+      assert matched
+    end
+
     # ---- Target.parse -------------------------------------------------
 
     def test_target_parse_single_symbol_on_implied

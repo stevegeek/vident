@@ -2,13 +2,14 @@
 
 require "literal"
 require_relative "naming"
+require_relative "base"
 require_relative "controller"
 
 module Vident
   module Stimulus
     # `data-<ctrl>-<name>-class` fragment — a named CSS class set readable
     # on the JS side as `this.<name>Class`.
-    class ClassMap < ::Literal::Data
+    class ClassMap < Base
       prop :controller, Controller
       prop :name, String
       prop :css, String
@@ -51,10 +52,6 @@ module Vident
 
       def to_h = {data_attribute_key => css}
       alias_method :to_hash, :to_h
-
-      def self.to_data_hash(maps)
-        maps.to_h(&:to_data_pair)
-      end
     end
   end
 end

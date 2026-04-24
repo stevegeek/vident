@@ -77,6 +77,18 @@ module Vident
         assert_includes render(klass.new), 'data-action="button-component#click"'
       end
 
+      def test_add_stimulus_actions_event_plus_pre_built_merges
+        klass = define_component(name: "FormComponent") do
+          prop :on_success, _Nilable(::Vident::Stimulus::Action), reader: :public
+          define_method(:after_component_initialize) do
+            add_stimulus_actions([:"ajax:success", on_success]) if on_success
+          end
+        end
+        inner = klass.new.stimulus_action(:handle_success)
+        html = render(klass.new(on_success: inner))
+        assert_includes html, "ajax:success->form-component#handleSuccess"
+      end
+
       def test_add_stimulus_actions_multiple_calls_accumulate
         klass = define_component(name: "ButtonComponent") do
           define_method(:after_component_initialize) do

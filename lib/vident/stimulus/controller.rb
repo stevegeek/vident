@@ -2,11 +2,12 @@
 
 require "literal"
 require_relative "naming"
+require_relative "base"
 
 module Vident
   module Stimulus
     # `data-controller` fragment.
-    class Controller < ::Literal::Data
+    class Controller < Base
       prop :path, String
       prop :name, String
       prop :alias_name, _Nilable(Symbol), default: nil

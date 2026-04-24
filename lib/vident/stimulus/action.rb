@@ -3,12 +3,13 @@
 require "literal"
 require_relative "naming"
 require_relative "controller"
+require_relative "base"
 
 module Vident
   module Stimulus
     # `data-action` fragment: single action descriptor like
     # `"click->admin--users#handleClick"`.
-    class Action < ::Literal::Data
+    class Action < Base
       # Keep in sync with https://stimulus.hotwired.dev/reference/actions#options.
       VALID_OPTIONS = %i[once prevent stop passive !passive capture self].freeze
 
@@ -21,6 +22,10 @@ module Vident
 
       def self.parse(*args, implied:, component_id: nil)
         case args
+        in [Action => a]
+          a
+        in [Symbol => event, Action => a]
+          a.with(event: event.to_s)
         in [Hash => h]
           from_descriptor(h, implied: implied)
         in [Symbol => method_sym]

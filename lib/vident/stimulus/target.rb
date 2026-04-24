@@ -2,12 +2,13 @@
 
 require "literal"
 require_relative "naming"
+require_relative "base"
 require_relative "controller"
 
 module Vident
   module Stimulus
     # `data-<ctrl>-target` fragment.
-    class Target < ::Literal::Data
+    class Target < Base
       prop :controller, Controller
       prop :name, String
 

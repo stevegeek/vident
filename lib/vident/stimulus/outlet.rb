@@ -2,13 +2,14 @@
 
 require "literal"
 require_relative "naming"
+require_relative "base"
 require_relative "controller"
 
 module Vident
   module Stimulus
     # `data-<ctrl>-<name>-outlet` fragment. `selector` is the CSS selector
     # the Stimulus runtime uses to resolve the outlet on the page.
-    class Outlet < ::Literal::Data
+    class Outlet < Base
       prop :controller, Controller
       prop :name, String
       prop :selector, String
@@ -87,10 +88,6 @@ module Vident
 
       def to_h = {data_attribute_key => selector}
       alias_method :to_hash, :to_h
-
-      def self.to_data_hash(outlets)
-        outlets.to_h(&:to_data_pair)
-      end
     end
   end
 end

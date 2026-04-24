@@ -3,6 +3,7 @@
 require "json"
 require "literal"
 require_relative "naming"
+require_relative "base"
 require_relative "null"
 require_relative "controller"
 
@@ -10,7 +11,7 @@ module Vident
   module Stimulus
     # `data-<ctrl>-<name>-param` fragment — same shape as Value, distinct
     # semantics on the JS side (read via `event.params.<camel>`).
-    class Param < ::Literal::Data
+    class Param < Base
       prop :controller, Controller
       prop :name, String
       prop :serialized, String
@@ -50,10 +51,6 @@ module Vident
 
       def to_h = {data_attribute_key => serialized}
       alias_method :to_hash, :to_h
-
-      def self.to_data_hash(params)
-        params.to_h(&:to_data_pair)
-      end
     end
   end
 end
