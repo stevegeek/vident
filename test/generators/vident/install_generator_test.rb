@@ -57,6 +57,17 @@ class Vident::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     assert_equal "pre-existing skill content\n", File.read(existing)
   end
 
+  def test_force_overwrites_existing_skill
+    FileUtils.mkdir_p(File.join(destination_root, ".claude/skills/vident"))
+    existing = File.join(destination_root, ".claude/skills/vident/SKILL.md")
+    File.write(existing, "stale content\n")
+
+    run_generator ["--force"]
+
+    refute_equal "stale content\n", File.read(existing)
+    assert_match(/^name: Vident$/, File.read(existing))
+  end
+
   def test_running_generator_twice_does_not_duplicate_controller_hook
     controller_path = File.join(destination_root, "app/controllers/application_controller.rb")
     FileUtils.mkdir_p(File.dirname(controller_path))

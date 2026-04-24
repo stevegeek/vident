@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
+## [Unreleased]
+
+### Changed
+
+- `bin/rails generate vident:install --force` now overwrites an existing `.claude/skills/vident/SKILL.md` with the SKILL shipped in the installed gem, so upgrades can refresh it. Without `--force`, the existing file is preserved (unchanged behaviour).
+
+
 ## [2.0.1] - 2026-04-24
 
 ### Fixed

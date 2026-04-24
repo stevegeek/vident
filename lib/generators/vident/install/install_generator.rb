@@ -17,13 +17,17 @@ module Vident
       end
 
       def install_claude_skill
+        return unless File.exist?(SKILL_SOURCE)
         destination = ".claude/skills/vident/SKILL.md"
         absolute = File.expand_path(destination, destination_root)
-        if File.exist?(absolute)
+        # Preserve an existing skill file (user may have edited it);
+        # `--force` pulls the current SKILL from the installed gem over
+        # the top so upgrades can refresh it.
+        if File.exist?(absolute) && !options[:force]
           say_status :exist, destination, :blue
-        elsif File.exist?(SKILL_SOURCE)
+        else
           empty_directory(File.dirname(destination))
-          copy_file(SKILL_SOURCE, destination)
+          copy_file(SKILL_SOURCE, destination, force: true)
         end
       end
 
