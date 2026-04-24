@@ -54,5 +54,7 @@ require "vident/caching"
 
 require "vident/component"
 
-require "vident/phlex"
-require "vident/view_component"
+# Adapter modules (`vident/phlex`, `vident/view_component`) ship in their own
+# gems and are loaded by their own entry points (`lib/vident-phlex.rb`,
+# `lib/vident-view_component.rb`). Do not require them unconditionally here —
+# they only exist when the corresponding adapter gem is installed.
