@@ -85,6 +85,19 @@ render BaseDialog.new(stimulus_controllers: ["dialog/confirm"])
 # → data-controller="dialog--confirm"   (no implied BaseDialog ctrl)
 ```
 
+**Subclass re-enables the implied controller.** If a parent declares `no_stimulus_controller` and a subclass has its own paired JS controller, call `has_stimulus_controller` at the top of the subclass body — it flips the inherited flag back off. Order relative to `stimulus do` does not matter; idempotent on repeat.
+
+```ruby
+class ApplicationComponent < Vident::Phlex::HTML
+  no_stimulus_controller     # generic shell — no JS controller
+end
+
+class DropdownComponent < ApplicationComponent
+  has_stimulus_controller    # paired dropdown_component_controller.js
+  stimulus { actions :toggle }
+end
+```
+
 ---
 
 ## 4. Outlet DSL procs now resolve
@@ -158,7 +171,45 @@ add_stimulus_actions(:handle)
 
 ---
 
-## 8. `Vident::StimulusAction::Descriptor` removed
+## 8. `render_classes` / `stimulus_data_attributes` renamed
+
+**Symptom:** `NoMethodError: undefined method 'render_classes'` or `'stimulus_data_attributes'` on a Vident component — typically in a component that renders its root tag via a third-party helper (`InlineSvg::inline_svg_tag`, custom `tag.*` constructions, etc.) instead of `root_element(...)`.
+
+**Fix:** the V2 equivalents return the same shapes under V2-consistent names:
+
+| V1 | V2 | Returns |
+| --- | --- | --- |
+| `render_classes(extra_class = nil)` | `root_element_class_list(extra_classes = nil)` | `String` |
+| `stimulus_data_attributes` | `root_element_data_attributes` | `Hash` (Symbol keys) |
+
+Both apply the full V2 pipeline (6-tier class cascade + Tailwind merge + sealed-Plan `data-*` expansion), so output matches what `root_element(...)` would emit on the root tag.
+
+```ruby
+class MySvg < Vident::Phlex::HTML
+  no_stimulus_controller
+  prop :name, String
+
+  def view_template
+    svg("data-src" => helpers.image_path(file_name), **svg_attributes) {}
+  end
+
+  private
+
+  def svg_attributes
+    {
+      id: @id,
+      class: root_element_class_list,         # was render_classes
+      data: root_element_data_attributes      # was stimulus_data_attributes
+    }
+  end
+end
+```
+
+The `extra_classes` argument to `root_element_class_list` is appended at the lowest-priority tier, so it's never dropped by a cascade winner.
+
+---
+
+## 9. `Vident::StimulusAction::Descriptor` removed
 
 **Symptom:** `NameError: uninitialized constant Vident::StimulusAction::Descriptor`.
 
@@ -176,7 +227,7 @@ Accepted Hash keys: `:event`, `:method`, `:controller`, `:options` (Array), `:ke
 
 ---
 
-## 9. Fluent action DSL (optional — new in V2)
+## 10. Fluent action DSL (optional — new in V2)
 
 While you're updating action declarations, V2 adds a fluent builder and kwargs shorthand that many find clearer than the Hash form:
 
@@ -194,6 +245,32 @@ end
 ```
 
 Chain methods: `.on`, `.call_method`, `.modifier`, `.keyboard`, `.window`, `.on_controller`, `.when`. The plural Array / Hash forms from V1 still work, so you can migrate incrementally.
+
+---
+
+## 11. Class-level Stimulus builders (optional — new in V2)
+
+V2 adds class-method equivalents of the instance-level `stimulus_<kind>` parsers, for cases where you need the value object without a component instance — Turbo-Stream partials, JSON responses, test selectors, sibling ERB slots.
+
+```ruby
+ButtonComponent.stimulus_controller                 # implied Controller
+ButtonComponent.stimulus_target(:submit)            # Vident::Stimulus::Target
+ButtonComponent.stimulus_action(:click)             # implied#click
+ButtonComponent.stimulus_action(:submit, :handle)   # submit->implied#handle
+ButtonComponent.stimulus_value(:count, 0)
+ButtonComponent.stimulus_param(:item_id, 42)
+ButtonComponent.stimulus_class(:loading, "opacity-50")
+ButtonComponent.stimulus_outlet(:modal, ".js-modal")  # selector required
+
+# Class-level output matches instance-level:
+ButtonComponent.stimulus_target(:submit).to_h ==
+  ButtonComponent.new.stimulus_target(:submit).to_h   # => true
+```
+
+Two constraints at class level:
+
+- **Outlets require an explicit selector.** A class has no `component_id` to auto-scope with, and an unscoped `[data-controller~=foo]` silently matches any sibling. `ButtonComponent.stimulus_outlet(:modal)` raises `Vident::ParseError`.
+- **Cross-controller forms are rejected.** `ButtonComponent.stimulus_target("other/ctrl", :row)` reads like "target on the receiver" but silently ignores the receiver's identifier. If you need cross-controller, call the parser directly: `Vident::Stimulus::Target.parse("other/ctrl", :row, implied: ButtonComponent.stimulus_controller)`.
 
 ---
 

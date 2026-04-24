@@ -54,6 +54,19 @@ class Foo::BarComponent < Vident::ViewComponent::Base
 end
 ```
 
+**Subclass re-enables the controller.** `no_stimulus_controller` is inherited by subclasses. A subclass that has its own paired JS controller calls `has_stimulus_controller` to flip the flag back on:
+
+```ruby
+class ApplicationComponent < Vident::Phlex::HTML
+  no_stimulus_controller                          # shell — no paired JS
+end
+
+class DropdownComponent < ApplicationComponent
+  has_stimulus_controller                         # emits data-controller="dropdown-component"
+  stimulus { actions :toggle }
+end
+```
+
 Cross-controller references elsewhere (actions/targets/values/classes/outlets) use the `"path/to/controller"` **string** form — Vident stimulizes it for you.
 
 ### 1.2 Actions
@@ -451,6 +464,38 @@ When handwriting HTML inside ERB instead of using `child_element`, emit just the
 ```
 
 Plural (`as_stimulus_targets`, `as_stimulus_actions`, `as_stimulus_values`, `as_stimulus_params`, `as_stimulus_classes`, `as_stimulus_outlets`, `as_stimulus_controllers`) and singular variants (`as_stimulus_target`, `as_stimulus_action`, `as_stimulus_value`, `as_stimulus_param`, `as_stimulus_class`, `as_stimulus_outlet`, `as_stimulus_controller`) exist for every attribute kind. These helpers are defined on `Vident::ViewComponent::Base`; for Phlex, use `child_element` or compose directly.
+
+### Class-level Stimulus builders (no instance needed)
+
+When you need a Stimulus value without a component instance (Turbo-Stream partials, JSON endpoints, test selectors), call the builders on the class:
+
+```ruby
+ButtonComponent.stimulus_target(:submit)            # Vident::Stimulus::Target
+ButtonComponent.stimulus_action(:click, :handle)    # click->implied#handle
+ButtonComponent.stimulus_value(:count, 0)
+ButtonComponent.stimulus_param(:item_id, 42)
+ButtonComponent.stimulus_class(:loading, "opacity-50")
+ButtonComponent.stimulus_outlet(:modal, ".js-modal") # selector required
+ButtonComponent.stimulus_controller                  # the implied controller
+```
+
+Returns a `Vident::Stimulus::*` value object with the same `#to_h` / `#to_data_pair` as the instance equivalents — splat `.to_h` into a tag's HTML options. Two restrictions at class level: **outlets require an explicit selector** (no `component_id` to auto-scope), and **cross-controller forms are rejected** (call `Vident::Stimulus::Target.parse(...)` directly for those).
+
+### Rendering outside `root_element(...)`
+
+For components that build their root tag via a third-party helper (e.g. `inline_svg_tag`), two instance methods return what `root_element(...)` would emit:
+
+- `root_element_class_list(extra_classes = nil)` → `String` with the full class cascade (`component_name`, `root_element_classes`, `@classes` prop, `html_options[:class]`, extras) plus Tailwind-merging.
+- `root_element_data_attributes` → `Hash` (Symbol keys) with the full `data-*` set (controller, action, target, value, param, class, outlet) from the sealed Plan.
+
+```ruby
+def view_template
+  svg("data-src" => helpers.image_path(file_name),
+      id: @id,
+      class: root_element_class_list,
+      data: root_element_data_attributes) {}
+end
+```
 
 ---
 

@@ -120,9 +120,12 @@ All of these live on `Vident::Component`'s class body (via included modules).
   or an immediate value; callable is required when the default is non-frozen (hash, array).
 - `no_stimulus_controller` — sets a class ivar that drops the implied controller from
   the `stimulus_controllers` default. Use when the component is purely presentational
-  and needs no paired `_controller.js`.
+  and needs no paired `_controller.js`. Inherited by subclasses.
+- `has_stimulus_controller` — the inverse: re-enables the implied controller on a
+  subclass whose parent declared `no_stimulus_controller`. Idempotent; order relative
+  to `stimulus do` blocks does not matter.
 - `stimulus_controller?` — `Boolean`, `true` by default; becomes `false` after a
-  `no_stimulus_controller` declaration.
+  `no_stimulus_controller` declaration and `true` again after `has_stimulus_controller`.
 - `stimulus_identifier_path` — the `name.underscore` of the class (e.g.
   `"dashboard/release_card_component"`). Falls back to `"anonymous_component"` for
   anonymous classes.
@@ -352,6 +355,48 @@ is dropped by the Resolver before serialisation, so the data attribute is omitte
   listener's.
 - Class method `stimulus_scoped_event_on_window(event)` — same with `@window` suffix.
 - Both also exist as instance methods that delegate to the class method.
+
+### 4.7 Class-level builders
+
+Class methods parallel to the instance singulars, useful when you need a
+Stimulus value object without a component instance (Turbo-Stream partials,
+JSON responses, system-test selectors).
+
+- `MyComponent.stimulus_controller` — no args; returns the implied `Vident::Stimulus::Controller`.
+- `MyComponent.stimulus_target(Symbol|String)` — returns `Vident::Stimulus::Target`.
+- `MyComponent.stimulus_action(*args)` — same grammar as the instance singular, but cross-controller forms (`[String, Symbol]`, `[Symbol, String, Symbol]`) raise `Vident::ParseError`.
+- `MyComponent.stimulus_value(name, value)` — two-arg form only; the three-arg cross-controller form raises.
+- `MyComponent.stimulus_param(name, value)` — same constraint.
+- `MyComponent.stimulus_class(name, css)` — same constraint.
+- `MyComponent.stimulus_outlet(name, selector)` — **selector required**; single-arg auto-selector form raises `Vident::ParseError` (no `component_id` at class level). For cross-controller outlets, call `Vident::Stimulus::Outlet.parse(...)` directly.
+
+Class-level output matches instance-level where both apply:
+
+```ruby
+ButtonComponent.stimulus_target(:submit).to_h ==
+  ButtonComponent.new.stimulus_target(:submit).to_h   # => true
+```
+
+The implied controller is memoised per-class on the singleton; subclasses inherit the identifier path but get their own memo.
+
+### 4.8 Root-element composition helpers
+
+Two instance methods that return what `root_element(...)` would emit — for components that render their root tag via a third-party helper (e.g. `InlineSvg::inline_svg_tag`).
+
+- `root_element_class_list(extra_classes = nil)` — returns a `String`. Applies the full 6-tier class cascade (`component_name`, `root_element_classes`, `root_element_attributes[:classes]`, `html_options[:class]`, `@classes` prop, then `extra_classes`) plus Tailwind-merging.
+- `root_element_data_attributes` — returns a `Hash` with Symbol keys. Seals the Draft into a Plan (idempotent) and runs the AttributeWriter, yielding the same `data-controller` / `data-action` / `data-*-target` / etc. hash that `root_element(...)` would emit.
+
+```ruby
+def svg_attributes
+  {
+    id: @id,
+    class: root_element_class_list,
+    data: root_element_data_attributes
+  }
+end
+```
+
+Both honour `no_stimulus_controller` (no `data-controller` in the hash; component-identifier CSS class still emitted, matching `root_element`).
 
 ---
 
