@@ -6,6 +6,38 @@ require_relative "../internals/class_list_builder"
 module Vident
   module Capabilities
     module StimulusDataEmitting
+      # For components rendering the root via a third-party helper instead of
+      # `root_element(...)`. `extra_classes` lands at the lowest-priority tier
+      # so it cannot be clobbered by a cascade winner.
+      def root_element_class_list(extra_classes = nil)
+        extra = resolved_root_element_attributes
+        extra_html_options = extra[:html_options] || {}
+        combined_classes = [@classes, extra_classes].flatten.compact
+        result = ::Vident::Internals::ClassListBuilder.call(
+          component_name: component_name,
+          root_element_classes: root_element_classes,
+          root_element_attributes_classes: extra[:classes],
+          html_options_class: @html_options[:class] || extra_html_options[:class],
+          classes_prop: combined_classes.empty? ? nil : combined_classes,
+          tailwind_merger: tailwind_merger
+        )
+        result || ""
+      end
+
+      # Seals the Draft on first call (idempotent). Symbol keys.
+      def root_element_data_attributes
+        plan = seal_draft
+        data_attrs = ::Vident::Internals::AttributeWriter.call(plan)
+
+        extra = resolved_root_element_attributes
+        extra_data = (extra[:html_options] || {})[:data] || {}
+
+        merged = data_attrs.dup
+        merged.merge!(symbolize_keys(extra_data))
+        merged.merge!(symbolize_keys(@html_options[:data] || {}))
+        merged
+      end
+
       private
 
       def resolved_root_element_attributes

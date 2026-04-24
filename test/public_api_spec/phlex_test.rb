@@ -31,6 +31,7 @@ module Vident
       include DslAdvanced
       include Errors
       include GotchaFixes
+      include RootElementHelpers
     end
   end
 end

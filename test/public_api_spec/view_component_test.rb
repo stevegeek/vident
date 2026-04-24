@@ -31,6 +31,7 @@ module Vident
       include Errors
       include VcAsStimulus
       include GotchaFixes
+      include RootElementHelpers
     end
   end
 end
