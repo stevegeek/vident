@@ -98,16 +98,34 @@ From `Vident::Component` (`lib/vident/component.rb`):
 
 From `Vident::Component` via the `StimulusDeclaring` / `StimulusParsing` capability mixins:
 
-| Prop                    | Type                                                                                       | Default                              |
-| ----------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------ |
-| `stimulus_controllers`  | `_Array(_Union(String, Symbol, Vident::Stimulus::Controller))`                             | `[default_controller_path]` unless `no_stimulus_controller`, else `[]` |
-| `stimulus_actions`      | `_Array(_Union(String, Symbol, Array, Hash, Vident::Stimulus::Action))`                    | `[]`                                 |
-| `stimulus_targets`      | `_Array(_Union(String, Symbol, Array, Vident::Stimulus::Target))`                          | `[]`                                 |
-| `stimulus_outlets`      | `_Array(_Union(String, Symbol, Array, Vident::Stimulus::Outlet))`                          | `[]`                                 |
-| `stimulus_outlet_host`  | `_Nilable(Vident::Component)`                                                              | `nil`                                |
-| `stimulus_values`       | `_Union(_Hash(Symbol, _Any), Array, Vident::Stimulus::Value)`                              | `{}`                                 |
-| `stimulus_params`       | `_Union(_Hash(Symbol, _Any), Array, Vident::Stimulus::Param)`                              | `{}`                                 |
-| `stimulus_classes`      | `_Union(_Hash(Symbol, _Any), Array, Vident::Stimulus::ClassMap)`                           | `{}`                                 |
+| Prop                    | Type                              | Default                              |
+| ----------------------- | --------------------------------- | ------------------------------------ |
+| `stimulus_controllers`  | `Vident::Types::StimulusControllers` | `[default_controller_path]` unless `no_stimulus_controller`, else `[]` |
+| `stimulus_actions`      | `Vident::Types::StimulusActions`  | `[]`                                 |
+| `stimulus_targets`      | `Vident::Types::StimulusTargets`  | `[]`                                 |
+| `stimulus_outlets`      | `Vident::Types::StimulusOutlets`  | `[]`                                 |
+| `stimulus_outlet_host`  | `_Nilable(Vident::Component)`     | `nil`                                |
+| `stimulus_values`       | `Vident::Types::StimulusValues`   | `{}`                                 |
+| `stimulus_params`       | `Vident::Types::StimulusParams`   | `{}`                                 |
+| `stimulus_classes`      | `Vident::Types::StimulusClasses`  | `{}`                                 |
+
+`Vident::Types::*` are the canonical Literal type unions for each prop kind (file: `lib/vident/types.rb`). The unions are:
+
+- `StimulusControllers` → `_Array(_Union(String, Symbol, Vident::Stimulus::Controller))`
+- `StimulusActions` → `_Array(_Union(String, Symbol, Array, Hash, Vident::Stimulus::Action))`
+- `StimulusTargets` → `_Array(_Union(String, Symbol, Array, Vident::Stimulus::Target))`
+- `StimulusOutlets` → `_Array(_Union(String, Symbol, Array, Vident::Stimulus::Outlet))`
+- `StimulusValues` → `_Union(_Hash(Symbol, _Any), Array, Vident::Stimulus::Value)`
+- `StimulusParams` → `_Union(_Hash(Symbol, _Any), Array, Vident::Stimulus::Param)`
+- `StimulusClasses` → `_Union(_Hash(Symbol, _Any), Array, Vident::Stimulus::ClassMap)`
+
+Exposed publicly so user components can reuse them when adding matching props:
+
+```ruby
+class MyComponent < Vident::ViewComponent::Base
+  prop :extra_actions, Vident::Types::StimulusActions, default: -> { [] }
+end
+```
 
 ---
 
