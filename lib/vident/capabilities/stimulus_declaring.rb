@@ -28,6 +28,10 @@ module Vident
           @__vident_no_stimulus_controller = true
         end
 
+        def has_stimulus_controller
+          @__vident_no_stimulus_controller = false
+        end
+
         def stimulus_controller?
           !@__vident_no_stimulus_controller
         end

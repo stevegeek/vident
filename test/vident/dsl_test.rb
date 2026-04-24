@@ -390,6 +390,50 @@ module Vident
       assert child.stimulus_controller?
     end
 
+    # ---- has_stimulus_controller ------------------------------------------
+
+    def test_has_stimulus_controller_reenables_implied_after_parent_no_stimulus_controller
+      parent = make_component { no_stimulus_controller }
+      child = Class.new(parent) do
+        has_stimulus_controller
+        stimulus { actions :click }
+      end
+      assert child.stimulus_controller?
+      assert_equal 1, child.declarations.actions.size
+    end
+
+    def test_has_stimulus_controller_is_idempotent
+      cls = make_component do
+        has_stimulus_controller
+        has_stimulus_controller
+      end
+      assert cls.stimulus_controller?
+    end
+
+    def test_has_stimulus_controller_after_no_stimulus_controller_same_class_flips_flag
+      cls = make_component do
+        no_stimulus_controller
+        has_stimulus_controller
+        stimulus { actions :click }
+      end
+      assert cls.stimulus_controller?
+      assert_equal 1, cls.declarations.actions.size
+    end
+
+    def test_parent_no_stimulus_controller_child_has_stimulus_controller_grandchild_inherits_true
+      parent = make_component { no_stimulus_controller }
+      child = Class.new(parent) { has_stimulus_controller }
+      grandchild = Class.new(child)
+      assert grandchild.stimulus_controller?
+    end
+
+    def test_parent_has_stimulus_controller_child_no_stimulus_controller_works
+      parent = make_component { has_stimulus_controller }
+      child = Class.new(parent) { no_stimulus_controller }
+      refute child.stimulus_controller?
+      assert parent.stimulus_controller?
+    end
+
     # ---- no_stimulus_controller + DSL => DeclarationError -------------
 
     def test_no_stimulus_controller_with_action_raises_declaration_error
