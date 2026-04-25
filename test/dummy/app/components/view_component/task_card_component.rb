@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "vident"
-
 module ViewComponent
   class TaskCardComponent < ::Vident::ViewComponent::Base
     # Locked so the Phlex and ViewComponent twins on the docs site share

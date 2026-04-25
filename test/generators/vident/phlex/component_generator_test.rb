@@ -73,4 +73,14 @@ class Vident::Phlex::Generators::ComponentGeneratorTest < Rails::Generators::Tes
       assert_match(/class CardComponent < AdminComponent/, contents)
     end
   end
+
+  def test_strips_trailing_component_from_input_name
+    run_generator ["Dashboard::TaskCardComponent"]
+
+    assert_file "app/components/dashboard/task_card_component.rb" do |contents|
+      assert_match(/class (?:Dashboard::TaskCardComponent|TaskCardComponent) < ApplicationPhlexComponent/, contents)
+      refute_match(/TaskCardComponentComponent/, contents)
+    end
+    assert_no_file "app/components/dashboard/task_card_component_component.rb"
+  end
 end

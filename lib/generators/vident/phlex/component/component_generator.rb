@@ -38,12 +38,19 @@ module Vident
 
         private
 
-        def component_class_name
-          "#{class_name}Component"
+        # Allow `g vident:phlex:component TaskCardComponent` to produce the
+        # same files as `g ... TaskCard` rather than `TaskCardComponentComponent`.
+        # Matches ViewComponent's own generator behaviour.
+        def class_name
+          super.sub(/Component\z/, "")
         end
 
-        def component_module_path
-          class_path
+        def file_name
+          super.sub(/_component\z/, "")
+        end
+
+        def component_class_name
+          "#{class_name}Component"
         end
 
         def parent_class

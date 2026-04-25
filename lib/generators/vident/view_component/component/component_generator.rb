@@ -42,6 +42,16 @@ module Vident
 
         private
 
+        # Allow `g vident:view_component:component TaskCardComponent` to produce
+        # the same files as `g ... TaskCard` rather than `TaskCardComponentComponent`.
+        def class_name
+          super.sub(/Component\z/, "")
+        end
+
+        def file_name
+          super.sub(/_component\z/, "")
+        end
+
         def component_class_name
           "#{class_name}Component"
         end

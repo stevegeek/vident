@@ -85,6 +85,29 @@ class Vident::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_does_not_overwrite_existing_application_phlex_component
+    skip "vident-phlex not loaded" unless defined?(::Vident::Phlex::HTML)
+    FileUtils.mkdir_p(File.join(destination_root, "app/components"))
+    existing = File.join(destination_root, "app/components/application_phlex_component.rb")
+    File.write(existing, "user-edited content\n")
+
+    run_generator
+
+    assert_equal "user-edited content\n", File.read(existing)
+  end
+
+  def test_force_overwrites_existing_application_phlex_component
+    skip "vident-phlex not loaded" unless defined?(::Vident::Phlex::HTML)
+    FileUtils.mkdir_p(File.join(destination_root, "app/components"))
+    existing = File.join(destination_root, "app/components/application_phlex_component.rb")
+    File.write(existing, "stale content\n")
+
+    run_generator ["--force"]
+
+    refute_equal "stale content\n", File.read(existing)
+    assert_match(/class ApplicationPhlexComponent < Vident::Phlex::HTML/, File.read(existing))
+  end
+
   def test_running_generator_twice_does_not_duplicate_controller_hook
     controller_path = File.join(destination_root, "app/controllers/application_controller.rb")
     FileUtils.mkdir_p(File.dirname(controller_path))

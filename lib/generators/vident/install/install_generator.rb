@@ -17,12 +17,8 @@ module Vident
       end
 
       def create_application_components
-        if defined?(::Vident::Phlex::HTML)
-          template "application_phlex_component.rb.tt", "app/components/application_phlex_component.rb"
-        end
-        if defined?(::Vident::ViewComponent::Base)
-          template "application_view_component.rb.tt", "app/components/application_view_component.rb"
-        end
+        write_application_component("application_phlex_component.rb") if defined?(::Vident::Phlex::HTML)
+        write_application_component("application_view_component.rb") if defined?(::Vident::ViewComponent::Base)
       end
 
       def install_claude_skill
@@ -60,6 +56,21 @@ module Vident
         RUBY
 
         inject_into_class controller_path, "ApplicationController", "\n#{hook}"
+      end
+
+      private
+
+      # Mirror the skill file's preserve-on-existing semantics: re-running
+      # the install generator should not clobber a base class the user has
+      # extended. `--force` opts back into overwriting.
+      def write_application_component(filename)
+        destination = "app/components/#{filename}"
+        absolute = File.expand_path(destination, destination_root)
+        if File.exist?(absolute) && !options[:force]
+          say_status :exist, destination, :blue
+        else
+          template "#{filename}.tt", destination
+        end
       end
     end
   end

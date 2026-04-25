@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Component scaffold generators.** `bin/rails g vident:phlex:component Dashboard::TaskCard` (shipped with `vident-phlex`) and `bin/rails g vident:view_component:component Dashboard::TaskCard` (shipped with `vident-view_component`) scaffold a component (`.rb`, plus `.html.erb` for ViewComponent), a Stimulus controller sidecar, and a unit test in one go. Flags: `--skip-stimulus`, `--skip-controller`, `--skip-test`, `--typescript` / `-t`, `--parent`. A trailing `Component` in the input name is stripped, matching ViewComponent's own generator behaviour.
+- **`vident:component` umbrella dispatcher.** Routes to the right engine generator when only one is loaded; requires `--engine=phlex` or `--engine=view_component` when both are present.
+- **`vident:install` generates `ApplicationPhlexComponent` / `ApplicationViewComponent`** in `app/components/` based on which engine gem is in the Gemfile, mirroring the `ApplicationRecord` / `ApplicationController` pattern. Existing files are preserved unless `--force` is passed.
+
 ### Changed
 
 - `bin/rails generate vident:install --force` now overwrites an existing `.claude/skills/vident/SKILL.md` with the SKILL shipped in the installed gem, so upgrades can refresh it. Without `--force`, the existing file is preserved (unchanged behaviour).
