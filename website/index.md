@@ -4,7 +4,7 @@ title: Vident
 permalink: /
 hero:
   name: Vident
-  text: Type-safe Rails components with first-class Stimulus
+  text: Build type-safe Rails components with first-class Stimulus
   tagline: One declarative DSL for Phlex or ViewComponent — no more hand-crafted data attributes, no more refactor anxiety.
   image:
     src: /assets/img/vident-logo.svg
