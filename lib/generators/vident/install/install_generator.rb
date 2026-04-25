@@ -16,6 +16,15 @@ module Vident
         template "vident.rb", "config/initializers/vident.rb"
       end
 
+      def create_application_components
+        if defined?(::Vident::Phlex::HTML)
+          template "application_phlex_component.rb.tt", "app/components/application_phlex_component.rb"
+        end
+        if defined?(::Vident::ViewComponent::Base)
+          template "application_view_component.rb.tt", "app/components/application_view_component.rb"
+        end
+      end
+
       def install_claude_skill
         return unless File.exist?(SKILL_SOURCE)
         destination = ".claude/skills/vident/SKILL.md"

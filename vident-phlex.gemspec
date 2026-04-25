@@ -22,6 +22,7 @@ Gem::Specification.new do |spec|
     files.select do |f|
       f == "lib/vident-phlex.rb" ||
         f.match?(%r{^lib/vident/phlex(\.rb|/)}) ||
+        f.match?(%r{^lib/generators/vident/phlex/}) ||
         f == "README.md" ||
         f == "LICENSE.txt" ||
         f == "CHANGELOG.md"

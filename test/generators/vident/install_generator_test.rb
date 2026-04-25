@@ -68,6 +68,23 @@ class Vident::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     assert_match(/^name: Vident$/, File.read(existing))
   end
 
+  def test_creates_application_phlex_component_when_phlex_loaded
+    skip "vident-phlex not loaded" unless defined?(::Vident::Phlex::HTML)
+    run_generator
+    assert_file "app/components/application_phlex_component.rb" do |contents|
+      assert_match(/class ApplicationPhlexComponent < Vident::Phlex::HTML/, contents)
+      assert_match(/include Phlex::Rails::Helpers::Routes/, contents)
+    end
+  end
+
+  def test_creates_application_view_component_when_view_component_loaded
+    skip "vident-view_component not loaded" unless defined?(::Vident::ViewComponent::Base)
+    run_generator
+    assert_file "app/components/application_view_component.rb" do |contents|
+      assert_match(/class ApplicationViewComponent < Vident::ViewComponent::Base/, contents)
+    end
+  end
+
   def test_running_generator_twice_does_not_duplicate_controller_hook
     controller_path = File.join(destination_root, "app/controllers/application_controller.rb")
     FileUtils.mkdir_p(File.dirname(controller_path))
