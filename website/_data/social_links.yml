@@ -1,0 +1,6 @@
+- icon: github
+  link: https://github.com/stevegeek/vident
+  label: Vident on GitHub
+- icon: rubygems
+  link: https://rubygems.org/gems/vident
+  label: Vident on RubyGems

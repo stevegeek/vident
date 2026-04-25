@@ -1,0 +1,11 @@
+- title: Introduction
+  url: /introduction/getting-started/
+  collections: [introduction]
+- title: Guides
+  url: /guides/components/
+  collections: [guides]
+- title: Reference
+  url: /reference/stimulus-dsl/
+  collections: [reference]
+- title: Changelog
+  url: https://github.com/stevegeek/vident/blob/main/CHANGELOG.md

@@ -1,0 +1,28 @@
+{%- comment -%}
+Embeds a live demo with Live / Vident source / Raw HTML tabs.
+
+Usage:
+  {% include demo.html slug="greeter_vident" title="Phlex + Vident greeter" %}
+
+Reads three fragments from `_includes/demos/`, all produced by
+`rake website:demos`:
+  <slug>_rendered.html — the literal output of the component (live panel)
+  <slug>_source.rb     — the component's Ruby source (Vident tab)
+  <slug>_html.html     — the pretty-printed copy of the rendered HTML (Raw tab)
+{%- endcomment -%}
+{%- assign slug = include.slug -%}
+{%- assign title = include.title | default: slug -%}
+{%- capture src -%}{% include demos/{{ slug }}_source.rb %}{%- endcapture -%}
+{%- capture html -%}{% include demos/{{ slug }}_html.html %}{%- endcapture -%}
+<div class="vident-demo" data-slug="{{ slug }}">
+  <div class="vident-demo__tabs" role="tablist" aria-label="{{ title }} demo">
+    <button class="vident-demo__tab" role="tab" aria-selected="true"  data-vident-tab="{{ slug }}-live">Live</button>
+    <button class="vident-demo__tab" role="tab" aria-selected="false" data-vident-tab="{{ slug }}-vident">Vident source</button>
+    <button class="vident-demo__tab" role="tab" aria-selected="false" data-vident-tab="{{ slug }}-html">Rendered HTML</button>
+  </div>
+  <div class="vident-demo__panel" id="{{ slug }}-live" data-active="true" role="tabpanel">
+    <div class="vident-demo__live">{% include demos/{{ slug }}_rendered.html %}</div>
+  </div>
+  <div class="vident-demo__panel" id="{{ slug }}-vident" role="tabpanel"><pre><code class="language-ruby">{{ src | escape }}</code></pre></div>
+  <div class="vident-demo__panel" id="{{ slug }}-html" role="tabpanel"><pre><code class="language-html">{{ html | escape }}</code></pre></div>
+</div>
