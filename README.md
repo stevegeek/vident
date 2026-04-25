@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://vident-gem.diaconou.com">
-    <img src="logo-by-sd.png" alt="Vident" width="180">
+    <img src="https://vident-gem.diaconou.com/assets/img/vident-logo.png" alt="Vident" width="180">
   </a>
 </p>
 
