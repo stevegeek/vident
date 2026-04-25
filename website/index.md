@@ -18,7 +18,7 @@ hero:
       link: https://github.com/stevegeek/vident
 features:
   - title: Two engines, one API
-    details: "Drop into a Phlex or ViewComponent codebase without changing how you build views. Pick the engine that fits the file."
+    details: "Drop into a Phlex or ViewComponent codebase without changing how you build views. Pick the engine that fits your app or preferred framework."
   - title: Stimulus without the boilerplate
     details: "Declare actions, targets, values, and classes in Ruby. The data attributes are generated for you, and renames stay safe."
   - title: Typed props
