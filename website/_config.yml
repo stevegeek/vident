@@ -53,7 +53,7 @@ jekyll_vitepress:
     pattern: "https://github.com/stevegeek/vident/edit/main/website/:path"
     text: Edit this page on GitHub
   footer:
-    message: Released under the MIT License.
+    message: 'Released under the MIT License. Built with the lovely <a href="https://github.com/crmne/jekyll-vitepress-theme">jekyll-vitepress-theme</a> by <a href="https://github.com/crmne">Carmine Paolino</a>.'
     copyright: "Copyright © 2023–present Stephen Ierodiaconou"
   # Light mode leads with the logo's red; dark mode swaps to its yellow so
   # links/CTAs stay legible on a dark background.
