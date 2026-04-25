@@ -1,9 +1,27 @@
-# Vident
+<p align="center">
+  <a href="https://vident-gem.diaconou.com">
+    <img src="logo-by-sd.png" alt="Vident" width="180">
+  </a>
+</p>
+
+<h1 align="center">Vident</h1>
+
+<p align="center">
+  <strong>Type-safe Rails components with first-class Stimulus, on Phlex or ViewComponent.</strong>
+  <br>
+  <a href="https://vident-gem.diaconou.com">Documentation</a>
+  &nbsp;·&nbsp;
+  <a href="https://vident-gem.diaconou.com/introduction/getting-started/">Getting started</a>
+  &nbsp;·&nbsp;
+  <a href="https://rubygems.org/gems/vident">RubyGems</a>
+</p>
 
 A powerful Ruby gem for building interactive, type-safe components in Rails applications with seamless [Stimulus.js](https://stimulus.hotwired.dev/) integration. 
 
 Vident supports both [ViewComponent](https://viewcomponent.org/) and [Phlex](https://www.phlex.fun/) rendering engines while providing a consistent API for creating 
 reusable UI components powered by [Stimulus.js](https://stimulus.hotwired.dev/).
+
+> **Full documentation lives at [vident-gem.diaconou.com](https://vident-gem.diaconou.com)** — including a live, clickable component demo on the home page.
 
 ## Table of Contents
 

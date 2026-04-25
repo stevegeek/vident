@@ -4,7 +4,7 @@ description: >-
   Vident builds typed, Stimulus-wired components for Rails on top of Phlex
   or ViewComponent. A single declarative DSL replaces the data-attribute
   boilerplate, with intelligent Tailwind class merging and component caching.
-url: "https://vident.dev"
+url: "https://vident-gem.diaconou.com"
 baseurl: ""
 github_username: stevegeek
 github_repo: vident
@@ -54,7 +54,7 @@ jekyll_vitepress:
     text: Edit this page on GitHub
   footer:
     message: Released under the MIT License.
-    copyright: "Copyright © 2023–{{ 'now' | date: '%Y' }} Stephen Ierodiaconou"
+    copyright: "Copyright © 2023–present Stephen Ierodiaconou"
   # Light mode leads with the logo's red; dark mode swaps to its yellow so
   # links/CTAs stay legible on a dark background.
   tokens:
