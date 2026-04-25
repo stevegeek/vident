@@ -28,29 +28,30 @@ features:
   - title: Component caching
     details: "A cache_component helper scopes Rails fragment caching to the component, so expensive renders only happen once."
   - title: First-class generators
-    details: "bin/rails g vident:install wires the per-request ID seeding and (optionally) drops a Claude Code skill in your repo."
+    details: "bin/rails g vident:install sets up your app and base components. bin/rails g vident:component scaffolds a component, its Stimulus controller, and a unit test in one go."
 ---
 
 ## See it in action
 
-Three release cards from a small deploy dashboard. Each card carries typed
-props (`environment` is `_Union(:production, :staging, :preview)`, `status`
-is `_Union(:pending, :deployed, :failed)`), a `stimulus do` block that maps
-those props straight to Stimulus values, and dynamic `classes` that pick
-the border colour from `@status` at render time.
+Three task cards. Each carries typed props (`priority` is
+`_Union(:low, :medium, :high)`, `status` is `_Union(:todo, :done, :wont_do)`,
+`tags` is `_Array(String)`), a `stimulus do` block that maps those props
+straight to Stimulus values, and dynamic `classes` that pick the border
+colour from `@status` at render time.
 
-Click a card or its **Promote** / **Cancel** buttons to see the same
+Click a card or its **Mark done** / **Won't do** buttons to see the same
 controller code that runs in the dummy Rails app fire here too. The
-**Vident source** tab shows the entire component — under 70 lines, no
-hand-typed `data-*` attributes. The **Rendered HTML** tab shows what the
-browser actually receives, with every attribute the DSL generated.
+**Source** tab shows the whole component — toggle between Phlex and
+ViewComponent to see the same UI built with either engine. The
+**Rendered HTML** tab shows what the browser actually receives, with
+every attribute the DSL generated.
 
-{% include demo.html slug="release_card" title="Deploy dashboard release card" %}
+{% include demo.html slug="task_card" title="Task card" %}
 
 The Ruby file is the only source of truth for the controller identifier
-(`dashboard--release-card-component`). Rename the class, and every
-`data-action`, `data-target`, and `data-value` attribute moves with it —
-no string-chasing across `.erb`/`.js`/`.rb` files.
+(`task-card-component`). Rename the class, and every `data-action`,
+`data-target`, and `data-value` attribute moves with it — no
+string-chasing across `.erb`/`.js`/`.rb` files.
 
 ## Installation
 

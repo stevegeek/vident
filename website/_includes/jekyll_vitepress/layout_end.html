@@ -18,4 +18,34 @@
   }
   document.querySelectorAll('.vident-demo').forEach(bind);
 })();
+
+// Engine toggle. Each demo has Phlex/VC source panels in the DOM; clicking a
+// `[data-vident-engine]` button updates `data-engine` on every `.vident-demo`
+// on the page and persists the choice in localStorage so it sticks across
+// pages. Default (set in the include) is `view_component`.
+(function () {
+  var STORAGE_KEY = 'vident-engine';
+  var VALID = { phlex: true, view_component: true };
+
+  function applyEngine(engine) {
+    if (!VALID[engine]) return;
+    document.querySelectorAll('.vident-demo').forEach(function (demo) {
+      demo.setAttribute('data-engine', engine);
+      demo.querySelectorAll('[data-vident-engine]').forEach(function (btn) {
+        btn.setAttribute('aria-pressed', btn.getAttribute('data-vident-engine') === engine ? 'true' : 'false');
+      });
+    });
+    try { localStorage.setItem(STORAGE_KEY, engine); } catch (_) {}
+  }
+
+  var stored;
+  try { stored = localStorage.getItem(STORAGE_KEY); } catch (_) {}
+  applyEngine(stored && VALID[stored] ? stored : 'view_component');
+
+  document.querySelectorAll('[data-vident-engine]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      applyEngine(btn.getAttribute('data-vident-engine'));
+    });
+  });
+})();
 </script>

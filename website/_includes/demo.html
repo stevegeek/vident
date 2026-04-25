@@ -1,28 +1,39 @@
 {%- comment -%}
-Embeds a live demo with Live / Vident source / Raw HTML tabs.
+Embeds a live demo with Live / Source / Rendered HTML tabs. The Source tab
+hosts an inline Phlex / ViewComponent toggle so visitors can compare how
+the same UI is built in either engine. Both engine sources are rendered
+into the DOM; CSS hides the inactive one based on `data-engine` on the
+demo wrapper. The toggle script (in layout_end.html) syncs the choice
+across every demo on the page and persists it in localStorage.
 
-Usage:
-  {% include demo.html slug="greeter_vident" title="Phlex + Vident greeter" %}
-
-Reads three fragments from `_includes/demos/`, all produced by
+Reads four fragments from `_includes/demos/`, all produced by
 `rake website:demos`:
-  <slug>_rendered.html — the literal output of the component (live panel)
-  <slug>_source.rb     — the component's Ruby source (Vident tab)
-  <slug>_html.html     — the pretty-printed copy of the rendered HTML (Raw tab)
+  <slug>_rendered.html               — the literal output (live panel)
+  <slug>_html.html                   — the pretty-printed Rendered HTML tab
+  <slug>_phlex_source.rb             — Phlex Ruby source
+  <slug>_view_component_source.rb    — ViewComponent .rb + .erb concatenated
 {%- endcomment -%}
 {%- assign slug = include.slug -%}
 {%- assign title = include.title | default: slug -%}
-{%- capture src -%}{% include demos/{{ slug }}_source.rb %}{%- endcapture -%}
+{%- capture phlex_src -%}{% include demos/{{ slug }}_phlex_source.rb %}{%- endcapture -%}
+{%- capture vc_src -%}{% include demos/{{ slug }}_view_component_source.rb %}{%- endcapture -%}
 {%- capture html -%}{% include demos/{{ slug }}_html.html %}{%- endcapture -%}
-<div class="vident-demo" data-slug="{{ slug }}">
+<div class="vident-demo" data-slug="{{ slug }}" data-engine="view_component">
   <div class="vident-demo__tabs" role="tablist" aria-label="{{ title }} demo">
     <button class="vident-demo__tab" role="tab" aria-selected="true"  data-vident-tab="{{ slug }}-live">Live</button>
-    <button class="vident-demo__tab" role="tab" aria-selected="false" data-vident-tab="{{ slug }}-vident">Vident source</button>
+    <button class="vident-demo__tab" role="tab" aria-selected="false" data-vident-tab="{{ slug }}-source">Source</button>
     <button class="vident-demo__tab" role="tab" aria-selected="false" data-vident-tab="{{ slug }}-html">Rendered HTML</button>
   </div>
   <div class="vident-demo__panel" id="{{ slug }}-live" data-active="true" role="tabpanel">
     <div class="vident-demo__live">{% include demos/{{ slug }}_rendered.html %}</div>
   </div>
-  <div class="vident-demo__panel" id="{{ slug }}-vident" role="tabpanel"><pre><code class="language-ruby">{{ src | escape }}</code></pre></div>
+  <div class="vident-demo__panel" id="{{ slug }}-source" role="tabpanel">
+    <div class="vident-demo__engine-toggle" role="group" aria-label="Engine">
+      <button type="button" class="vident-demo__engine" data-vident-engine="phlex">Phlex</button>
+      <button type="button" class="vident-demo__engine" data-vident-engine="view_component">ViewComponent</button>
+    </div>
+    <pre class="vident-demo__source" data-engine-source="phlex"><code class="language-ruby">{{ phlex_src | escape }}</code></pre>
+    <pre class="vident-demo__source" data-engine-source="view_component"><code class="language-ruby">{{ vc_src | escape }}</code></pre>
+  </div>
   <div class="vident-demo__panel" id="{{ slug }}-html" role="tabpanel"><pre><code class="language-html">{{ html | escape }}</code></pre></div>
 </div>

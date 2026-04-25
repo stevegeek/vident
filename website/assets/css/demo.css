@@ -64,6 +64,48 @@
   overflow: auto;
 }
 
+/* Engine toggle inside the Source tab. Sits flush above the source code
+   so the choice (Phlex / ViewComponent) is right next to the thing it
+   controls. */
+.vident-demo__engine-toggle {
+  display: inline-flex;
+  margin: 0 0 0.75rem;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--vp-c-bg);
+}
+
+.vident-demo__engine {
+  appearance: none;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--vp-c-text-2);
+  padding: 0.4rem 0.85rem;
+  cursor: pointer;
+}
+
+.vident-demo__engine + .vident-demo__engine {
+  border-left: 1px solid var(--vp-c-divider);
+}
+
+.vident-demo__engine[aria-pressed="true"] {
+  background: var(--vp-c-brand-1);
+  color: #fff;
+}
+
+/* Both engine sources are rendered into the DOM so they're crawlable as
+   plain code blocks. The wrapper's data-engine attribute picks which one
+   is visible. */
+.vident-demo__source { display: none; }
+.vident-demo[data-engine="phlex"] .vident-demo__source[data-engine-source="phlex"],
+.vident-demo[data-engine="view_component"] .vident-demo__source[data-engine-source="view_component"] {
+  display: block;
+}
+
 /* The "Live" panel renders the actual component HTML. Cards from the dummy
    dashboard are 240–280px wide; the responsive grid below stacks them on
    narrow viewports and lays them out in a row when there's space. */

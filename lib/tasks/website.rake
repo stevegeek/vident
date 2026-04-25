@@ -11,40 +11,69 @@ namespace :website do
     out = File.join(WEBSITE_DIR, "_includes", "demos")
     FileUtils.mkdir_p(out)
 
+    # Each demo declares twin components — one Phlex, one ViewComponent —
+    # implementing the same UI. The site shows the Phlex render as the
+    # canonical Live + Rendered HTML output (its source is cleaner than
+    # ERB's auto-encoded form), and the source tab toggles between the
+    # two engines' source files.
     demos = [
       {
-        slug: "release_card",
-        title: "Deploy dashboard release card",
-        component: Dashboard::ReleaseCardComponent,
-        args: {release_id: 1, name: "API Gateway", version: "2.4.1", environment: :production, status: :deployed},
-        # The release card emits a sibling card and a third "pending" card so
-        # the demo shows the dynamic `status:` class colours side by side.
-        siblings: [
-          {release_id: 2, name: "Auth Service", version: "1.9.0", environment: :staging, status: :pending},
-          {release_id: 3, name: "Web Frontend", version: "3.0.0-rc1", environment: :preview, status: :failed}
+        slug: "task_card",
+        title: "Task card",
+        args: [
+          {task_id: 1, title: "Write the launch announcement", priority: :high, status: :todo, tags: ["docs", "marketing"]},
+          {task_id: 2, title: "Migrate the legacy importer", priority: :medium, status: :done, tags: ["backend"]},
+          {task_id: 3, title: "Add Stripe webhooks", priority: :low, status: :wont_do, tags: ["payments", "deferred"]}
         ],
-        source_path: "test/dummy/app/components/dashboard/release_card_component.rb"
+        phlex: {
+          component: ::Phlex::TaskCardComponent,
+          source_path: "test/dummy/app/components/phlex/task_card_component.rb"
+        },
+        view_component: {
+          component: ::ViewComponent::TaskCardComponent,
+          source_path: "test/dummy/app/components/view_component/task_card_component.rb",
+          template_path: "test/dummy/app/components/view_component/task_card_component.html.erb"
+        }
       }
     ]
 
+    view_context = ActionController::Base.new.view_context
+
     demos.each do |demo|
-      html = Vident::StableId.with_sequence_generator(seed: "vident-docs-#{demo[:slug]}") do
-        rendered = demo[:component].new(**demo[:args]).call
-        Array(demo[:siblings]).each do |sibling_args|
-          rendered += demo[:component].new(**sibling_args).call
-        end
-        rendered
+      phlex_html = render_with_seed(demo[:slug]) do
+        demo[:args].map { |a| demo[:phlex][:component].new(**a).call }.join
       end
-      # Strip the development-only "Before ..." HTML comment that the dummy
-      # ApplicationComponent injects so the embedded fragment stays clean.
-      html = html.gsub(/<!--\s*Before [^>]*?-->/, "").strip
 
-      source = File.read(File.expand_path("../../#{demo[:source_path]}", __dir__))
+      vc_html = render_with_seed(demo[:slug]) do
+        demo[:args].map { |a| demo[:view_component][:component].new(**a).render_in(view_context) }.join
+      end
 
-      File.write(File.join(out, "#{demo[:slug]}_rendered.html"), html + "\n")
-      File.write(File.join(out, "#{demo[:slug]}_source.rb"), source)
-      File.write(File.join(out, "#{demo[:slug]}_html.html"), pretty_html(html))
-      puts "  rendered #{demo[:slug]} → #{html.bytesize} bytes"
+      # The Phlex render is the visible Live + Rendered HTML output.
+      # ERB auto-encodes `>` in attribute values to `&gt;`, which decodes
+      # identically in browsers but reads worse in the Raw HTML tab.
+      live_html = clean(phlex_html)
+
+      File.write(File.join(out, "#{demo[:slug]}_rendered.html"), live_html + "\n")
+      File.write(File.join(out, "#{demo[:slug]}_html.html"), pretty_html(live_html))
+
+      File.write(
+        File.join(out, "#{demo[:slug]}_phlex_source.rb"),
+        File.read(File.expand_path("../../#{demo[:phlex][:source_path]}", __dir__))
+      )
+
+      vc_source = File.read(File.expand_path("../../#{demo[:view_component][:source_path]}", __dir__))
+      vc_template = File.read(File.expand_path("../../#{demo[:view_component][:template_path]}", __dir__))
+      vc_combined = +"# #{File.basename(demo[:view_component][:source_path])}\n#{vc_source}\n"
+      vc_combined << "# #{File.basename(demo[:view_component][:template_path])}\n#{vc_template}"
+      File.write(File.join(out, "#{demo[:slug]}_view_component_source.rb"), vc_combined)
+
+      # Sanity check: warn (don't fail) if the two engines diverge in their
+      # rendered HTML beyond the known ERB encoding cosmetics.
+      if normalised(phlex_html) != normalised(vc_html)
+        warn "  ⚠ #{demo[:slug]}: Phlex and ViewComponent renders differ beyond ERB encoding"
+      end
+
+      puts "  rendered #{demo[:slug]} → #{live_html.bytesize} bytes"
     end
 
     puts "Wrote demos to #{out}"
@@ -71,6 +100,34 @@ namespace :website do
     Dir.chdir(WEBSITE_DIR) do
       sh "bundle exec jekyll clean"
     end
+  end
+
+  def render_with_seed(slug, &block)
+    Vident::StableId.with_sequence_generator(seed: "vident-docs-#{slug}", &block)
+  end
+
+  # Strip the development-only "Before ..." HTML comment that the dummy
+  # ApplicationComponent injects, plus ViewComponent's per-template
+  # "<!-- BEGIN/END ... -->" annotations, so the embedded fragment stays clean.
+  def clean(html)
+    html
+      .gsub(/<!--\s*Before [^>]*?-->/, "")
+      .gsub(/<!--\s*(BEGIN|END)\s+app\/components.*?-->/, "")
+      .strip
+  end
+
+  # For the divergence sanity check: normalise away cosmetic encoding
+  # differences (ERB encodes `>` in attribute values to `&gt;`) so the
+  # comparison reflects semantic equivalence.
+  def normalised(html)
+    clean(html)
+      .gsub("&gt;", ">")
+      # Collapse whitespace between tags and inside attribute values so the
+      # comparison reflects semantic equivalence, not ERB's incidental
+      # indentation or trailing spaces from empty class interpolations.
+      .gsub(/>\s+</, "><")
+      .gsub(/="([^"]*)"/) { %(="#{$1.strip.gsub(/\s+/, " ")}") }
+      .strip
   end
 
   # Pretty-prints the rendered fragment for the "Raw HTML" tab. Nokogiri
