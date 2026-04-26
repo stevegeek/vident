@@ -1,0 +1,12 @@
+# frozen_string_literal: true
+
+require "test_helper"
+
+<% module_namespacing do -%>
+class <%= component_class_name %>Test < ActiveSupport::TestCase
+  test "renders the title" do
+    html = <%= component_class_name %>.new(title: "Hello").call
+    assert_includes html, "Hello"
+  end
+end
+<% end -%>

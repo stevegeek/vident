@@ -12,7 +12,7 @@ Rails.application.routes.draw do
   # Component testing routes
   get "/components", to: "components#index", as: :components
   get "/components/phlex", to: "components#phlex", as: :components_phlex
-  get "/components/dashboard", to: "components#dashboard", as: :components_dashboard
+  get "/components/tasks", to: "components#tasks", as: :components_tasks
   get "/components/typed_phlex", to: "components#typed_phlex", as: :components_typed_phlex
   get "/components/view_component", to: "components#view_component", as: :components_view_component
   get "/components/typed_view_component", to: "components#typed_view_component", as: :components_typed_view_component

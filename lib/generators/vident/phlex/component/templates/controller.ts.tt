@@ -1,0 +1,13 @@
+import { Controller } from "@hotwired/stimulus"
+
+export default class extends Controller {
+  static values = {
+    title: String,
+  }
+
+  declare readonly titleValue: string
+
+  select(event: Event): void {
+    this.dispatch("selected", { detail: { title: this.titleValue } })
+  }
+}

@@ -1,0 +1,3 @@
+<%%= root_element do %>
+  <h3 class="font-semibold"><%%= title %></h3>
+<%% end %>

@@ -5,22 +5,22 @@ class ComponentsController < ApplicationController
     # This controller is just for displaying components in the browser
   end
 
-  layout -> { ApplicationLayout }, only: [:phlex, :dashboard]
+  layout -> { ApplicationLayout }, only: [:phlex, :tasks]
 
   def phlex
     # For testing Phlex components
     render ExamplesView.new
   end
 
-  def dashboard
-    @releases = [
-      {id: 1, name: "API Gateway", version: "2.4.1", environment: :production, status: :deployed},
-      {id: 2, name: "Auth Service", version: "1.9.0", environment: :staging, status: :pending},
-      {id: 3, name: "Web Frontend", version: "3.0.0-rc1", environment: :preview, status: :failed},
-      {id: 4, name: "Worker Queue", version: "1.2.3", environment: :staging, status: :pending},
-      {id: 5, name: "Billing", version: "0.8.4", environment: :production, status: :deployed}
+  def tasks
+    @tasks = [
+      {id: 1, title: "Write the launch announcement", due: "Today", list: :today, status: :todo},
+      {id: 2, title: "Migrate the legacy importer", due: "Wed", list: :this_week, status: :done},
+      {id: 3, title: "Add Stripe webhooks", due: "—", list: :backlog, status: :wont_do},
+      {id: 4, title: "Cut the v2.1 release", due: "Fri", list: :this_week, status: :todo},
+      {id: 5, title: "Onboarding playbook draft", due: "Mon", list: :backlog, status: :todo}
     ]
-    render Dashboard::PageComponent.new(releases: @releases)
+    render Tasks::PageComponent.new(tasks: @tasks)
   end
 
   def view_component

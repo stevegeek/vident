@@ -1,0 +1,21 @@
+<script>
+// Wires up tab switching on every `.vident-demo` block. Each tab button has
+// `data-vident-tab="<panel-id>"`; only one panel is visible at a time.
+(function () {
+  function bind(demo) {
+    var tabs = demo.querySelectorAll('[data-vident-tab]');
+    tabs.forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        var target = tab.getAttribute('data-vident-tab');
+        tabs.forEach(function (t) {
+          t.setAttribute('aria-selected', t === tab ? 'true' : 'false');
+        });
+        demo.querySelectorAll('.vident-demo__panel').forEach(function (p) {
+          p.setAttribute('data-active', p.id === target ? 'true' : 'false');
+        });
+      });
+    });
+  }
+  document.querySelectorAll('.vident-demo').forEach(bind);
+})();
+</script>

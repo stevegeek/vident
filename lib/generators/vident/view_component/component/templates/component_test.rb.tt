@@ -1,0 +1,12 @@
+# frozen_string_literal: true
+
+require "test_helper"
+
+<% module_namespacing do -%>
+class <%= component_class_name %>Test < ViewComponent::TestCase
+  test "renders the title" do
+    render_inline(<%= component_class_name %>.new(title: "Hello"))
+    assert_text "Hello"
+  end
+end
+<% end -%>

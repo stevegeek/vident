@@ -1,9 +1,27 @@
-# Vident
+<p align="center">
+  <a href="https://vident-gem.diaconou.com">
+    <img src="https://vident-gem.diaconou.com/assets/img/vident-logo.png" alt="Vident" width="180">
+  </a>
+</p>
+
+<h1 align="center">Vident</h1>
+
+<p align="center">
+  <strong>Type-safe Rails components with first-class Stimulus, on Phlex or ViewComponent.</strong>
+  <br>
+  <a href="https://vident-gem.diaconou.com">Documentation</a>
+  &nbsp;·&nbsp;
+  <a href="https://vident-gem.diaconou.com/introduction/getting-started/">Getting started</a>
+  &nbsp;·&nbsp;
+  <a href="https://rubygems.org/gems/vident">RubyGems</a>
+</p>
 
 A powerful Ruby gem for building interactive, type-safe components in Rails applications with seamless [Stimulus.js](https://stimulus.hotwired.dev/) integration. 
 
 Vident supports both [ViewComponent](https://viewcomponent.org/) and [Phlex](https://www.phlex.fun/) rendering engines while providing a consistent API for creating 
 reusable UI components powered by [Stimulus.js](https://stimulus.hotwired.dev/).
+
+> **Full documentation lives at [vident-gem.diaconou.com](https://vident-gem.diaconou.com)** — including a live, clickable component demo on the home page.
 
 ## Table of Contents
 
@@ -62,7 +80,31 @@ bundle install
 bin/rails generate vident:install
 ```
 
-The `vident:install` generator writes `config/initializers/vident.rb`, wires per-request ID seeding into `ApplicationController`, and (if you use Claude Code) drops a Vident skill into `.claude/skills/vident/SKILL.md` so the model has first-party guidance on the gem's conventions. See [Element IDs and request-scoped seeding](#element-ids-and-request-scoped-seeding) for the initializer rationale, and [Claude Code skill](#claude-code-skill) for the skill.
+The `vident:install` generator writes `config/initializers/vident.rb`, wires per-request ID seeding into `ApplicationController`, generates `app/components/application_phlex_component.rb` and/or `application_view_component.rb` (one per engine gem in your Gemfile, mirroring `ApplicationRecord`), and (if you use Claude Code) drops a Vident skill into `.claude/skills/vident/SKILL.md` so the model has first-party guidance on the gem's conventions. See [Element IDs and request-scoped seeding](#element-ids-and-request-scoped-seeding) for the initializer rationale, and [Claude Code skill](#claude-code-skill) for the skill.
+
+### Scaffolding components
+
+Once `vident:install` has run, scaffold a component, its Stimulus controller sidecar, and a unit test in one go:
+
+```bash
+bin/rails generate vident:phlex:component Dashboard::TaskCard
+bin/rails generate vident:view_component:component Dashboard::TaskCard
+```
+
+There's also an umbrella `vident:component` dispatcher that picks the right engine when only one is in the Gemfile (pass `--engine=phlex` or `--engine=view_component` if both are):
+
+```bash
+bin/rails generate vident:component Dashboard::TaskCard
+```
+
+Useful flags:
+- `--skip-stimulus` — omit the `stimulus do` block and the JS controller sidecar.
+- `--skip-controller` — omit the JS sidecar but keep the `stimulus do` block (e.g. when sharing a controller).
+- `--skip-test` — skip the unit test.
+- `--typescript` / `-t` — emit a `.ts` controller instead of `.js`.
+- `--parent=ClassName` — override the default base class.
+
+A trailing `Component` in the input is stripped, so `g vident:component TaskCardComponent` and `g vident:component TaskCard` produce the same files.
 
 ## Quick Start
 

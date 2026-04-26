@@ -1,0 +1,107 @@
+---
+---
+
+/* The theme's vitepress-overrides.css hard-codes a purple gradient for the
+   home hero. Loaded after that file, this rule reclaims the title for
+   Vident's red→yellow palette. */
+:root {
+  --vp-home-hero-name-background: -webkit-linear-gradient(120deg, #cf3a13 30%, #fbbf24);
+  --vp-home-hero-image-background-image: linear-gradient(-45deg, #cf3a13 50%, #fbbf24 50%);
+  --vp-home-hero-image-filter: blur(44px);
+}
+.dark {
+  --vp-home-hero-name-background: -webkit-linear-gradient(120deg, #fbbf24 30%, #f97316);
+  --vp-home-hero-image-background-image: linear-gradient(-45deg, #fbbf24 50%, #f97316 50%);
+}
+
+/* Live demo embed: tabs + framed component preview. Scoped under
+   `.vident-demo` so theme styles can't bleed in. */
+
+.vident-demo {
+  margin: 1.5rem 0 2rem;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--vp-c-bg-soft);
+}
+
+.vident-demo__tabs {
+  display: flex;
+  gap: 0;
+  background: var(--vp-c-bg);
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+
+.vident-demo__tab {
+  appearance: none;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--vp-c-text-2);
+  padding: 0.65rem 1rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.vident-demo__tab[aria-selected="true"] {
+  color: var(--vp-c-brand-1);
+  border-bottom-color: var(--vp-c-brand-1);
+}
+
+.vident-demo__panel {
+  display: none;
+  padding: 1.25rem;
+}
+.vident-demo__panel[data-active="true"] { display: block; }
+
+.vident-demo__panel pre {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  max-height: 28rem;
+  overflow: auto;
+}
+
+/* The "Live" panel renders the actual component HTML. Cards are
+   240–280px wide; the responsive grid stacks them on narrow viewports
+   and lays them out in a row when there's space. */
+.vident-demo__live {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px dashed var(--vp-c-divider);
+  position: relative;
+}
+
+/* Round the hero image area so the logo sits on a soft tile instead of a
+   raw bleed-edge square. */
+.VPHero .image,
+.VPHero .image-container,
+.VPHero .image-bg {
+  border-radius: 28px;
+}
+.VPHero .VPImage,
+.VPHero .image img {
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+/* Two-column comparison on the landing page. Stacks below 720px. */
+.vident-compare {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+@media (min-width: 720px) {
+  .vident-compare { grid-template-columns: 1fr 1fr; }
+}
+.vident-compare h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+}

@@ -1,0 +1,75 @@
+title: Vident
+tagline: Type-safe Rails components with first-class Stimulus
+description: >-
+  Vident builds typed, Stimulus-wired components for Rails on top of Phlex
+  or ViewComponent. A single declarative DSL replaces the data-attribute
+  boilerplate, with intelligent Tailwind class merging and component caching.
+url: "https://vident-gem.diaconou.com"
+baseurl: ""
+github_username: stevegeek
+github_repo: vident
+
+theme: jekyll-vitepress-theme
+plugins:
+  - jekyll-vitepress-theme
+  - jekyll-feed
+  - jekyll-sitemap
+
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+permalink: pretty
+
+# Collections power the sidebar groups. Each `_<name>/` folder becomes a group;
+# pages are ordered by `nav_order` frontmatter inside each group.
+collections:
+  introduction:
+    output: true
+    permalink: /introduction/:path/
+  guides:
+    output: true
+    permalink: /guides/:path/
+  reference:
+    output: true
+    permalink: /reference/:path/
+
+defaults:
+  - scope: { path: "", type: "introduction" }
+    values: { layout: "default" }
+  - scope: { path: "", type: "guides" }
+    values: { layout: "default" }
+  - scope: { path: "", type: "reference" }
+    values: { layout: "default" }
+
+jekyll_vitepress:
+  branding:
+    site_title: Vident
+    logo: /assets/img/vident-logo.svg
+  syntax:
+    light_theme: github
+    dark_theme: github.dark
+  edit_link:
+    pattern: "https://github.com/stevegeek/vident/edit/main/website/:path"
+    text: Edit this page on GitHub
+  footer:
+    message: 'Released under the MIT License. Built with the lovely <a href="https://github.com/crmne/jekyll-vitepress-theme">jekyll-vitepress-theme</a> by <a href="https://github.com/crmne">Carmine Paolino</a>.'
+    copyright: "Copyright © 2023–present Stephen Ierodiaconou"
+  # Light mode leads with the logo's red; dark mode swaps to its yellow so
+  # links/CTAs stay legible on a dark background.
+  tokens:
+    light:
+      "--vp-c-brand-1": "#cf3a13"
+      "--vp-c-brand-2": "#b13110"
+      "--vp-c-brand-3": "#92290d"
+    dark:
+      "--vp-c-brand-1": "#fbbf24"
+      "--vp-c-brand-2": "#f59e0b"
+      "--vp-c-brand-3": "#d97706"
+
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - vendor/
+  - node_modules/
+  - README.md

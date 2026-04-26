@@ -1,0 +1,17 @@
+<link rel="stylesheet" href="{{ '/assets/css/demo.css' | relative_url }}">
+{%- comment -%}
+The demo HTML is rendered by the dummy Rails app and ships with Tailwind
+classes baked in (`bg-blue-600`, `border-green-500`, etc.). Loading the
+Tailwind CDN play script here keeps the docs site build pipeline-free
+while still making those utilities resolve in the browser. We scope it to
+`.vident-demo__live` so its preflight reset can't fight the VitePress
+typography styles outside the demo frame.
+{%- endcomment -%}
+<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+<script>
+  tailwind.config = {
+    important: ".vident-demo__live",
+    corePlugins: { preflight: false }
+  }
+</script>
+<script type="module" src="{{ '/assets/js/demo.js' | relative_url }}"></script>

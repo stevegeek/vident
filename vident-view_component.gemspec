@@ -22,6 +22,7 @@ Gem::Specification.new do |spec|
     files.select do |f|
       f == "lib/vident-view_component.rb" ||
         f.match?(%r{^lib/vident/view_component(\.rb|/)(?!caching)}) ||
+        f.match?(%r{^lib/generators/vident/view_component/}) ||
         f == "README.md" ||
         f == "LICENSE.txt" ||
         f == "CHANGELOG.md"
