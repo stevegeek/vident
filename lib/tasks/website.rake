@@ -117,16 +117,16 @@ namespace :website do
   end
 
   # For the divergence sanity check: normalise away cosmetic encoding
-  # differences (ERB encodes `>` in attribute values to `&gt;`) so the
-  # comparison reflects semantic equivalence.
+  # differences (ERB encodes `>` in attribute values to `&gt;`), whitespace
+  # noise from ERB indentation, and the engine-namespace prefix on Stimulus
+  # identifiers (`phlex--` and `view-component--` are expected to differ
+  # because each engine's twin lives in its own Ruby namespace).
   def normalised(html)
     clean(html)
       .gsub("&gt;", ">")
-      # Collapse whitespace between tags and inside attribute values so the
-      # comparison reflects semantic equivalence, not ERB's incidental
-      # indentation or trailing spaces from empty class interpolations.
       .gsub(/>\s+</, "><")
       .gsub(/="([^"]*)"/) { %(="#{$1.strip.gsub(/\s+/, " ")}") }
+      .gsub(/\b(?:phlex|view-component)--/, "")
       .strip
   end
 

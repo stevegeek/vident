@@ -1,8 +1,8 @@
 // Bootstraps the live demos on the docs site. We load Stimulus from a CDN so
-// the static site needs no build pipeline, then register a controller under
-// the exact identifier the rendered component uses. Phlex and ViewComponent
-// twins on the site share one stimulus_identifier_path so a single
-// controller wires them both.
+// the static site needs no build pipeline. The Phlex and ViewComponent
+// twins live in different Ruby namespaces, so they emit different natural
+// Stimulus identifiers — we register the same controller class under both
+// to bridge the two engines at the JS layer instead of the Ruby layer.
 import { Application, Controller } from "https://cdn.jsdelivr.net/npm/@hotwired/stimulus@3.2.2/dist/stimulus.js"
 
 class TaskCardController extends Controller {
@@ -55,5 +55,6 @@ function flash(card, message, kind) {
 
 const application = Application.start()
 application.debug = false
-application.register("task-card-component", TaskCardController)
+application.register("phlex--task-card-component", TaskCardController)
+application.register("view-component--task-card-component", TaskCardController)
 window.Stimulus = application

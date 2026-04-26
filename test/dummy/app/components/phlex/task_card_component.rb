@@ -2,12 +2,6 @@
 
 module Phlex
   class TaskCardComponent < ApplicationComponent
-    # Locked so the Phlex and ViewComponent twins on the docs site share
-    # one Stimulus controller identifier and emit equivalent HTML.
-    class << self
-      def stimulus_identifier_path = "task_card_component"
-    end
-
     prop :task_id, Integer
     prop :title, String
     prop :priority, _Union(:low, :medium, :high), default: :medium
