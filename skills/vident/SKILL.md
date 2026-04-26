@@ -362,7 +362,18 @@ Inline helper (ERB): `as_stimulus_param(:release_id, 42)` / `as_stimulus_params(
 
 ## 2. Component scaffolding
 
-Pick the right base class:
+The fastest path is the bundled generator, which writes the component, its Stimulus controller sidecar, and a unit test in one go:
+
+```bash
+bin/rails generate vident:component Dashboard::TaskCard
+# or, when you want to be explicit:
+bin/rails generate vident:phlex:component Dashboard::TaskCard
+bin/rails generate vident:view_component:component Dashboard::TaskCard
+```
+
+The umbrella `vident:component` dispatcher picks the engine when only one is in the Gemfile; pass `--engine=phlex` or `--engine=view_component` if both are. Useful flags: `--skip-stimulus`, `--skip-controller`, `--skip-test`, `--typescript` / `-t`, `--parent=ClassName`. A trailing `Component` in the input is stripped.
+
+Generated components inherit from `ApplicationPhlexComponent` or `ApplicationViewComponent` (created by `vident:install`). If you're writing a component by hand, pick the right base class directly:
 
 - **ViewComponent:** `class Foo::BarComponent < Vident::ViewComponent::Base`
 - **Phlex:** `class Foo::BarComponent < Vident::Phlex::HTML`

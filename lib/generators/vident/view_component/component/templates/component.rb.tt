@@ -1,0 +1,18 @@
+# frozen_string_literal: true
+
+<% module_namespacing do -%>
+class <%= component_class_name %> < <%= parent_class %>
+  prop :title, String, reader: :public
+
+<% if stimulus_block? -%>
+  stimulus do
+    values_from_props :title
+    action(:select).on(:click)
+  end
+
+<% end -%>
+  def root_element_attributes
+    {html_options: {class: "rounded border p-4"}}
+  end
+end
+<% end -%>

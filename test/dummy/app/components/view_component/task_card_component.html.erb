@@ -1,0 +1,36 @@
+<%= root_element do |card| %>
+  <div class="flex items-center justify-between">
+    <h3 class="<%= title_class %>"><%= title %></h3>
+    <span class="rounded-full bg-white px-2 py-0.5 text-xs font-medium text-gray-700"><%= priority %></span>
+  </div>
+
+  <% if tags.any? %>
+    <div class="mt-2 flex flex-wrap gap-1">
+      <% tags.each do |tag| %>
+        <span class="rounded bg-white px-2 py-0.5 text-xs text-gray-600 ring-1 ring-gray-200"><%= tag %></span>
+      <% end %>
+    </div>
+  <% end %>
+
+  <p class="mt-3 text-xs uppercase tracking-wide text-gray-500"><%= status_label %></p>
+
+  <div class="mt-3 flex gap-2">
+    <%= card.child_element(
+      :button,
+      stimulus_action: [:click, :apply],
+      stimulus_target: :done_button,
+      stimulus_params: {kind: "done"},
+      type: "button",
+      class: "flex-1 rounded bg-green-600 px-2 py-1 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50"
+    ) { "Mark done" } %>
+
+    <%= card.child_element(
+      :button,
+      stimulus_action: [:click, :apply],
+      stimulus_target: :wont_do_button,
+      stimulus_params: {kind: "wont_do"},
+      type: "button",
+      class: "flex-1 rounded border border-gray-400 px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+    ) { "Won't do" } %>
+  </div>
+<% end %>

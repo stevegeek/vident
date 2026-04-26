@@ -1,27 +1,28 @@
 // Bootstraps the live demos on the docs site. We load Stimulus from a CDN so
 // the static site needs no build pipeline, then register a controller under
-// the exact identifier the rendered component uses. The HTML fragment
-// embedded on the page is byte-for-byte what the dummy app produces, so the
-// same wiring reaches the same elements here.
+// the exact identifier the rendered component uses. Phlex and ViewComponent
+// twins on the site share one stimulus_identifier_path so a single
+// controller wires them both.
 import { Application, Controller } from "https://cdn.jsdelivr.net/npm/@hotwired/stimulus@3.2.2/dist/stimulus.js"
 
-class ReleaseCardController extends Controller {
-  static targets = ["promoteButton", "cancelButton"]
-  static values  = { releaseId: Number, name: String, status: String }
+class TaskCardController extends Controller {
+  static targets = ["doneButton", "wontDoButton"]
+  static values  = { taskId: Number, title: String, status: String }
 
   select(event) {
     if (event.target.closest("button")) return
-    flash(this.element, `Selected ${this.nameValue}`, "info")
+    flash(this.element, `Selected: ${this.titleValue}`, "info")
   }
 
   // event.params.kind comes from the button's `data-…-kind-param` attribute,
-  // which the Vident `stimulus_params: { kind: "promote" }` declaration
-  // emits. Stimulus auto-camelCases these into `event.params.<name>`.
+  // which Vident's `stimulus_params: { kind: "done" }` declaration emits.
+  // Stimulus auto-camelCases these into `event.params.<name>`.
   apply(event) {
     const kind = event.params.kind
-    this.promoteButtonTarget.disabled = true
-    this.cancelButtonTarget.disabled = true
-    flash(this.element, `${this.nameValue} ${kind === "promote" ? "promoted" : "cancelled"}`, kind)
+    this.doneButtonTarget.disabled = true
+    this.wontDoButtonTarget.disabled = true
+    const verb = kind === "done" ? "marked done" : "won't do"
+    flash(this.element, `${this.titleValue} — ${verb}`, kind)
   }
 }
 
@@ -38,7 +39,7 @@ function flash(card, message, kind) {
     "padding:0.4rem 0.7rem", "border-radius:0.375rem",
     "font-size:0.8rem", "font-weight:600",
     "color:#fff",
-    "background:" + ({promote: "#16a34a", cancel: "#dc2626", info: "#2563eb"}[kind] || "#374151"),
+    "background:" + ({done: "#16a34a", wont_do: "#6b7280", info: "#2563eb"}[kind] || "#374151"),
     "box-shadow:0 6px 16px -8px rgba(0,0,0,0.4)",
     "transition:opacity 200ms ease, transform 200ms ease",
     "transform:translateY(-4px)", "opacity:0", "z-index:10"
@@ -54,5 +55,5 @@ function flash(card, message, kind) {
 
 const application = Application.start()
 application.debug = false
-application.register("dashboard--release-card-component", ReleaseCardController)
+application.register("task-card-component", TaskCardController)
 window.Stimulus = application
