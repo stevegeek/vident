@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-namespace :website do
-  WEBSITE_DIR = File.expand_path("../../website", __dir__)
+WEBSITE_DIR = File.expand_path("../../website", __dir__)
 
+namespace :website do
   desc "Render demo components and write HTML/source fragments into the docs site"
   task :demos do
     require File.expand_path("../../test/dummy/config/environment", __dir__)
@@ -63,8 +63,8 @@ namespace :website do
 
       vc_source = File.read(File.expand_path("../../#{demo[:view_component][:source_path]}", __dir__))
       vc_template = File.read(File.expand_path("../../#{demo[:view_component][:template_path]}", __dir__))
-      vc_combined = +"# #{File.basename(demo[:view_component][:source_path])}\n#{vc_source}\n"
-      vc_combined << "# #{File.basename(demo[:view_component][:template_path])}\n#{vc_template}"
+      vc_combined = "# #{File.basename(demo[:view_component][:source_path])}\n#{vc_source}\n"
+      vc_combined += "# #{File.basename(demo[:view_component][:template_path])}\n#{vc_template}"
       File.write(File.join(out, "#{demo[:slug]}_view_component_source.rb"), vc_combined)
 
       # Sanity check: warn (don't fail) if the two engines diverge in their

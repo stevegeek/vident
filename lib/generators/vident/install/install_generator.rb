@@ -9,7 +9,6 @@ module Vident
 
       desc "Install Vident: writes a StableId strategy initializer, wires a per-request seed into ApplicationController, and copies the Vident Claude Code skill to .claude/skills/vident/."
 
-      # Path to the gem's ./skills directory, resolved relative to this file.
       SKILL_SOURCE = File.expand_path("../../../../skills/vident/SKILL.md", __dir__)
 
       def create_initializer

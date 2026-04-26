@@ -10,8 +10,6 @@ class Vident::Generators::InstallGeneratorTest < Rails::Generators::TestCase
   setup :prepare_destination
 
   def test_creates_initializer
-    # Without an existing ApplicationController the generator should still
-    # write the initializer (the controller patch is best-effort).
     run_generator
     assert_file "config/initializers/vident.rb" do |contents|
       assert_match(/Vident::StableId\.strategy = if Rails\.env\.test\?/, contents)
@@ -117,8 +115,6 @@ class Vident::Generators::InstallGeneratorTest < Rails::Generators::TestCase
     RUBY
 
     run_generator
-    # Force-overwrite the initializer on the second pass; we only care about
-    # the controller patch behavior here.
     run_generator([destination_root, "--force"])
 
     contents = File.read(controller_path)
