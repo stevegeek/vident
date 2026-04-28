@@ -14,6 +14,7 @@ module Vident
     include ::Vident::Capabilities::StimulusMutation
     include ::Vident::Capabilities::StimulusDraft
     include ::Vident::Capabilities::StimulusDataEmitting
+    include ::Vident::Capabilities::StimulusAttributeStrings
     include ::Vident::Capabilities::ClassListBuilding
     include ::Vident::Capabilities::RootElementRendering
     include ::Vident::Capabilities::ChildElementRendering

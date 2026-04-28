@@ -398,8 +398,12 @@ a hand-authored HTML tag. All three are equivalent; pick one per file for consis
 <% end %>
 ```
 
-Phlex users have two choices — `child_element` (identical) and the native Phlex tag
-methods with `data: { **component.stimulus_target(:name) }`.
+Phlex users have three choices — `child_element` (identical to ERB, but only valid
+inside `view_template`), the native Phlex tag methods with
+`data: { **component.stimulus_target(:name) }`, and the `as_stimulus_*` helpers
+embedded via `raw(...)`. From an external ERB partial holding a Phlex component
+reference, `child_element` won't work (no render buffer) — use `as_stimulus_*` or
+the `data: { **stimulus_target(...) }` spread instead.
 
 ---
 

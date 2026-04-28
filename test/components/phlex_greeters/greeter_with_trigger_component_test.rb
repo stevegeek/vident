@@ -58,4 +58,24 @@ class PhlexGreetersGreeterWithTriggerComponentTest < Minitest::Test
     html = PhlexGreeters::GreeterWithTriggerComponent.new.call
     assert_match(/<span\b[^>]*data-phlex-greeters--greeter-with-trigger-component-target="output"/, html)
   end
+
+  # Calling these on a Phlex Vident component from outside its `view_template`
+  # is the case that exposed the buffer-lifecycle bug; verify the helpers work
+  # without ever entering the render lifecycle.
+  def test_as_stimulus_target_outside_render_lifecycle
+    component = PhlexGreeters::GreeterWithTriggerComponent.new
+    assert_equal %(data-phlex-greeters--greeter-with-trigger-component-target="name"),
+      component.as_stimulus_target(:name)
+  end
+
+  def test_as_stimulus_action_outside_render_lifecycle
+    component = PhlexGreeters::GreeterWithTriggerComponent.new
+    assert_equal %(data-action="phlex-greeters--greeter-with-trigger-component#greet"),
+      component.as_stimulus_action(:greet)
+  end
+
+  def test_as_target_alias_outside_render_lifecycle
+    component = PhlexGreeters::GreeterWithTriggerComponent.new
+    assert_equal component.as_stimulus_target(:name), component.as_target(:name)
+  end
 end

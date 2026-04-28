@@ -22,13 +22,6 @@ Adds:
   class precedence rules from SKILL.md §4). Self-closing tags (`:area`, `:br`, `:col`,
   `:embed`, `:hr`, `:img`, `:input`, `:link`, `:meta`, `:param`, `:source`, `:track`,
   `:wbr`) are emitted without children.
-- 14 `as_stimulus_*` helpers — return an HTML-safe `String` of raw `data-*` attributes
-  suitable for embedding inside an HTML tag in ERB. Signatures match the corresponding
-  `stimulus_*` method (see section 4):
-  - Plural: `as_stimulus_controllers`, `as_stimulus_actions`, `as_stimulus_targets`,
-    `as_stimulus_outlets`, `as_stimulus_values`, `as_stimulus_params`, `as_stimulus_classes`.
-  - Singular: `as_stimulus_controller`, `as_stimulus_action`, `as_stimulus_target`,
-    `as_stimulus_outlet`, `as_stimulus_value`, `as_stimulus_param`, `as_stimulus_class`.
 - Class-level cache support: `template_path`, `component_path`, `components_base_path`,
   `cache_component_modified_time`, `cache_sidecar_view_modified_time`,
   `cache_rb_component_modified_time` — used by `Vident::Caching` to chain
@@ -49,8 +42,13 @@ Adds:
   `child_element` raises `ArgumentError`.
 - Source-file tracking — the class-level `inherited` hook records each subclass's source
   file in `component_source_file_path` so `Vident::Caching` can pick up an mtime.
-- No `as_stimulus_*` helpers — Phlex has its own tag DSL; use `child_element` or spread
-  `data: { **component.stimulus_target(:name) }` inline.
+- `child_element` lifecycle constraint — `child_element` writes to Phlex's render
+  buffer, so it is **only valid during the component's own `view_template`**. From
+  outside the render lifecycle (an external ERB partial holding a Phlex component
+  reference, a helper, `ApplicationController.renderer.render(...)`, etc.) it raises
+  `undefined method 'buffer' for nil`. Use the `as_stimulus_*` helpers (see
+  `Vident::Component`) or spread `data: { **component.stimulus_target(:name) }` inline
+  instead — those don't touch the buffer.
 
 ### `Vident::Component` (module)
 
@@ -77,6 +75,17 @@ Public instance methods:
 - `id` — `String`, auto-generated from `StableId` if `@id` was nil. The generated form
   is `"#{component_name}-#{StableId.next_id_in_sequence}"`.
 - `prop_names` — instance-method alias for the class method.
+- 14 `as_stimulus_*` helpers + 7 short aliases — return an HTML-safe `String` of raw
+  `data-*` attributes, suitable for embedding inside an HTML tag (ERB or Phlex `raw(...)`).
+  Signatures match the corresponding `stimulus_*` method (see section 4). Pure transforms
+  over `stimulus_*` outputs — they don't write to a render buffer, so they're safe to call
+  on a Phlex Vident component from outside its `view_template` (unlike `child_element`).
+  - Plural: `as_stimulus_controllers`, `as_stimulus_actions`, `as_stimulus_targets`,
+    `as_stimulus_outlets`, `as_stimulus_values`, `as_stimulus_params`, `as_stimulus_classes`.
+  - Singular: `as_stimulus_controller`, `as_stimulus_action`, `as_stimulus_target`,
+    `as_stimulus_outlet`, `as_stimulus_value`, `as_stimulus_param`, `as_stimulus_class`.
+  - Aliases (singular only): `as_controller`, `as_action`, `as_target`, `as_outlet`,
+    `as_value`, `as_param`, `as_class`.
 
 Not public (override at your own risk, used internally):
 
@@ -468,7 +477,12 @@ def child_element(tag_name,
 - `**options` passes through as HTML options.
 - For ViewComponent's renderer, self-closing tags are emitted without the block.
 - For Phlex's renderer, the tag name is validated against
-  `Vident::Phlex::HTML::VALID_TAGS`; unknown tags raise `ArgumentError`.
+  `Vident::Phlex::HTML::VALID_TAGS`; unknown tags raise `ArgumentError`. Phlex's
+  `child_element` writes to the component's render buffer, so it is **only valid
+  during the component's own `view_template`**. Calling it from outside the render
+  lifecycle (an external ERB partial, a helper, `ApplicationController.renderer.render`)
+  raises `undefined method 'buffer' for nil`. Use `as_stimulus_*` helpers there
+  instead — those have no buffer dependency.
 
 ---
 

@@ -29,7 +29,12 @@ end
 - **`child_element(:tag, stimulus_target: :name, class: "...") { … }`**
   renders a child tag with the right `data-*` attributes attached — the
   Phlex equivalent of writing `data: greeter.stimulus_target(:name).to_h`
-  inline.
+  inline. Only valid **inside `view_template`** — it writes to Phlex's
+  render buffer, so calling it from an external ERB partial, a helper, or
+  `ApplicationController.renderer.render` raises
+  `undefined method 'buffer' for nil`. From outside the render lifecycle,
+  use `as_stimulus_target(:name)` (returns an HTML-safe `data-*` string)
+  or spread `data: { **component.stimulus_target(:name) }` instead.
 - **`vanish(&)`** consumes the outer block's content so configuration-only
   child blocks (slot setters that mutate state but render nothing) don't
   end up in the output.
