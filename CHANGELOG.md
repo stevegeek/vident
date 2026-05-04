@@ -6,25 +6,27 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
-## [Unreleased]
+## [3.0.0] - 2026-05-04
 
-### Added
-
-- **`Vident::Stimulus::Selector` value class** + top-level `Vident::Selector(css)` helper. Wraps verbatim CSS selectors so the Outlet primitives can distinguish a selector from a controller path/identifier (#32).
-- **`Vident::Stimulus::Action.parse_descriptor(string)`** — public escape hatch for parsing wire-format Stimulus action descriptors (`"click->ctrl#method"`). Replaces the previously private `parse_qualified_string`.
-- **Component scaffold generators.** `bin/rails g vident:phlex:component Dashboard::TaskCard` (shipped with `vident-phlex`) and `bin/rails g vident:view_component:component Dashboard::TaskCard` (shipped with `vident-view_component`) scaffold a component (`.rb`, plus `.html.erb` for ViewComponent), a Stimulus controller sidecar, and a unit test in one go. Flags: `--skip-stimulus`, `--skip-controller`, `--skip-test`, `--typescript` / `-t`, `--parent`. A trailing `Component` in the input name is stripped, matching ViewComponent's own generator behaviour.
-- **`vident:component` umbrella dispatcher.** Routes to the right engine generator when only one is loaded; requires `--engine=phlex` or `--engine=view_component` when both are present.
-- **`vident:install` generates `ApplicationPhlexComponent` / `ApplicationViewComponent`** in `app/components/` based on which engine gem is in the Gemfile, mirroring the `ApplicationRecord` / `ApplicationController` pattern. Existing files are preserved unless `--force` is passed.
+A bare `String` now means the same thing across every Stimulus primitive — a controller path. The 2.x ambiguity where a `String` could variously mean controller path, outlet name, CSS selector, or fully-qualified action descriptor (depending on primitive and position) is gone, closing a class of silent-failure footguns. See `UPGRADING.md` "Upgrading to Vident 3.0" for symptom → fix on each breaking change.
 
 ### Breaking
 
-- **Outlet: bare String is no longer a CSS selector** (#32). `outlets foo: ".modal"` raises `Vident::ParseError`; wrap with `Vident::Selector(".modal")` for verbatim, or pass `nil` for auto-selector. Same rule for the array forms (`[:tab, ".x"]` → `[:tab, Vident::Selector(".x")]`) and the class-level `stimulus_outlet(name, selector)` builder.
-- **Action: bare String is no longer a qualified descriptor.** `actions "click->ctrl#m"` raises with a hint to use `:click, "ctrl", :m` (structured), the Hash descriptor form, or `Action.parse_descriptor` for genuine wire strings.
-- **Target: bare String is no longer a target name.** `target "myButton"` raises; use `target :my_button`. The cross-controller `target "admin/users", :row` form is unchanged.
+- **Outlet: bare String is no longer a CSS selector** (#32). Wrap verbatim selectors in `Vident::Selector(...)`, or pass `nil` for auto-selector. Class-level `stimulus_outlet(name, selector)` and the `[Symbol, String]` / `[String, String]` array forms follow the same rule.
+- **Action: bare String is no longer a qualified descriptor.** Use structured args `:event, "ctrl", :method`, the Hash descriptor, or `Vident::Stimulus::Action.parse_descriptor(s)` for genuine wire strings.
+- **Target: bare String is no longer a target name.** Names must be Symbols. The cross-controller `[String, Symbol]` form is unchanged.
+
+### Added
+
+- `Vident::Stimulus::Selector` value class + `Vident::Selector(css)` (and `Vident::Stimulus.Selector(css)`) constructors for tagging verbatim CSS selectors at outlet sites (#32).
+- `Vident::Stimulus::Action.parse_descriptor(string)` — public escape hatch for parsing wire-format Stimulus action descriptors verbatim (formerly the private `parse_qualified_string`).
+- Component scaffold generators: `bin/rails g vident:phlex:component …` and `bin/rails g vident:view_component:component …` scaffold a component, sidecar Stimulus controller, and unit test, with `--skip-stimulus` / `--skip-controller` / `--skip-test` / `--typescript` / `--parent` flags.
+- `vident:component` umbrella generator dispatches to the right engine; requires `--engine=phlex` or `--engine=view_component` when both adapters are loaded.
+- `vident:install` now scaffolds `ApplicationPhlexComponent` / `ApplicationViewComponent` based on the installed adapter gem, mirroring `ApplicationRecord` / `ApplicationController`.
 
 ### Changed
 
-- `bin/rails generate vident:install --force` now overwrites an existing `.claude/skills/vident/SKILL.md` with the SKILL shipped in the installed gem, so upgrades can refresh it. Without `--force`, the existing file is preserved (unchanged behaviour).
+- `bin/rails generate vident:install --force` overwrites an existing `.claude/skills/vident/SKILL.md` so upgrades can refresh it; without `--force` the existing file is preserved.
 
 
 ## [2.0.1] - 2026-04-24
