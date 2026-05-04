@@ -34,8 +34,6 @@ module Vident
             method_name: Naming.js_name(method_sym),
             event: nil
           )
-        in [String => s]
-          parse_qualified_string(s)
         in [Symbol => event, Symbol => method_sym]
           new(
             controller: implied,
@@ -54,6 +52,12 @@ module Vident
             method_name: Naming.js_name(method_sym),
             event: event.to_s
           )
+        in [String => s]
+          raise ::Vident::ParseError,
+            "Action.parse: a bare String is a controller path, not a fully-qualified action descriptor. " \
+            "For event/controller/method use structured args like `:click, \"path/ctrl\", :method` " \
+            "or the Hash descriptor form. To parse an existing wire-format string like " \
+            "\"click->ctrl#m\", call `Vident::Stimulus::Action.parse_descriptor(#{s.inspect})`."
         else
           raise ::Vident::ParseError, "Action.parse: invalid arguments #{args.inspect}"
         end
@@ -103,8 +107,9 @@ module Vident
         )
       end
 
-      # Pass-through: the controller segment is NOT re-stimulized.
-      def self.parse_qualified_string(s)
+      # Parses a wire-format Stimulus action descriptor (`"event->ctrl#method"` or
+      # `"ctrl#method"`). The controller segment is taken verbatim — not re-stimulized.
+      def self.parse_descriptor(s)
         if s.include?("->")
           event_part, ctrl_method = s.split("->", 2)
           ctrl, method = ctrl_method.split("#", 2)

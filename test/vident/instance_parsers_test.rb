@@ -44,7 +44,7 @@ module Vident
 
     def test_singular_stimulus_outlet_returns_outlet
       comp = make_component(name: "PageComponent").new
-      assert_kind_of ::Vident::Stimulus::Outlet, comp.stimulus_outlet(:tab, ".tab")
+      assert_kind_of ::Vident::Stimulus::Outlet, comp.stimulus_outlet(:tab, Vident::Selector(".tab"))
     end
 
     def test_singular_stimulus_param_returns_param

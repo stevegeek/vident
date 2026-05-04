@@ -109,11 +109,25 @@ module Vident
       assert_equal "hover->path--to--ctrl#go", a.to_s
     end
 
-    def test_action_parse_qualified_string_passthrough
-      a = Vident::Stimulus::Action.parse("click->admin/users#show", implied: @implied)
+    def test_action_parse_string_arg_raises_with_descriptor_hint
+      e = assert_raises(::Vident::ParseError) do
+        Vident::Stimulus::Action.parse("click->admin/users#show", implied: @implied)
+      end
+      assert_includes e.message, "parse_descriptor"
+    end
+
+    def test_action_parse_descriptor_with_event_takes_controller_segment_verbatim
+      a = Vident::Stimulus::Action.parse_descriptor("click->admin/users#show")
       assert_equal "click", a.event
       assert_equal "admin/users", a.controller.name
       assert_equal "show", a.method_name
+      assert_equal "click->admin/users#show", a.to_s
+    end
+
+    def test_action_parse_descriptor_with_already_stimulized_controller
+      a = Vident::Stimulus::Action.parse_descriptor("click->admin--users#show")
+      assert_equal "admin--users", a.controller.name
+      assert_equal "click->admin--users#show", a.to_s
     end
 
     def test_action_parse_hash_descriptor
@@ -440,23 +454,31 @@ module Vident
       assert_equal "[data-controller~=menu]", o.selector
     end
 
-    def test_outlet_parse_array_pair_explicit_selector
-      o = Vident::Stimulus::Outlet.parse([:menu, ".js-menu"], implied: @implied)
-      assert_equal "menu", o.name
-      assert_equal ".js-menu", o.selector
-    end
-
     def test_outlet_parse_two_args_name_and_selector
-      o = Vident::Stimulus::Outlet.parse(:menu, ".js-menu", implied: @implied)
+      o = Vident::Stimulus::Outlet.parse(:menu, Vident::Selector(".js-menu"), implied: @implied)
       assert_equal "menu", o.name
       assert_equal ".js-menu", o.selector
     end
 
     def test_outlet_parse_three_args_ctrl_name_selector
-      o = Vident::Stimulus::Outlet.parse("admin/users", :menu, ".x", implied: @implied)
+      o = Vident::Stimulus::Outlet.parse("admin/users", :menu, Vident::Selector(".x"), implied: @implied)
       assert_equal "admin--users", o.controller.name
       assert_equal "menu", o.name
       assert_equal ".x", o.selector
+    end
+
+    def test_outlet_parse_two_args_cross_controller_auto_selector
+      o = Vident::Stimulus::Outlet.parse("admin/users", :menu, implied: @implied, component_id: "h")
+      assert_equal "admin--users", o.controller.name
+      assert_equal "menu", o.name
+      assert_equal "#h [data-controller~=menu]", o.selector
+    end
+
+    def test_outlet_parse_raw_string_as_selector_raises
+      e = assert_raises(::Vident::ParseError) do
+        Vident::Stimulus::Outlet.parse(:menu, ".js-menu", implied: @implied)
+      end
+      assert_includes e.message, "Vident::Selector"
     end
 
     def test_outlet_parse_component_with_stimulus_identifier
@@ -482,13 +504,13 @@ module Vident
     end
 
     def test_outlet_to_data_pair
-      o = Vident::Stimulus::Outlet.parse(:menu, ".x", implied: @implied)
+      o = Vident::Stimulus::Outlet.parse(:menu, Vident::Selector(".x"), implied: @implied)
       assert_equal [:"foo--my-controller-menu-outlet", ".x"], o.to_data_pair
     end
 
     def test_outlet_to_data_hash
-      a = Vident::Stimulus::Outlet.parse(:menu, ".a", implied: @implied)
-      b = Vident::Stimulus::Outlet.parse(:nav, ".b", implied: @implied)
+      a = Vident::Stimulus::Outlet.parse(:menu, Vident::Selector(".a"), implied: @implied)
+      b = Vident::Stimulus::Outlet.parse(:nav, Vident::Selector(".b"), implied: @implied)
       assert_equal(
         {
           "foo--my-controller-menu-outlet": ".a",
@@ -540,7 +562,7 @@ module Vident
       val = Vident::Stimulus::Value.parse(:n, 1, implied: @implied)
       prm = Vident::Stimulus::Param.parse(:n, 1, implied: @implied)
       cm = Vident::Stimulus::ClassMap.parse(:n, "a", implied: @implied)
-      out = Vident::Stimulus::Outlet.parse(:n, ".x", implied: @implied)
+      out = Vident::Stimulus::Outlet.parse(:n, Vident::Selector(".x"), implied: @implied)
 
       [
         Vident::Stimulus::Controller.to_data_hash([ctrl]),
@@ -558,10 +580,11 @@ module Vident
 
     # ---- parse error branches ------------------------------------------
 
-    def test_target_parse_from_string
-      t = Vident::Stimulus::Target.parse("my-button", implied: @implied)
-      assert_equal "my-button", t.name
-      assert_equal @implied, t.controller
+    def test_target_parse_bare_string_raises_with_symbol_hint
+      e = assert_raises(::Vident::ParseError) do
+        Vident::Stimulus::Target.parse("my-button", implied: @implied)
+      end
+      assert_includes e.message, "Symbols"
     end
 
     def test_target_parse_invalid_shape_raises
@@ -599,14 +622,14 @@ module Vident
       refute_includes o.selector, "user_card_component"
     end
 
-    def test_outlet_parse_string_string_uses_verbatim_selector
-      o = Vident::Stimulus::Outlet.parse("menu", ".js-menu", implied: @implied)
+    def test_outlet_parse_string_selector_uses_verbatim
+      o = Vident::Stimulus::Outlet.parse("menu", Vident::Selector(".js-menu"), implied: @implied)
       assert_equal "menu", o.name
       assert_equal ".js-menu", o.selector
     end
 
-    def test_outlet_parse_string_string_dasherizes_name
-      o = Vident::Stimulus::Outlet.parse("user_card_component", ".x", implied: @implied)
+    def test_outlet_parse_string_dasherizes_name_with_selector
+      o = Vident::Stimulus::Outlet.parse("user_card_component", Vident::Selector(".x"), implied: @implied)
       assert_equal "user-card-component", o.name
       assert_equal ".x", o.selector
     end
@@ -615,8 +638,8 @@ module Vident
       assert_raises(::Vident::ParseError) { Vident::Stimulus::Outlet.parse(42, implied: @implied) }
     end
 
-    def test_action_parse_qualified_string_without_arrow
-      a = Vident::Stimulus::Action.parse("admin--users#show", implied: @implied)
+    def test_action_parse_descriptor_without_arrow
+      a = Vident::Stimulus::Action.parse_descriptor("admin--users#show")
       assert_nil a.event
       assert_equal "admin--users", a.controller.name
       assert_equal "show", a.method_name

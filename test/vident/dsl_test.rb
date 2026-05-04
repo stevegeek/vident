@@ -169,13 +169,22 @@ module Vident
     # ---- outlets -------------------------------------------------------
 
     def test_outlets_kwargs_form
-      cls = make_component { stimulus { outlets menu: ".js-menu", nav: ".nav" } }
+      cls = make_component do
+        stimulus { outlets menu: Vident::Selector(".js-menu"), nav: Vident::Selector(".nav") }
+      end
       assert_equal 2, cls.declarations.outlets.size
+    end
+
+    def test_outlets_kwargs_nil_value_records_auto_selector_entry
+      cls = make_component { stimulus { outlets menu: nil } }
+      entry = cls.declarations.outlets.first
+      assert_equal :menu, entry.first
+      assert_equal [], entry.last.args
     end
 
     def test_outlets_positional_hash_form
       cls = make_component do
-        stimulus { outlets({"admin--users" => ".sel"}) }
+        stimulus { outlets({"admin--users" => Vident::Selector(".sel")}) }
       end
       assert_equal 1, cls.declarations.outlets.size
       assert_equal "admin--users", cls.declarations.outlets.first.first
@@ -183,11 +192,18 @@ module Vident
 
     def test_outlets_positional_plus_kwargs
       cls = make_component do
-        stimulus { outlets({"admin--users" => ".a"}, menu: ".m") }
+        stimulus { outlets({"admin--users" => Vident::Selector(".a")}, menu: Vident::Selector(".m")) }
       end
       keys = cls.declarations.outlets.map(&:first)
       assert_includes keys, "admin--users"
       assert_includes keys, :menu
+    end
+
+    def test_outlets_raw_string_value_raises
+      e = assert_raises(::Vident::ParseError) do
+        make_component { stimulus { outlets menu: ".js-menu" } }
+      end
+      assert_includes e.message, "Vident::Selector"
     end
 
     def test_outlets_non_hash_positional_raises
@@ -197,14 +213,15 @@ module Vident
     end
 
     def test_outlet_singular
-      cls = make_component { stimulus { outlet :menu, ".js-menu" } }
+      sel = Vident::Selector(".js-menu")
+      cls = make_component { stimulus { outlet :menu, sel } }
       entry = cls.declarations.outlets.first
       assert_equal :menu, entry.first
-      assert_equal [".js-menu"], entry.last.args
+      assert_equal [sel], entry.last.args
     end
 
     def test_outlet_proc_value_preserved_in_declarations
-      outlet_proc = -> { ".dyn-#{id}" }
+      outlet_proc = -> { Vident::Selector(".dyn-#{id}") }
       cls = make_component { stimulus { outlets modal: outlet_proc } }
       entry = cls.declarations.outlets.first
       assert_equal [outlet_proc], entry.last.args
@@ -212,7 +229,7 @@ module Vident
     end
 
     def test_outlet_proc_singular_preserved
-      outlet_proc = -> { ".modal" }
+      outlet_proc = -> { Vident::Selector(".modal") }
       cls = make_component { stimulus { outlet :modal, outlet_proc } }
       entry = cls.declarations.outlets.first
       assert_equal [outlet_proc], entry.last.args
@@ -295,11 +312,11 @@ module Vident
 
     def test_multiple_stimulus_blocks_last_write_wins_outlets
       cls = make_component do
-        stimulus { outlets menu: ".m1" }
-        stimulus { outlets menu: ".m2" }
+        stimulus { outlets menu: Vident::Selector(".m1") }
+        stimulus { outlets menu: Vident::Selector(".m2") }
       end
       assert_equal 1, cls.declarations.outlets.size
-      assert_equal [".m2"], cls.declarations.outlets.first.last.args
+      assert_equal [Vident::Selector(".m2")], cls.declarations.outlets.first.last.args
     end
 
     def test_multiple_stimulus_blocks_preserve_disjoint_keyed
@@ -467,7 +484,7 @@ module Vident
       assert_raises(::Vident::DeclarationError) do
         make_component do
           no_stimulus_controller
-          stimulus { outlet :menu, ".x" }
+          stimulus { outlet :menu, Vident::Selector(".x") }
         end
       end
     end
@@ -593,14 +610,14 @@ module Vident
       dsl = ::Vident::Internals::DSL.new
       assert_same dsl, dsl.value(:n, static: 1)
       assert_same dsl, dsl.param(:p, 1)
-      assert_same dsl, dsl.outlet(:o, ".x")
+      assert_same dsl, dsl.outlet(:o, Vident::Selector(".x"))
       assert_same dsl, dsl.controller("foo")
       assert_same dsl, dsl.actions(:a)
       assert_same dsl, dsl.targets(:t)
       assert_same dsl, dsl.values(n: 1)
       assert_same dsl, dsl.params(p: 1)
       assert_same dsl, dsl.classes(c: "x")
-      assert_same dsl, dsl.outlets(o: ".x")
+      assert_same dsl, dsl.outlets(o: Vident::Selector(".x"))
       assert_same dsl, dsl.values_from_props(:x)
     end
 
@@ -755,7 +772,7 @@ module Vident
           target :input
           value :api_url, -> { "/api" }
           param :item_id, -> { 42 }
-          outlet :menu, ".js-menu"
+          outlet :menu, Vident::Selector(".js-menu")
           classes loading: "opacity-50"
           values_from_props :foo
         end

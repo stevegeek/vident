@@ -1,3 +1,119 @@
+# Upgrading to Vident 3.0
+
+Vident 3.0 tightens the argument vocabulary of the Stimulus primitives so that **a bare `String` always means "controller path"**, never "CSS selector", "outlet name", or "qualified action descriptor". This removes a class of silent-failure footguns (most visibly the broken `outlets foo: "child-id"` pattern reported in #32) and makes the primitives' shapes consistent across the family.
+
+If you hit something not covered here, the [CHANGELOG entry for 3.0.0](CHANGELOG.md) is the terse source of truth. For the 2.0 → 2.1 / 2.0.x migrations, see the **Upgrading to Vident 2.0** section further below.
+
+---
+
+## 0.1 Outlet: bare `String` is no longer a CSS selector
+
+**Symptom:** `Vident::ParseError: Outlet.parse: a bare String is a controller path, never a CSS selector. Wrap verbatim selectors in 'Vident::Selector(...)' (got "...")` — or, if the offending value is at DSL definition time: `outlets: value for ... must be nil (auto-selector), a 'Vident::Selector(…)', a Proc returning one, an Outlet, or a child component.`
+
+**Why this changed.** In 2.x, `outlets foo: ".modal"` and `outlets foo: "mercor--product-navigation-tier"` both type-checked, but the second silently produced an outlet Stimulus could never resolve. The fix in 3.0 makes the second arg's *type* carry the meaning: `Symbol` / `String` is a controller identifier (auto-selector built for you); a verbatim selector must be wrapped with `Vident::Selector(...)`.
+
+**Fix.** Two cases:
+
+```ruby
+# 2.x                                 # 3.0
+stimulus do                           stimulus do
+  outlets modal: ".modal"              outlets modal: Vident::Selector(".modal")
+  outlets({"admin--users" => ".u"})    outlets({"admin--users" => Vident::Selector(".u")})
+end                                   end
+
+# Auto-selector (key is the child controller id, scoped to this component):
+stimulus do
+  outlets modal: nil
+  outlets({"tasks--toast-component" => nil})
+end
+```
+
+The bare-Symbol / bare-String forms in array shapes (`stimulus_outlets: [:user_status]`, `[[:tab, Vident::Selector(".x")]]`) keep working — the change is *only* that a String can no longer mean "selector".
+
+## 0.2 Outlet: cross-controller form takes Selector for verbatim selectors
+
+**Symptom:** `Vident::ParseError: Outlet.parse: a bare String is a controller path, never a CSS selector ... (got "...")` from a 3-arg cross-controller outlet.
+
+**Fix.** Wrap the verbatim selector:
+
+```ruby
+# 2.x
+stimulus_outlets: [["admin/users", :row, ".user-row"]]
+
+# 3.0
+stimulus_outlets: [["admin/users", :row, Vident::Selector(".user-row")]]
+```
+
+For an auto-selector, drop the third element entirely — `["admin/users", :row]` is now valid and produces `[data-controller~=row]` scoped to the component id.
+
+## 0.3 Outlet: class-level `stimulus_outlet(name, selector)` requires `Selector`
+
+**Symptom:** `Vident::ParseError: ...stimulus_outlet requires (name, Vident::Selector(...))`.
+
+**Fix.** `MyComponent.stimulus_outlet(:tab, ".tab-panel")` → `MyComponent.stimulus_outlet(:tab, Vident::Selector(".tab-panel"))`. The instance-level auto-selector form `component.stimulus_outlet(:tab)` is unchanged.
+
+## 0.4 Action: bare `String` is no longer a qualified descriptor
+
+**Symptom:** `Vident::ParseError: Action.parse: a bare String is a controller path, not a fully-qualified action descriptor.` Triggered by code like `actions "click->ctrl#method"` in a `stimulus do` block.
+
+**Why this changed.** Same rule, applied to `Action`: a bare String is a controller path (used in cross-controller forms like `action "admin/users", :handle_click`). The 2.x `[String]` shape that parsed `"event->ctrl#method"` is removed — but the *parser* survives, renamed to `Action.parse_descriptor`, for the genuine wire-string case (config, database, external input).
+
+**Fix.** Most callers should switch to structured args:
+
+```ruby
+# 2.x
+stimulus { actions "click->custom--ctrl#handleIt" }
+
+# 3.0 — structured
+stimulus { action :click, "custom/ctrl", :handle_it }
+
+# 3.0 — Hash descriptor (richer: options, keyboard, window, etc.)
+stimulus { action({event: :click, controller: "custom/ctrl", method: :handle_it}) }
+```
+
+If the descriptor genuinely arrives as a serialised string (not authored in Ruby), parse it explicitly and feed the value object back through:
+
+```ruby
+descriptor = ::Vident::Stimulus::Action.parse_descriptor(external_string)
+# Then pass through stimulus_actions: prop, root_element_attributes,
+# or any place a Vident::Stimulus::Action value object is accepted.
+```
+
+`parse_descriptor` is verbatim — the controller segment is **not** re-stimulized, and modifiers (`:once`, `:prevent`, `.keyboard`, `@window`) are kept as-is on the event segment. If you need to add modifiers programmatically, build the Action via the Hash descriptor form instead, or use `descriptor.with(modifiers: [...], window: true, ...)` after parsing.
+
+(In 2.x this method was the private `parse_qualified_string`; it's now a documented public class method.)
+
+## 0.5 Target: bare `String` is no longer a target name
+
+**Symptom:** `Vident::ParseError: Target.parse: a bare String is a controller path; target names must be Symbols.`
+
+**Fix.** Use Symbols for target names:
+
+```ruby
+# 2.x
+target "myButton"
+
+# 3.0
+target :my_button       # local target on implied controller
+target "admin/users", :row    # cross-controller (String + Symbol — unchanged)
+```
+
+The cross-controller `[String, Symbol]` shape is unchanged.
+
+## 0.6 New top-level helper: `Vident::Selector(css)`
+
+A short-form constructor for `Vident::Stimulus::Selector.new(css: css)`. Equivalent forms:
+
+```ruby
+Vident::Selector(".modal")              # idiomatic
+Vident::Stimulus.Selector(".modal")     # same, namespaced
+Vident::Stimulus::Selector.new(css: ".modal")
+```
+
+The `Selector` value object exposes `#css` and `#to_s`. It's accepted anywhere an Outlet selector is expected.
+
+---
+
 # Upgrading to Vident 2.0
 
 Vident 2.0 is a ground-up rearchitecture. Most 1.x code keeps working, but several edge-case behaviours and a handful of class names changed. This guide walks through each breaking change — *symptom* (what you'll see) → *fix* (what to change).
@@ -318,7 +434,7 @@ ButtonComponent.stimulus_action(:submit, :handle)   # submit->implied#handle
 ButtonComponent.stimulus_value(:count, 0)
 ButtonComponent.stimulus_param(:item_id, 42)
 ButtonComponent.stimulus_class(:loading, "opacity-50")
-ButtonComponent.stimulus_outlet(:modal, ".js-modal")  # selector required
+ButtonComponent.stimulus_outlet(:modal, Vident::Selector(".js-modal"))  # selector required, wrap verbatim CSS
 
 # Class-level output matches instance-level:
 ButtonComponent.stimulus_target(:submit).to_h ==

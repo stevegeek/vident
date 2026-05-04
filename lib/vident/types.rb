@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "literal"
+require_relative "stimulus/selector"
 require_relative "stimulus/controller"
 require_relative "stimulus/action"
 require_relative "stimulus/target"

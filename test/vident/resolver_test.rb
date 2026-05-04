@@ -143,7 +143,7 @@ module Vident
     def test_outlet_proc_resolved_in_instance_binding
       cls = make_component do
         prop :selector, String, default: ".default"
-        stimulus { outlets modal: -> { @selector } }
+        stimulus { outlets modal: -> { Vident::Selector(@selector) } }
       end
       draft = ::Vident::Internals::Resolver.call(cls.declarations, cls.new(selector: ".custom"))
       assert_equal 1, draft.outlets.size
@@ -152,7 +152,7 @@ module Vident
 
     def test_outlet_static_selector
       cls = make_component do
-        stimulus { outlets modal: ".js-modal" }
+        stimulus { outlets modal: Vident::Selector(".js-modal") }
       end
       draft = ::Vident::Internals::Resolver.call(cls.declarations, cls.new)
       assert_equal ".js-modal", draft.outlets.first.selector

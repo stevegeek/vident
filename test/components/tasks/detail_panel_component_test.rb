@@ -59,4 +59,12 @@ class TasksDetailPanelComponentTest < Minitest::Test
     html = Tasks::DetailPanelComponent.new.call
     assert_match(/data-tasks--detail-panel-component-target="body"/, html)
   end
+
+  def test_toast_outlet_auto_selector_matches_namespaced_child_id
+    html = Tasks::DetailPanelComponent.new.call
+    assert_match(
+      /data-tasks--detail-panel-component-tasks--toast-component-outlet="#[^\s"]+\s\[data-controller~=tasks--toast-component\]"/,
+      html
+    )
+  end
 end

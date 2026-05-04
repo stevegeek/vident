@@ -142,7 +142,7 @@ module Vident
       def test_as_stimulus_outlet_basic
         comp = build_component
         assert_equal 'data-greeter-component-modal-outlet=".modal"',
-          comp.as_stimulus_outlet(:modal, ".modal").to_s
+          comp.as_stimulus_outlet(:modal, Vident::Selector(".modal")).to_s
       end
     end
   end

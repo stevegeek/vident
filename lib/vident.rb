@@ -16,6 +16,7 @@ require "vident/stimulus_null"
 
 require "vident/stimulus/naming"
 require "vident/stimulus/null"
+require "vident/stimulus/selector"
 require "vident/stimulus/controller"
 require "vident/stimulus/action"
 require "vident/stimulus/target"

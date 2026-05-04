@@ -80,11 +80,11 @@ module Vident
       # Positional Hash arg supports keys like `"admin--users"` that can't be Ruby kwargs.
       def outlets(positional = nil, **hash)
         if positional.is_a?(Hash)
-          positional.each { |k, v| record_keyed(@outlets, k, v) }
+          positional.each { |k, v| record_outlet(k, v) }
         elsif !positional.nil?
           raise ArgumentError, "outlets: positional arg must be a Hash, got #{positional.class}"
         end
-        hash.each { |k, v| record_keyed(@outlets, k, v) }
+        hash.each { |k, v| record_outlet(k, v) }
         self
       end
 
@@ -156,6 +156,25 @@ module Vident
       def record_keyed(bucket, key, value)
         entry = [key, Declaration.of(value)]
         replace_or_append(bucket, entry)
+      end
+
+      def record_outlet(key, value)
+        validate_outlet_value!(key, value)
+        entry = [key, value.nil? ? Declaration.of : Declaration.of(value)]
+        replace_or_append(@outlets, entry)
+      end
+
+      def validate_outlet_value!(key, value)
+        return if value.nil?
+        return if value.is_a?(Proc)
+        return if value.is_a?(::Vident::Stimulus::Selector)
+        return if value.is_a?(::Vident::Stimulus::Outlet)
+        return if value.respond_to?(:stimulus_identifier)
+        raise ::Vident::ParseError,
+          "outlets: value for #{key.inspect} must be nil (auto-selector), " \
+          "a `Vident::Selector(…)`, a Proc returning one, an Outlet, or a child component. " \
+          "Got #{value.class}: #{value.inspect}. " \
+          "If you meant a verbatim CSS selector, wrap it: `Vident::Selector(#{value.inspect})`."
       end
 
       def replace_or_append(bucket, entry)

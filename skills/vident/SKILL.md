@@ -273,7 +273,9 @@ These only tell the JS controller *which* classes to toggle; they do **not** app
 
 ### 1.7 Outlets
 
-Stimulus: `data-<identifier>-<outlet-name>-outlet="<css-selector>"` attaches matching controller instances as `this.nameOutlet` / `this.nameOutlets` / `this.nameOutletElement(s)` / `this.hasNameOutlet`. Outlet names are the kebab-case *identifier* of the outlet controller.
+Stimulus: `data-<identifier>-<outlet-name>-outlet="<css-selector>"` attaches matching controller instances as `this.nameOutlet` / `this.nameOutlets` / `this.nameOutletElement(s)` / `this.hasNameOutlet`. The `<outlet-name>` is the kebab-case identifier of the *child* controller — Stimulus enforces this; it is not just a free label.
+
+Argument vocabulary (same as Action/Target/Value/etc.): `Symbol` and bare `String` always denote a controller (path or identifier); a verbatim CSS selector must be wrapped with `Vident::Selector(...)`. A bare `".modal"` is rejected.
 
 Vident has three forms.
 
@@ -281,19 +283,28 @@ Vident has three forms.
 
 ```ruby
 stimulus do
-  outlets modal: ".modal", user_status: ".online-user"
-  outlets({"admin--users" => ".admin-user"})   # positional-hash for names containing `--`
+  outlets modal: nil                                # auto-selector: [data-controller~=modal]
+  outlets user_status: Vident::Selector(".online-user")
+  outlets({"admin--users" => nil})                  # positional-hash, namespaced child id
+  outlets({"admin--users" => Vident::Selector(".admin-user")})
 end
+```
+
+The kwarg/Hash key is the **child controller identifier**. Use the singular `outlet` form for cross-controller cases:
+
+```ruby
+outlet "some/parent-ctrl", :child                          # auto-selector
+outlet "some/parent-ctrl", :child, Vident::Selector(".x")  # verbatim
 ```
 
 **(b) `stimulus_outlets:` prop / `root_element_attributes` / `child_element(stimulus_outlet(s): …)`:**
 
 ```ruby
 stimulus_outlets: [
-  [:modal, ".modal"],                       # implied controller
-  ["admin/users", :row, ".user-row"],       # cross-controller
-  :user_status,                             # auto-selector: [data-controller~=user-status]
-  other_component_instance,                 # #<id> [data-controller~=<other identifier>]
+  :user_status,                                              # auto-selector
+  [:modal, Vident::Selector(".modal")],                      # explicit selector
+  ["admin/users", :row, Vident::Selector(".user-row")],      # cross-controller, explicit
+  other_component_instance,                                   # #<id> [data-controller~=<other identifier>]
 ]
 ```
 

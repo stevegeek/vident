@@ -10,9 +10,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- **`Vident::Stimulus::Selector` value class** + top-level `Vident::Selector(css)` helper. Wraps verbatim CSS selectors so the Outlet primitives can distinguish a selector from a controller path/identifier (#32).
+- **`Vident::Stimulus::Action.parse_descriptor(string)`** — public escape hatch for parsing wire-format Stimulus action descriptors (`"click->ctrl#method"`). Replaces the previously private `parse_qualified_string`.
 - **Component scaffold generators.** `bin/rails g vident:phlex:component Dashboard::TaskCard` (shipped with `vident-phlex`) and `bin/rails g vident:view_component:component Dashboard::TaskCard` (shipped with `vident-view_component`) scaffold a component (`.rb`, plus `.html.erb` for ViewComponent), a Stimulus controller sidecar, and a unit test in one go. Flags: `--skip-stimulus`, `--skip-controller`, `--skip-test`, `--typescript` / `-t`, `--parent`. A trailing `Component` in the input name is stripped, matching ViewComponent's own generator behaviour.
 - **`vident:component` umbrella dispatcher.** Routes to the right engine generator when only one is loaded; requires `--engine=phlex` or `--engine=view_component` when both are present.
 - **`vident:install` generates `ApplicationPhlexComponent` / `ApplicationViewComponent`** in `app/components/` based on which engine gem is in the Gemfile, mirroring the `ApplicationRecord` / `ApplicationController` pattern. Existing files are preserved unless `--force` is passed.
+
+### Breaking
+
+- **Outlet: bare String is no longer a CSS selector** (#32). `outlets foo: ".modal"` raises `Vident::ParseError`; wrap with `Vident::Selector(".modal")` for verbatim, or pass `nil` for auto-selector. Same rule for the array forms (`[:tab, ".x"]` → `[:tab, Vident::Selector(".x")]`) and the class-level `stimulus_outlet(name, selector)` builder.
+- **Action: bare String is no longer a qualified descriptor.** `actions "click->ctrl#m"` raises with a hint to use `:click, "ctrl", :m` (structured), the Hash descriptor form, or `Action.parse_descriptor` for genuine wire strings.
+- **Target: bare String is no longer a target name.** `target "myButton"` raises; use `target :my_button`. The cross-controller `target "admin/users", :row` form is unchanged.
 
 ### Changed
 

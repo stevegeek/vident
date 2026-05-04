@@ -35,7 +35,7 @@ module Vident
       def test_outlets_dsl_proc_evaluated_in_instance
         klass = define_component(name: "PageComponent") do
           prop :where, String, default: ".modal"
-          stimulus { outlets modal: -> { @where } }
+          stimulus { outlets modal: -> { Vident::Selector(@where) } }
         end
         html = render(klass.new(where: ".custom-modal"))
         assert_includes html, 'data-page-component-modal-outlet=".custom-modal"'
@@ -139,7 +139,7 @@ module Vident
 
       def test_stimulus_outlet_returns_vident2_type
         klass = define_component(name: "PageComponent")
-        assert_kind_of ::Vident::Stimulus::Outlet, klass.new.stimulus_outlet(:tab, ".tab")
+        assert_kind_of ::Vident::Stimulus::Outlet, klass.new.stimulus_outlet(:tab, Vident::Selector(".tab"))
       end
 
       def test_stimulus_targets_returns_parametric_collection

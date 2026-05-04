@@ -50,6 +50,27 @@ module Tasks
       # 5. Plain close — wired to the explicit close button below (no event
       #    prefix, no chain).
       action :close
+
+      # ---- Outlets ------------------------------------------------------
+      # `outlets` keys are *child controller identifiers*. For namespaced
+      # ids (containing `--`) use the positional-hash form. `nil` value
+      # means "build the auto-selector for me", scoped to this component's
+      # element id; the JS side reads `this.tasksToastComponentOutlet`.
+      outlets({"tasks--toast-component" => nil})
+      # For a verbatim CSS selector (e.g. document-wide, escaping the
+      # auto-scoping), wrap with `Vident::Selector(...)` — bare strings
+      # are rejected, so you can't accidentally pass a controller id where
+      # a selector was meant or vice versa:
+      #   outlets({"tasks--toast-component" => Vident::Selector("[data-controller~=tasks--toast-component]")})
+
+      # ---- Escape hatch: parsing a serialised Stimulus descriptor -------
+      # If you receive an action descriptor as a wire string (config,
+      # database, external) rather than authoring it in Ruby, parse it
+      # with `Vident::Stimulus::Action.parse_descriptor` and feed the
+      # resulting value object back through `actions`. The descriptor is
+      # taken verbatim; the controller segment is NOT re-stimulized:
+      #   external = "click->tasks--filter-bar-component#focus"
+      #   actions ::Vident::Stimulus::Action.parse_descriptor(external)
     end
 
     def view_template

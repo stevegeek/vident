@@ -2,39 +2,51 @@
 
 module Vident
   module PublicApiSpec
-    # Covers: all outlet input shapes (bare Symbol, String, 2-Array,
-    # 3-Array, component instance), the `stimulus_outlet_host:` prop
-    # self-registration pattern, and the outlets-DSL-does-not-evaluate-procs
-    # semantic. Outlet attribute name is `data-<controller>-<name>-outlet`;
-    # selector rules differ per input shape (auto-built vs. verbatim).
     module Outlets
-      # ---- Hash DSL (simplest form) --------------------------------------
-
-      def test_outlets_hash_string_selector
+      def test_outlets_hash_explicit_selector
         klass = define_component(name: "PageComponent") do
-          stimulus { outlets modal: ".modal" }
+          stimulus { outlets modal: Vident::Selector(".modal") }
         end
         assert_includes render(klass.new),
           'data-page-component-modal-outlet=".modal"'
       end
 
-      def test_outlets_hash_key_snake_case_becomes_kebab_case
+      def test_outlets_hash_nil_value_is_auto_selector
         klass = define_component(name: "PageComponent") do
-          stimulus { outlets user_status: "[data-controller='user-status']" }
+          stimulus { outlets user_status: nil }
         end
-        assert_match(/data-page-component-user-status-outlet=/, render(klass.new))
+        assert_match(
+          /data-page-component-user-status-outlet="#page-component-[^\s"]+\s\[data-controller~=user-status\]"/,
+          render(klass.new)
+        )
+      end
+
+      def test_outlets_hash_raw_string_value_raises
+        e = assert_raises(::Vident::ParseError) do
+          define_component(name: "PageComponent") do
+            stimulus { outlets modal: ".modal" }
+          end
+        end
+        assert_includes e.message, "Vident::Selector"
       end
 
       def test_outlets_positional_hash_for_namespaced_identifier
-        # Identifiers that can't be Ruby kwarg keys (contain `--`)
         klass = define_component(name: "PageComponent") do
-          stimulus { outlets({"admin--users" => ".admin"}) }
+          stimulus { outlets({"admin--users" => Vident::Selector(".admin")}) }
         end
         assert_includes render(klass.new),
           'data-page-component-admin--users-outlet=".admin"'
       end
 
-      # ---- stimulus_outlets: prop / root_element_attributes --------------
+      def test_outlets_positional_hash_nil_value_is_auto_selector
+        klass = define_component(name: "PageComponent") do
+          stimulus { outlets({"admin--users" => nil}) }
+        end
+        assert_match(
+          /data-page-component-admin--users-outlet="#page-component-[^\s"]+\s\[data-controller~=admin--users\]"/,
+          render(klass.new)
+        )
+      end
 
       def test_outlets_from_bare_symbol_uses_auto_selector
         klass = define_component(name: "PageComponent") do
@@ -53,20 +65,34 @@ module Vident
           'data-page-component-user-status-outlet="#my-page [data-controller~=user-status]"'
       end
 
-      def test_outlets_from_array_pair_name_and_selector
-        # [outlet_identifier, css_selector]
+      def test_outlets_from_array_pair_with_selector
         klass = define_component(name: "PageComponent") do
-          define_method(:root_element_attributes) { {stimulus_outlets: [[:tab, ".tabs"]]} }
+          define_method(:root_element_attributes) { {stimulus_outlets: [[:tab, Vident::Selector(".tabs")]]} }
         end
         assert_includes render(klass.new),
           'data-page-component-tab-outlet=".tabs"'
       end
 
+      def test_outlets_prop_array_with_raw_string_selector_raises
+        klass = define_component(name: "PageComponent") do
+          define_method(:root_element_attributes) { {stimulus_outlets: [[:tab, ".tabs"]]} }
+        end
+        e = assert_raises(::Vident::ParseError) { render(klass.new) }
+        assert_includes e.message, "Vident::Selector"
+      end
+
+      def test_outlets_prop_top_level_string_with_selector_chars_raises
+        klass = define_component(name: "PageComponent") do
+          define_method(:root_element_attributes) { {stimulus_outlets: [".modal"]} }
+        end
+        e = assert_raises(::Vident::ParseError) { render(klass.new) }
+        assert_includes e.message, "Vident::Selector"
+      end
+
       def test_outlets_from_array_triple_cross_controller
-        # [controller, outlet_name, selector]
         klass = define_component(name: "PageComponent") do
           define_method(:root_element_attributes) do
-            {stimulus_outlets: [["admin/users", :row, ".user-row"]]}
+            {stimulus_outlets: [["admin/users", :row, Vident::Selector(".user-row")]]}
           end
         end
         assert_includes render(klass.new),

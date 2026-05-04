@@ -16,13 +16,16 @@ module Vident
         case args
         in [Symbol => sym]
           new(controller: implied, name: Naming.js_name(sym))
-        in [String => str]
-          new(controller: implied, name: str)
         in [String => ctrl_path, Symbol => sym]
           new(
             controller: Controller.parse(ctrl_path, implied: implied),
             name: Naming.js_name(sym)
           )
+        in [String => s]
+          raise ::Vident::ParseError,
+            "Target.parse: a bare String is a controller path; target names must be Symbols " \
+            "(got #{s.inspect}). Use `target :name` for a local target, or " \
+            "`target \"path/to/ctrl\", :name` for cross-controller."
         else
           raise ::Vident::ParseError, "Target.parse: invalid arguments #{args.inspect}"
         end

@@ -118,13 +118,13 @@ module Vident
 
         def stimulus_outlet(*args)
           case args
-          in [Symbol => _name, String => _selector] | [String => _name, String => _selector]
+          in [Symbol => _name, ::Vident::Stimulus::Selector] | [String => _name, ::Vident::Stimulus::Selector]
             ::Vident::Stimulus::Outlet.parse(*args, implied: implied_controller_for_class)
           else
             raise ::Vident::ParseError,
-              "#{name}.stimulus_outlet requires (name, selector) — no component_id at class level. " \
+              "#{name}.stimulus_outlet requires (name, Vident::Selector(...)) — no component_id at class level. " \
               "Use instance-level `component.stimulus_outlet(:name)` for auto-selector, " \
-              "or `#{name}.stimulus_outlet(:name, '.selector')` with an explicit selector."
+              "or `#{name}.stimulus_outlet(:name, Vident::Selector('.css'))` for a verbatim selector."
           end
         end
 

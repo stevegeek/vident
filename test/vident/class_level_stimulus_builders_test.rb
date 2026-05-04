@@ -152,12 +152,12 @@ module Vident
 
     def test_stimulus_outlet_with_selector_returns_outlet_class
       klass = make_component(name: "PageComponent")
-      assert_kind_of ::Vident::Stimulus::Outlet, klass.stimulus_outlet(:modal, ".js-modal")
+      assert_kind_of ::Vident::Stimulus::Outlet, klass.stimulus_outlet(:modal, Vident::Selector(".js-modal"))
     end
 
     def test_stimulus_outlet_with_selector_uses_class_implied_controller
       klass = make_component(name: "PageComponent")
-      o = klass.stimulus_outlet(:tab, ".tab-panel")
+      o = klass.stimulus_outlet(:tab, Vident::Selector(".tab-panel"))
       assert_equal "page-component", o.controller.name
       assert_equal "tab", o.name
       assert_equal ".tab-panel", o.selector
@@ -165,7 +165,7 @@ module Vident
 
     def test_stimulus_outlet_string_name_with_selector_accepted
       klass = make_component(name: "PageComponent")
-      o = klass.stimulus_outlet("modal", ".js-modal")
+      o = klass.stimulus_outlet("modal", Vident::Selector(".js-modal"))
       assert_equal "modal", o.name
       assert_equal ".js-modal", o.selector
     end
@@ -175,11 +175,15 @@ module Vident
       assert_raises(::Vident::ParseError) { klass.stimulus_outlet(:modal) }
     end
 
+    def test_stimulus_outlet_raw_string_selector_raises
+      klass = make_component(name: "PageComponent")
+      assert_raises(::Vident::ParseError) { klass.stimulus_outlet(:modal, ".js-modal") }
+    end
+
     def test_stimulus_outlet_without_selector_error_message_is_helpful
       klass = make_component(name: "PageComponent")
       err = assert_raises(::Vident::ParseError) { klass.stimulus_outlet(:modal) }
-      assert_match(/selector/, err.message)
-      assert_match(/component_id/, err.message)
+      assert_match(/Selector/, err.message)
     end
 
     # ---- Inheritance: subclass uses its own implied controller ----------
@@ -250,10 +254,11 @@ module Vident
     def test_class_level_outlet_to_h_matches_instance_level_with_explicit_selector
       klass = make_component(name: "PageComponent")
       instance = klass.new
+      sel = Vident::Selector(".tab-panel")
 
       assert_equal(
-        instance.stimulus_outlet(:tab, ".tab-panel").to_h,
-        klass.stimulus_outlet(:tab, ".tab-panel").to_h
+        instance.stimulus_outlet(:tab, sel).to_h,
+        klass.stimulus_outlet(:tab, sel).to_h
       )
     end
   end

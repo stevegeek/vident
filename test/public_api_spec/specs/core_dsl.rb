@@ -177,14 +177,14 @@ module Vident
 
       def test_outlets_hash_with_selector
         klass = define_component(name: "PageComponent") do
-          stimulus { outlets modal: ".modal" }
+          stimulus { outlets modal: Vident::Selector(".modal") }
         end
         assert_includes render(klass.new), 'data-page-component-modal-outlet=".modal"'
       end
 
       def test_outlets_positional_hash_for_namespaced_identifier
         klass = define_component(name: "PageComponent") do
-          stimulus { outlets({"admin--users" => ".admin"}) }
+          stimulus { outlets({"admin--users" => Vident::Selector(".admin")}) }
         end
         assert_includes render(klass.new), 'data-page-component-admin--users-outlet=".admin"'
       end

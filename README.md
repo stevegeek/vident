@@ -682,12 +682,16 @@ Parallel helpers exist for every attribute kind: `as_stimulus_controller(s)`, `a
 ```ruby
 class DashboardComponent < Vident::ViewComponent::Base
   stimulus do
-    # kwarg form: outlet name is the implied controller's identifier
-    outlets modal: ".modal", user_status: ".online-user"
+    # kwarg form: key is the *child controller identifier*. nil = auto-selector
+    # (`#<host-id> [data-controller~=modal]`); wrap a verbatim CSS selector in
+    # Vident::Selector(...). Bare String values are rejected.
+    outlets modal: nil
+    outlets user_status: Vident::Selector(".online-user")
 
-    # positional-hash form: required when the outlet identifier contains "--"
-    # (e.g. cross-namespace controllers) because Ruby kwarg keys can't have dashes
-    outlets({"admin--users" => ".admin-users"})
+    # positional-hash form: required when the child controller identifier contains "--"
+    # (e.g. cross-namespace) because Ruby kwarg keys can't carry dashes
+    outlets({"admin--users" => nil})
+    outlets({"admin--users" => Vident::Selector(".admin-users")})
   end
 end
 ```
@@ -696,14 +700,15 @@ Or via the `stimulus_outlets:` prop / `root_element_attributes`:
 
 ```ruby
 stimulus_outlets: [
-  [:modal, ".modal"],                     # [name, selector] on implied controller
-  ["admin/users", :row, ".user-row"],     # [controller_path, name, selector] for cross-controller
-  :user_status,                           # single symbol → auto-selector (see below)
-  other_component                         # component instance → reuses its stimulus_identifier + id
+  :user_status,                                       # symbol → auto-selector
+  [:modal, Vident::Selector(".modal")],               # [name, Selector] verbatim
+  ["admin/users", :row],                              # cross-controller, auto-selector
+  ["admin/users", :row, Vident::Selector(".x")],      # cross-controller, verbatim
+  other_component                                     # component instance → reuses its stimulus_identifier + id
 ]
 ```
 
-**Auto-generated selectors.** Pass just a name (symbol or string) and the selector becomes `[data-controller~=<name>]`. Pass a component instance and the selector additionally scopes to the component's id (`#<id> [data-controller~=...]`), which is what lets you target a specific instance rather than every matching controller on the page.
+**Auto-generated selectors.** Pass just a name (Symbol or String) and the selector becomes `#<host-id> [data-controller~=<name>]` — scoped to this component's element id so you target a specific instance rather than every matching controller on the page. Wrap a verbatim CSS selector in `Vident::Selector(...)` to opt out of auto-scoping. A bare String inside an outlet position is treated as a controller identifier, never as a CSS selector — that ambiguity used to silently produce broken outlets in v2 and is now rejected.
 
 **Self-registration via `stimulus_outlet_host`.** A built-in prop on every Vident component. When set to another component, the child registers itself as an outlet on that host at initialization — the host doesn't need to know about the child in its DSL:
 
@@ -713,7 +718,7 @@ render DashboardComponent.new do |dashboard|
 end
 ```
 
-The modal now appears on the dashboard's root element as `data-dashboard-component-modal-component-outlet="#<modal-id>"` without the dashboard declaring it upfront.
+The modal now appears on the dashboard's root element as `data-dashboard-component-modal-component-outlet="#<dashboard-id> [data-controller~=modal-component]"` without the dashboard declaring it upfront.
 
 **On child elements** — `child_element` accepts `stimulus_outlet:` (singular) and `stimulus_outlets:` (plural / Enumerable) exactly like the target/action kwargs, so a nested `<div>` can carry its own outlet declarations.
 

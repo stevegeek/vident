@@ -2,25 +2,24 @@
 
 module Vident
   module PublicApiSpec
-    # Covers: advanced DSL shapes not in core_dsl.rb — StimulusAction::Descriptor
-    # value object, keyboard: modifier, window: @window filter, Hash
-    # descriptor with controller: key, cross-controller target / value /
-    # param / class / outlet, pass-through "event->ctrl#method" action
-    # string.
     module DslAdvanced
-      # ---- action: pass-through qualified string -------------------------
-
-      def test_action_string_passthrough_preserves_user_written_path
-        # SPEC-NOTE: a pre-qualified `"event->ctrl#method"` string is
-        # emitted verbatim — the controller segment is NOT re-stimulized
-        # to `--`. The user is expected to pre-normalize. Passing
-        # `"click->custom/ctrl#handleIt"` leaves the `/` in place. Use
-        # Symbol / Hash / Array forms for the stimulize-path treatment.
+      def test_action_descriptor_via_parse_descriptor_passthrough
+        descriptor = ::Vident::Stimulus::Action.parse_descriptor("click->custom--ctrl#handleIt")
         klass = define_component(name: "ButtonComponent") do
-          stimulus { actions "click->custom--ctrl#handleIt" }
+          define_method(:root_element_attributes) { {stimulus_actions: [descriptor]} }
         end
         assert_includes render(klass.new),
           'data-action="click->custom--ctrl#handleIt"'
+      end
+
+      def test_action_bare_string_in_dsl_raises_with_descriptor_hint
+        e = assert_raises(::Vident::ParseError) do
+          klass = define_component(name: "ButtonComponent") do
+            stimulus { actions "click->custom--ctrl#handleIt" }
+          end
+          render(klass.new)
+        end
+        assert_includes e.message, "parse_descriptor"
       end
 
       # ---- action: Descriptor typed value object -------------------------

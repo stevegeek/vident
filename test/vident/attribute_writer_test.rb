@@ -102,7 +102,7 @@ module Vident
     # ---- Outlets --------------------------------------------------------
 
     def test_outlets_emit_one_key_per_entry
-      o = ::Vident::Stimulus::Outlet.parse(:modal, ".modal", implied: @controller)
+      o = ::Vident::Stimulus::Outlet.parse(:modal, Vident::Selector(".modal"), implied: @controller)
       plan = plan_with(outlets: [o])
       hash = ::Vident::Internals::AttributeWriter.call(plan)
       assert_equal ".modal", hash[:"button-component-modal-outlet"]

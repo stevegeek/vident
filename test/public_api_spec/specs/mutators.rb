@@ -172,7 +172,7 @@ module Vident
 
       def test_add_stimulus_outlets_hash
         klass = define_component(name: "PageComponent") do
-          define_method(:after_component_initialize) { add_stimulus_outlets(modal: ".modal") }
+          define_method(:after_component_initialize) { add_stimulus_outlets(modal: Vident::Selector(".modal")) }
         end
         assert_includes render(klass.new),
           'data-page-component-modal-outlet=".modal"'

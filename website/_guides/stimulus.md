@@ -71,13 +71,17 @@ stimulus do
   classes loading: "opacity-50 cursor-wait",
           size: -> { @items.count > 10 ? "large" : "small" }
 
-  outlets toast: ".toast", panel: ".side-panel"
+  outlets toast: nil                                # auto: [data-controller~=toast] scoped to this component
+  outlets panel: Vident::Selector(".side-panel")    # verbatim CSS selector
 end
 ```
 
 `class_list_for_stimulus_classes(:loading)` returns the right CSS classes
 inside the component, and `stimulus_outlet(:toast)` emits the matching
-`data-<controller>-<outlet>-outlet` attribute on the parent.
+`data-<controller>-<outlet>-outlet` attribute on the parent. The outlet
+kwarg key is the *child controller identifier*; bare String values are
+rejected (wrap with `Vident::Selector(...)` if you genuinely need a
+verbatim selector).
 
 ## Manual configuration
 

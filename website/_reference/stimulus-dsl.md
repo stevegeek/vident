@@ -78,9 +78,16 @@ class_list_for_stimulus_classes(:loading)
 
 ## Outlets
 
+The kwarg key is the **child controller identifier**. The value is either
+`nil` (auto-builds `[data-controller~=<id>]` scoped to this component) or
+`Vident::Selector("...css...")` for a verbatim CSS selector. A bare String
+is rejected — that ambiguity used to silently produce broken outlets.
+
 ```ruby
 stimulus do
-  outlets toast: ".toast", panel: ".side-panel"
+  outlets toast: nil                                # auto-selector
+  outlets panel: Vident::Selector(".side-panel")    # verbatim
+  outlets({"admin--users" => nil})                  # namespaced child id
 end
 
 # Templates
