@@ -602,7 +602,7 @@ class CustomComponent < Vident::ViewComponent::Base
 end
 ```
 
-All stimulus props accept Symbol paths as well as Strings (e.g. `stimulus_controllers: [:custom, :"admin/users"]`). `stimulus_values:` and `stimulus_classes:` additionally accept Array entries (for cross-controller: `[["admin/users", :name, "value"]]`) and pre-built `Vident::Stimulus::Value` / `Vident::Stimulus::ClassMap` instances, so you can compose attribute sets outside the component and pass them in.
+All stimulus props accept Symbol paths as well as Strings (e.g. `stimulus_controllers: [:custom, :"admin/users"]`). `stimulus_values:` and `stimulus_classes:` additionally accept Array entries (for cross-controller: `[["admin/users", :name, "value"]]`) and pre-built `Vident::Stimulus::Value` / `Vident::Stimulus::ClassMap` instances, so you can compose attribute sets outside the component and pass them in. Anywhere a controller-path String is accepted in a cross-controller slot you may pass the component class (or instance) instead — `[OtherComponent, :name, "value"]`, `stimulus_controllers: [OtherComponent]`, `stimulus_target: [OtherComponent, :row]` — which keeps the reference refactor-safe rather than a hard-coded identifier string.
 
 or you can use tag helpers to generate HTML with Stimulus attributes:
 

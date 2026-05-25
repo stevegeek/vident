@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
+## [3.1.0] - 2026-05-26
+
+### Added
+
+- Cross-controller parser forms accept a component class (or instance) wherever they accept a controller-path String — e.g. `stimulus_target: [Row, :summary]`, `stimulus_controllers: [Row]`, `stimulus_action: [:click, Row, :toggle]` — so references to another component's controller stay refactor-safe instead of hard-coded identifier strings. The same holds for the class-level builders (`Parent.stimulus_target(Row, :summary)`); the String cross-controller form is still rejected there.
+
+
 ## [3.0.0] - 2026-05-04
 
 A bare `String` now means the same thing across every Stimulus primitive — a controller path. The 2.x ambiguity where a `String` could variously mean controller path, outlet name, CSS selector, or fully-qualified action descriptor (depending on primitive and position) is gone, closing a class of silent-failure footguns. See `UPGRADING.md` "Upgrading to Vident 3.0" for symptom → fix on each breaking change.

@@ -67,7 +67,7 @@ class DropdownComponent < ApplicationComponent
 end
 ```
 
-Cross-controller references elsewhere (actions/targets/values/classes/outlets) use the `"path/to/controller"` **string** form — Vident stimulizes it for you.
+Cross-controller references elsewhere (actions/targets/values/classes/outlets) take the controller in one of two forms: a `"path/to/controller"` **string** (Vident stimulizes it for you), or the **component class/instance** itself in that slot — `OtherComponent` in place of `"other_component"`. The component form is refactor-safe: rename the class and the reference follows, with no identifier string to drift.
 
 ### 1.2 Actions
 
@@ -118,6 +118,7 @@ The alias resolves at render time — unknown aliases raise `Vident::Declaration
 | `:my_thing`                                 | `implied#myThing` (no explicit event)              |
 | `[:click, :my_thing]`                       | `click->implied#myThing`                           |
 | `[:click, "other/ctrl", :my_thing]`         | `click->other--ctrl#myThing`                       |
+| `[:click, OtherCtrl, :my_thing]`            | same, via the component class (refactor-safe)      |
 | `"click->other--ctrl#myThing"`              | pass-through, parsed into its parts                |
 | `{event: :click, method: :submit, options: [:once, :prevent]}` | `click:once:prevent->implied#submit` |
 | `-> { [:click, :my_thing] if @editable }`   | proc, evaluated in component instance; `nil`/`false` returns drop the entry |
@@ -179,6 +180,7 @@ Vident `targets` DSL:
 | ------------------------------ | -------------------------------------------------- |
 | `:button`                      | `data-implied-target="button"` on the root         |
 | `["other/ctrl", :row]`         | `data-other--ctrl-target="row"` on the root        |
+| `[OtherCtrl, :row]`            | same, via the component class (refactor-safe)      |
 | Same shapes on `child_element` | `data-implied-target="..."` on the child           |
 
 ```ruby
@@ -224,6 +226,7 @@ end
 stimulus_values: [
   [:foo, "bar"],                        # implied-foo-value="bar"
   ["other/ctrl", :baz, 42],             # other--ctrl-baz-value="42"
+  [OtherCtrl, :baz, 42],                # same, via the component class
 ]
 ```
 

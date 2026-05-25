@@ -22,7 +22,7 @@ module Vident
             name: name_sym.to_s.dasherize,
             css: normalize_css(css_input)
           )
-        in [String => ctrl_path, Symbol => name_sym, css_input]
+        in [ctrl_path, Symbol => name_sym, css_input] if Controller.path_arg?(ctrl_path)
           new(
             controller: Controller.parse(ctrl_path, implied: implied),
             name: name_sym.to_s.dasherize,

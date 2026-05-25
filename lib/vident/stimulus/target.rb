@@ -16,7 +16,7 @@ module Vident
         case args
         in [Symbol => sym]
           new(controller: implied, name: Naming.js_name(sym))
-        in [String => ctrl_path, Symbol => sym]
+        in [ctrl_path, Symbol => sym] if Controller.path_arg?(ctrl_path)
           new(
             controller: Controller.parse(ctrl_path, implied: implied),
             name: Naming.js_name(sym)

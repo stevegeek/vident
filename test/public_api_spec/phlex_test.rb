@@ -25,6 +25,7 @@ module Vident
       include Props
       include InstanceParsers
       include ChildElement
+      include CrossController
       include StableId
       include ClassList
       include Caching

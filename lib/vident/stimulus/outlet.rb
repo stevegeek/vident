@@ -34,14 +34,14 @@ module Vident
           new(controller: implied, name: sym.to_s.dasherize, selector: sel.css)
         in [String => str, Selector => sel]
           new(controller: implied, name: Naming.stimulize_path(str), selector: sel.css)
-        in [String => parent_path, Symbol => child_sym]
+        in [parent_path, Symbol => child_sym] if Controller.path_arg?(parent_path)
           child_name = child_sym.to_s.dasherize
           new(
             controller: Controller.parse(parent_path, implied: implied),
             name: child_name,
             selector: auto_selector(child_name, component_id: component_id)
           )
-        in [String => parent_path, Symbol => child_sym, Selector => sel]
+        in [parent_path, Symbol => child_sym, Selector => sel] if Controller.path_arg?(parent_path)
           new(
             controller: Controller.parse(parent_path, implied: implied),
             name: child_sym.to_s.dasherize,
