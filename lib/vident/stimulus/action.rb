@@ -40,13 +40,13 @@ module Vident
             method_name: Naming.js_name(method_sym),
             event: event.to_s
           )
-        in [String => ctrl_path, Symbol => method_sym]
+        in [ctrl_path, Symbol => method_sym] if Controller.path_arg?(ctrl_path)
           new(
             controller: Controller.parse(ctrl_path, implied: implied),
             method_name: Naming.js_name(method_sym),
             event: nil
           )
-        in [Symbol => event, String => ctrl_path, Symbol => method_sym]
+        in [Symbol => event, ctrl_path, Symbol => method_sym] if Controller.path_arg?(ctrl_path)
           new(
             controller: Controller.parse(ctrl_path, implied: implied),
             method_name: Naming.js_name(method_sym),

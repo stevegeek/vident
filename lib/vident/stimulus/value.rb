@@ -25,7 +25,7 @@ module Vident
             name: name_sym.to_s.dasherize,
             serialized: serialize(raw)
           )
-        in [String => ctrl_path, Symbol => name_sym, raw]
+        in [ctrl_path, Symbol => name_sym, raw] if Controller.path_arg?(ctrl_path)
           new(
             controller: Controller.parse(ctrl_path, implied: implied),
             name: name_sym.to_s.dasherize,

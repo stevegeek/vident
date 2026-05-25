@@ -444,7 +444,7 @@ ButtonComponent.stimulus_target(:submit).to_h ==
 Two constraints at class level:
 
 - **Outlets require an explicit selector.** A class has no `component_id` to auto-scope with, and an unscoped `[data-controller~=foo]` silently matches any sibling. `ButtonComponent.stimulus_outlet(:modal)` raises `Vident::ParseError`.
-- **Cross-controller forms are rejected.** `ButtonComponent.stimulus_target("other/ctrl", :row)` reads like "target on the receiver" but silently ignores the receiver's identifier. If you need cross-controller, call the parser directly: `Vident::Stimulus::Target.parse("other/ctrl", :row, implied: ButtonComponent.stimulus_controller)`.
+- **The cross-controller String form is rejected.** `ButtonComponent.stimulus_target("other/ctrl", :row)` reads like "target on the receiver" but silently ignores the receiver's identifier. Either call the parser directly — `Vident::Stimulus::Target.parse("other/ctrl", :row, implied: ButtonComponent.stimulus_controller)` — or, since 3.1, name the other component explicitly: `ButtonComponent.stimulus_target(OtherComponent, :row)`. A component names its own controller, so nothing is silently ignored. (Outlets keep needing an explicit `Vident::Selector` even with a component.)
 
 ---
 

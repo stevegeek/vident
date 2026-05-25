@@ -18,11 +18,23 @@ module Vident
           new(path: implied.path, name: implied.name, alias_name: as)
         when 1
           raw = args[0]
-          path = raw.to_s
-          new(path: path, name: Naming.stimulize_path(path), alias_name: as)
+          if raw.respond_to?(:stimulus_identifier)
+            name = raw.stimulus_identifier
+            path = raw.respond_to?(:stimulus_identifier_path) ? raw.stimulus_identifier_path : name
+            new(path: path, name: name, alias_name: as)
+          else
+            path = raw.to_s
+            new(path: path, name: Naming.stimulize_path(path), alias_name: as)
+          end
         else
           raise ::Vident::ParseError, "Controller.parse: expected 0 or 1 positional args, got #{args.size}"
         end
+      end
+
+      # Whether `value` is accepted in a cross-controller path slot: a path
+      # String, or a Vident component (class or instance) that names itself.
+      def self.path_arg?(value)
+        value.is_a?(String) || value.respond_to?(:stimulus_identifier)
       end
 
       def identifier = name

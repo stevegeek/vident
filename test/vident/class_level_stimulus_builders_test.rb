@@ -186,6 +186,60 @@ module Vident
       assert_match(/Selector/, err.message)
     end
 
+    # ---- cross-controller via a component class -------------------------
+    #
+    # The String cross-controller form raises at class level (above) because
+    # the receiver's implied controller would be silently ignored. A component
+    # names its own controller explicitly, so there is nothing ambiguous to
+    # ignore — these forms are accepted and bind to the component's controller.
+
+    def test_stimulus_target_accepts_component_in_cross_controller_slot
+      row = make_component(name: "RowComponent")
+      t = make_component(name: "PanelComponent").stimulus_target(row, :summary)
+      assert_equal "row-component", t.controller.name
+      assert_equal "summary", t.name
+    end
+
+    def test_stimulus_action_accepts_component_without_event
+      row = make_component(name: "RowComponent")
+      a = make_component(name: "PanelComponent").stimulus_action(row, :toggle)
+      assert_equal "row-component#toggle", a.to_s
+    end
+
+    def test_stimulus_action_accepts_component_with_event
+      row = make_component(name: "RowComponent")
+      a = make_component(name: "PanelComponent").stimulus_action(:click, row, :toggle)
+      assert_equal "click->row-component#toggle", a.to_s
+    end
+
+    def test_stimulus_value_accepts_component
+      row = make_component(name: "RowComponent")
+      v = make_component(name: "PanelComponent").stimulus_value(row, :open, false)
+      assert_equal "row-component", v.controller.name
+      assert_equal({"row-component-open-value": "false"}, v.to_h)
+    end
+
+    def test_stimulus_param_accepts_component
+      row = make_component(name: "RowComponent")
+      p = make_component(name: "PanelComponent").stimulus_param(row, :row_id, 7)
+      assert_equal "row-component", p.controller.name
+    end
+
+    def test_stimulus_class_accepts_component
+      row = make_component(name: "RowComponent")
+      cm = make_component(name: "PanelComponent").stimulus_class(row, :busy, "opacity-50")
+      assert_equal "row-component", cm.controller.name
+    end
+
+    # Outlet keeps its class-level restriction: a Selector is still required,
+    # so the component shortcut alone raises rather than auto-scoping.
+    def test_stimulus_outlet_component_without_selector_still_raises
+      row = make_component(name: "RowComponent")
+      assert_raises(::Vident::ParseError) do
+        make_component(name: "PanelComponent").stimulus_outlet(row, :item)
+      end
+    end
+
     # ---- Inheritance: subclass uses its own implied controller ----------
 
     def test_subclass_target_uses_child_implied_controller
